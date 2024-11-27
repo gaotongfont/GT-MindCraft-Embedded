@@ -9,6 +9,8 @@ static gt_obj_st * lab2 = NULL;
 static gt_obj_st * img1 = NULL;
 static gt_obj_st * imgbtn1 = NULL;
 static gt_obj_st * player1 = NULL;
+static gt_obj_st * HistorybtCopy = NULL;
+static gt_obj_st * emptybtCopy = NULL;
 
 static void screen_subtitle_0_cb(gt_event_st * e) {
 	gt_disp_stack_go_back(1);
@@ -24,6 +26,14 @@ static void imgbtn1_0_cb(gt_event_st * e) {
 
 static void player1_0_cb(gt_event_st * e) {
 	
+}
+
+static void HistorybtCopy_0_cb(gt_event_st * e) {
+	gt_disp_stack_load_scr_anim(GT_ID_HISTORY_PAGE, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
+}
+
+static void emptybtCopy_0_cb(gt_event_st * e) {
+	gt_disp_stack_load_scr_anim(GT_ID_CLEAR_PAGE, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
 }
 
 gt_obj_st * gt_init_screen_gl(void)
@@ -108,6 +118,26 @@ gt_obj_st * gt_init_screen_gl(void)
 	gt_player_set_mode(player1, GT_PLAYER_MODE_ONCE);
 	gt_player_set_auto_play_period(player1, 35);
 	gt_obj_add_event_cb(player1, player1_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
+	
+
+	/** HistorybtCopy */
+	/** 历史记录 */
+	HistorybtCopy = gt_imgbtn_create(screen_gl);
+	gt_obj_set_pos(HistorybtCopy, 64, 18);
+	gt_obj_set_size(HistorybtCopy, 22, 19);
+	gt_imgbtn_set_src(HistorybtCopy, ".:img_History_22x19.png");
+	gt_imgbtn_add_state_item(HistorybtCopy, ".:img_History2_22x19.png");
+	gt_obj_add_event_cb(HistorybtCopy, HistorybtCopy_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
+	
+
+	/** emptybtCopy */
+	/** 清空 */
+	emptybtCopy = gt_imgbtn_create(screen_gl);
+	gt_obj_set_pos(emptybtCopy, 125, 19);
+	gt_obj_set_size(emptybtCopy, 18, 18);
+	gt_imgbtn_set_src(emptybtCopy, ".:img_empty_18x18.png");
+	gt_imgbtn_add_state_item(emptybtCopy, ".:img_empty2_18x18.png");
+	gt_obj_add_event_cb(emptybtCopy, emptybtCopy_0_cb, GT_EVENT_TYPE_INPUT_RELEASED, NULL);
 
 
 	return screen_gl;

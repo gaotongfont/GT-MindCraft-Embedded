@@ -9,6 +9,8 @@ static gt_obj_st * imgbtn1 = NULL;
 static gt_obj_st * player1 = NULL;
 static gt_obj_st * lab2Copy = NULL;
 static gt_obj_st * lab1Copy = NULL;
+static gt_obj_st * emptybtCopyCopy = NULL;
+static gt_obj_st * HistorybtCopyCopy = NULL;
 
 static void screen_home_0_cb(gt_event_st * e) {
 	
@@ -24,6 +26,14 @@ static void player1_0_cb(gt_event_st * e) {
 
 static void lab1Copy_0_cb(gt_event_st * e) {
 	gt_disp_stack_load_scr_anim(GT_ID_SCREEN_RECORDING, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
+}
+
+static void emptybtCopyCopy_0_cb(gt_event_st * e) {
+	gt_disp_stack_load_scr_anim(GT_ID_CLEAR_PAGE, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
+}
+
+static void HistorybtCopyCopy_0_cb(gt_event_st * e) {
+	gt_disp_stack_load_scr_anim(GT_ID_HISTORY_PAGE, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
 }
 
 gt_obj_st * gt_init_screen_fail(void)
@@ -101,6 +111,26 @@ gt_obj_st * gt_init_screen_fail(void)
 	gt_label_set_font_align(lab1Copy, GT_ALIGN_CENTER_MID);
 	gt_label_set_text(lab1Copy, "请长按说话");
 	gt_obj_add_event_cb(lab1Copy, lab1Copy_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
+	
+
+	/** emptybtCopyCopy */
+	/** 清空 */
+	emptybtCopyCopy = gt_imgbtn_create(screen_fail);
+	gt_obj_set_pos(emptybtCopyCopy, 125, 19);
+	gt_obj_set_size(emptybtCopyCopy, 18, 18);
+	gt_imgbtn_set_src(emptybtCopyCopy, "f:img_empty_18x18.png");
+	gt_imgbtn_add_state_item(emptybtCopyCopy, "f:img_empty2_18x18.png");
+	gt_obj_add_event_cb(emptybtCopyCopy, emptybtCopyCopy_0_cb, GT_EVENT_TYPE_INPUT_RELEASED, NULL);
+	
+
+	/** HistorybtCopyCopy */
+	/** 历史记录 */
+	HistorybtCopyCopy = gt_imgbtn_create(screen_fail);
+	gt_obj_set_pos(HistorybtCopyCopy, 64, 18);
+	gt_obj_set_size(HistorybtCopyCopy, 22, 19);
+	gt_imgbtn_set_src(HistorybtCopyCopy, "f:img_History_22x19.png");
+	gt_imgbtn_add_state_item(HistorybtCopyCopy, "f:img_History2_22x19.png");
+	gt_obj_add_event_cb(HistorybtCopyCopy, HistorybtCopyCopy_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
 
 
 	return screen_fail;

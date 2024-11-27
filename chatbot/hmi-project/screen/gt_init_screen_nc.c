@@ -22,7 +22,7 @@ gt_obj_st * gt_init_screen_nc(void)
 	/** listvxg */
 	listvxg = gt_listview_create(screen_nc);
 	gt_obj_set_pos(listvxg, 19, 57);
-	gt_obj_set_size(listvxg, 200, 124);
+	gt_obj_set_size(listvxg, 200, 85);
 	gt_listview_set_font_color(listvxg, gt_color_hex(0xcadded));
 	gt_listview_set_font_family(listvxg, gray_black_16);
 	gt_listview_set_font_cjk(listvxg, 0);
@@ -39,8 +39,7 @@ gt_obj_st * gt_init_screen_nc(void)
 	gt_listview_set_scale_triple(listvxg, 20, 60, 20);
 	gt_listview_set_next_row_item_count(listvxg, 1);
 	gt_listview_add_item(listvxg, "智酱");
-	gt_listview_add_item(listvxg, "聊天侠");
-	gt_listview_add_item(listvxg, "老羞");
+	gt_listview_add_item(listvxg, "蔡机");
 
 
 

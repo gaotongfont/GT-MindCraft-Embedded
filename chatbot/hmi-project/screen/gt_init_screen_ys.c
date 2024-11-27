@@ -62,6 +62,7 @@ gt_obj_st * gt_init_screen_ys(void)
 	gt_listview_add_item(listv1, "御姐音色-beta");
 	gt_listview_add_item(listv1, "成熟女性音色-beta");
 	gt_listview_add_item(listv1, "甜美女性音色-beta");
+	gt_listview_add_item(listv1, "蔡机");
 
 
 

@@ -9,6 +9,8 @@ static gt_obj_st * lab2 = NULL;
 static gt_obj_st * img1 = NULL;
 static gt_obj_st * imgbtn1 = NULL;
 static gt_obj_st * player1 = NULL;
+static gt_obj_st * HistorybtCopy = NULL;
+static gt_obj_st * emptybtCopy = NULL;
 
 static void screen_subtitle_0_cb(gt_event_st * e) {
 	gt_disp_stack_go_back(1);
@@ -24,6 +26,14 @@ static void imgbtn1_0_cb(gt_event_st * e) {
 
 static void player1_0_cb(gt_event_st * e) {
 	
+}
+
+static void HistorybtCopy_0_cb(gt_event_st * e) {
+	gt_disp_stack_load_scr_anim(GT_ID_HISTORY_PAGE, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
+}
+
+static void emptybtCopy_0_cb(gt_event_st * e) {
+	gt_disp_stack_load_scr_anim(GT_ID_CLEAR_PAGE, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
 }
 
 gt_obj_st * gt_init_screen_subtitle(void)
@@ -75,45 +85,59 @@ gt_obj_st * gt_init_screen_subtitle(void)
 	/** player1 */
 	/** 说话 */
 	player1 = gt_player_create(screen_subtitle);
-	gt_obj_set_pos(player1, 3, 78);
-	gt_obj_set_size(player1, 228, 116);
-	gt_player_add_item(player1, "f:img_08_07_6_228x116.jpg", sizeof("f:img_08_07_6_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_08_228x116.jpg", sizeof("f:img_08_08_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_09_228x116.jpg", sizeof("f:img_08_09_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_10_228x116.jpg", sizeof("f:img_08_10_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_11_228x116.jpg", sizeof("f:img_08_11_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_12_228x116.jpg", sizeof("f:img_08_12_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_13_228x116.jpg", sizeof("f:img_08_13_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_14_228x116.jpg", sizeof("f:img_08_14_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_15_228x116.jpg", sizeof("f:img_08_15_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_16_228x116.jpg", sizeof("f:img_08_16_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_17_228x116.jpg", sizeof("f:img_08_17_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_18_228x116.jpg", sizeof("f:img_08_18_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_19_228x116.jpg", sizeof("f:img_08_19_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_20_228x116.jpg", sizeof("f:img_08_20_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_20_t02_228x116.jpg", sizeof("f:img_08_20_t02_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_21_228x116.jpg", sizeof("f:img_08_21_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_22_228x116.jpg", sizeof("f:img_08_22_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_23_228x116.jpg", sizeof("f:img_08_23_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_24_228x116.jpg", sizeof("f:img_08_24_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_25_228x116.jpg", sizeof("f:img_08_25_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_26_228x116.jpg", sizeof("f:img_08_26_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_27_228x116.jpg", sizeof("f:img_08_27_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_28_228x116.jpg", sizeof("f:img_08_28_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_29_228x116.jpg", sizeof("f:img_08_29_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_30_228x116.jpg", sizeof("f:img_08_30_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_31_228x116.jpg", sizeof("f:img_08_31_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_32_228x116.jpg", sizeof("f:img_08_32_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_33_228x116.jpg", sizeof("f:img_08_33_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_34_228x116.jpg", sizeof("f:img_08_34_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_35_228x116.jpg", sizeof("f:img_08_35_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_36_228x116.jpg", sizeof("f:img_08_36_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_37_228x116.jpg", sizeof("f:img_08_37_228x116.jpg"));
-	gt_player_add_item(player1, "f:img_08_38_228x116.jpg", sizeof("f:img_08_38_228x116.jpg"));
+	gt_obj_set_pos(player1, 5, 42);
+	gt_obj_set_size(player1, 228, 184);
+	gt_player_add_item(player1, "f:img_10_00_228x184.jpg", sizeof("f:img_10_00_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_01_228x184.jpg", sizeof("f:img_10_01_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_02_228x184.jpg", sizeof("f:img_10_02_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_03_228x184.jpg", sizeof("f:img_10_03_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_04_228x184.jpg", sizeof("f:img_10_04_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_05_228x184.jpg", sizeof("f:img_10_05_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_06_228x184.jpg", sizeof("f:img_10_06_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_07_228x184.jpg", sizeof("f:img_10_07_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_08_228x184.jpg", sizeof("f:img_10_08_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_09_228x184.jpg", sizeof("f:img_10_09_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_10_228x184.jpg", sizeof("f:img_10_10_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_11_228x184.jpg", sizeof("f:img_10_11_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_12_228x184.jpg", sizeof("f:img_10_12_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_13_228x184.jpg", sizeof("f:img_10_13_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_14_228x184.jpg", sizeof("f:img_10_14_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_17_228x184.jpg", sizeof("f:img_10_17_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_15_228x184.jpg", sizeof("f:img_10_15_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_16_228x184.jpg", sizeof("f:img_10_16_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_18_228x184.jpg", sizeof("f:img_10_18_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_19_228x184.jpg", sizeof("f:img_10_19_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_20_228x184.jpg", sizeof("f:img_10_20_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_21_228x184.jpg", sizeof("f:img_10_21_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_22_228x184.jpg", sizeof("f:img_10_22_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_23_228x184.jpg", sizeof("f:img_10_23_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_24_228x184.jpg", sizeof("f:img_10_24_228x184.jpg"));
+	gt_player_add_item(player1, "f:img_10_25_228x184.jpg", sizeof("f:img_10_25_228x184.jpg"));
 	gt_player_set_type(player1, GT_PLAYER_TYPE_IMG);
-	gt_player_set_mode(player1, GT_PLAYER_MODE_ONCE);
+	gt_player_set_mode(player1, GT_PLAYER_MODE_LOOP);
 	gt_player_set_auto_play_period(player1, 35);
+	gt_player_play(player1);
 	gt_obj_add_event_cb(player1, player1_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
+	
+
+	/** HistorybtCopy */
+	/** 历史记录 */
+	HistorybtCopy = gt_imgbtn_create(screen_subtitle);
+	gt_obj_set_pos(HistorybtCopy, 64, 18);
+	gt_obj_set_size(HistorybtCopy, 22, 19);
+	gt_imgbtn_set_src(HistorybtCopy, "f:img_History_22x19.png");
+	gt_imgbtn_add_state_item(HistorybtCopy, "f:img_History2_22x19.png");
+	gt_obj_add_event_cb(HistorybtCopy, HistorybtCopy_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
+	
+
+	/** emptybtCopy */
+	/** 清空 */
+	emptybtCopy = gt_imgbtn_create(screen_subtitle);
+	gt_obj_set_pos(emptybtCopy, 125, 19);
+	gt_obj_set_size(emptybtCopy, 18, 18);
+	gt_imgbtn_set_src(emptybtCopy, "f:img_empty_18x18.png");
+	gt_imgbtn_add_state_item(emptybtCopy, "f:img_empty2_18x18.png");
+	gt_obj_add_event_cb(emptybtCopy, emptybtCopy_0_cb, GT_EVENT_TYPE_INPUT_RELEASED, NULL);
 
 
 	return screen_subtitle;
