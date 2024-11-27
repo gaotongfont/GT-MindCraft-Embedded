@@ -1,7 +1,7 @@
 <br/>
 
 <div align="center">
-    <img src="images/logo.png">
+    <img src="images/AIlogo.png">
 </div>
 
 <br/>
