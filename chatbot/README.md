@@ -29,14 +29,17 @@
 <br/>
 
 #### 介绍
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GT-HMI Builder是基于GT-HMI和智匠AI的开源硬件系列项目。chatbot文件夹内包括高通智匠AI开发板的硬件连接、软件示例以及界面设计，旨在帮助开发者快速理解和使用高通GT-HMI 工具及智匠AI的基础功能与示例。通过本项目，开发者可以学习如何利用高通GT-HMI平台及智匠AI构建的基于大模型的人机自然语言交互系统。
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GT-MindCraft Embedded是基于GT-HMI和智匠AI的开源硬件系列项目。chatbot文件夹内包括高通智匠AI开发板的硬件连接、软件示例以及界面设计，旨在帮助开发者快速理解和使用高通GT-HMI 工具及智匠AI的基础功能与示例。通过本项目，开发者可以学习如何利用高通GT-HMI平台及智匠AI构建的基于大模型的人机自然语言交互系统。
 
 #### 硬件框图
+
 <div align="center">
     <img src="images/WIFISOCDEVKIT.png">
 </div>
 
 #### 快速开始
+
 <ul>
 <li style="margin-bottom: 4px;">硬件准备：<ul>
 <li>客户可参考本文件夹中Hardware文件夹下提供的硬件资料自己设计PCB板，</li><li>也可以使用高通智匠 AI开发板。</li></ul></li>
@@ -64,6 +67,7 @@
 <br/>
 
 **视频教程，陆续发布，敬请期待**
+
 <ul>
 <li style="margin-bottom: 4px;"><a href="https://www.bilibili.com/video/BV1qP22YSEQW/?spm_id_from=333.337.search-card.all.click&vd_source=0d93f7ed5a2d40d6e2d321f392d5e6f3">高通智匠AI开发板：整体框架的环境搭建</a></li>
 <li style="margin-bottom: 4px;"><a href="https://www.bilibili.com/video/BV1TGmGYgEAS/?spm_id_from=333.999.0.0&vd_source=0d93f7ed5a2d40d6e2d321f392d5e6f3">高通智匠AI开发板：GUI界面的设计流程</a></li>
@@ -85,8 +89,3 @@
 <ul>
 <li style="margin-bottom: 4px;"><a href="https://apifox.com/apidoc/shared-0fd7ea54-919e-4c93-b673-c60219bc82e0/doc-4739665">如何获取API KEY</a></li>
 </ul>
-
-
-
-
-
