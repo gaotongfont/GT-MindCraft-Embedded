@@ -5,8 +5,8 @@
 </div>
 
 <br/>
-<div align="center">  <a><b>GT-HMI Builder-开源硬件系列</b></a></div>
-<div align="center">  <a><b>致力于低代码开发，多功能，易用的免费嵌入式图形库</b></a></div>
+<div align="center">  <a><b>GT-MindCraft Embedded-开源硬件系列</b></a></div>
+<div align="center">  <a><b>致力于低代码开发，强大的嵌入式GUI智能交互解决方案</b></a></div>
 
 ---
 
