@@ -225,9 +225,6 @@ extern "C" {
 #include "src/widgets/gt_calendar.h"
 #endif
 
-#if GT_CFG_ENABLE_FOCUS
-#include "src/widgets/gt_focus.h"
-#endif
 /* define ---------------------------------------------------------------*/
 
 

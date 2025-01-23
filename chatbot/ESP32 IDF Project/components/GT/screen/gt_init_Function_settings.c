@@ -27,7 +27,7 @@ static uint8_t funct_list_option = AI_SETTING_NONE;
 
 static void screen_setup_0_cb(gt_event_st * e) {
 	funct_list_option = AI_SETTING_NONE;
-    gt_scr_id_t * pre_screen_id = gt_scr_stack_get_prev_id();
+    gt_scr_id_t pre_screen_id = gt_scr_stack_get_prev_id();
     ESP_LOGI(TAG,"--------------------pre_screen_id = %d\n", pre_screen_id);
     if (pre_screen_id == GT_ID_SCREEN_SETUP)
     {

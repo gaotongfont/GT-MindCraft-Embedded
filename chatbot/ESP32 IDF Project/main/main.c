@@ -390,7 +390,7 @@ void gt_gui_task(void *pvParameters)
 //                 if (screen_id == GT_ID_SCREEN_SUBTITLE || screen_id == GT_ID_SCREEN_SETUP)
 //                 {
 //                     update_subtitles(receive_evt);
-//                     gt_audio_player_start("");
+//                     gt_audio_player_start("http://api.mindcraft.com.cn/v1/data/stream_tts/0a9680fee19345af97ecb450b9d2b281/");
 //                     // gt_audio_player_start(receive_evt->tts_audio);
 
 //                     audio_free(receive_evt->tts_audio);

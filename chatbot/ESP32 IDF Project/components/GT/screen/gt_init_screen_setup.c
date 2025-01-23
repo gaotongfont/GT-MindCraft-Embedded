@@ -58,7 +58,6 @@ static uint8_t get_list_option(gt_obj_st* obj)
 static void go_back_to_previous_page(gt_event_st * e) {
 	list_option = AI_SETTING_NONE;
 	gt_disp_stack_go_back(1);
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     if (strcmp(cb_data.settings->bot_name, "小智") == 0)
     {
         set_emote_data_to_ram(AI_EMOTE_XIAOZHI_DISGUST);
@@ -76,7 +75,6 @@ static void go_back_to_previous_page(gt_event_st * e) {
         set_emote_data_to_ram(AI_EMOTE_CAIJI_ANGER);
         set_emote_data_to_ram(AI_EMOTE_CAIJI_HAPPY);
     }
-#endif
 }
 /**
  * @brief 按钮点击回调，根据点击对象，给列表设置不同的选项内容与显示位置
@@ -149,7 +147,6 @@ static void list_item_cb(gt_event_st * e) {
 
             gt_websocket_client_clear_history_message();
 
-        #if USE_ROLE_EMOTE_ONLINE_TEST_CODE
             if (strcmp(cb_data.settings->bot_name, "小智") == 0)
             {
                 set_emote_data_to_ram(AI_EMOTE_XIAOZHI_NEUTRAL);
@@ -159,7 +156,6 @@ static void list_item_cb(gt_event_st * e) {
                 set_emote_data_to_ram(AI_EMOTE_CAIJI_NEUTRAL);
                 set_emote_data_to_ram(AI_EMOTE_CAIJI_SADNESS);
             }
-        #endif
 
 			break;
 		case AI_SETTING_AGE:

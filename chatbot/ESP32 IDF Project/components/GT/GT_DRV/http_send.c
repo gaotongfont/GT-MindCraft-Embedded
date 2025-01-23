@@ -174,7 +174,7 @@ esp_err_t stream_http_rest_with_url(SendSettingsData* send_data)
     const char boundary[] = {"----WebKitFormBoundary7MA4YWxkTrZu0gW"};//分隔符
 
     esp_http_client_config_t config = {
-        .url = "请填入接口文档链接",
+        .url = "http://api.mindcraft.com.cn/v1/agent/chat_bot_v1/",
         .event_handler = stream_http_event_handler,
         .user_data = NULL,//local_response_buffer,        // Pass address of local buffer to get response
         .buffer_size = 1024,
@@ -279,7 +279,7 @@ esp_err_t stream_http_rest_with_url(SendSettingsData* send_data)
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(client, HTTP_METHOD_POST);//设置 HTTP 请求的方法
     esp_http_client_set_header(client, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(client, "Authorization", "//设置请求头的时候要加上API keys");
+    esp_http_client_set_header(client, "Authorization", "API keys");//设置请求头的时候要加上API keys
 
     // 组合最终的 POST 请求数据
     size_t end_boundary_len = strlen(boundary) + 6;
@@ -477,7 +477,7 @@ esp_err_t http_rest_with_url(SendSettingsData* send_data, ReceivedAnswerData* re
     memset(local_response_buffer, 0, MAX_HTTP_OUTPUT_BUFFER + 1);
 
     esp_http_client_config_t config = {
-        .url = "",
+        .url = "http://api.mindcraft.com.cn/v1/agent/chat_bot_v1/",
         .event_handler = _http_event_handler,
         .user_data = local_response_buffer,        // Pass address of local buffer to get response
         .disable_auto_redirect = true,
@@ -548,7 +548,7 @@ esp_err_t http_rest_with_url(SendSettingsData* send_data, ReceivedAnswerData* re
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(client, HTTP_METHOD_POST);//设置 HTTP 请求的方法
     esp_http_client_set_header(client, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(client, "Authorization", "设置请求头的时候要加上API keys");
+    esp_http_client_set_header(client, "Authorization", "API keys");//设置请求头的时候要加上API keys
     size_t end_boundary_len = strlen(boundary) + 6;
     size_t total_data_len =  wav_size + multipart_data_len + extra_pram_len + end_boundary_len;
 

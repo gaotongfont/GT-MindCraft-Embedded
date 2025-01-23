@@ -190,7 +190,7 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
 void gt_websocket_client_request()
 {
     char data[] = {"{\"socket_type\":\"agent_event\",\"event_name\":\"auth_token\",\"event_params\": \
-                    {\"token\":\"请填入自己申请的API KEY\"}}"};
+                    {\"token\":\"API keys\"}}"};//设置请求头的时候要加上API keys
     esp_websocket_client_send_text(client, data, strlen(data), portMAX_DELAY);
     // esp_websocket_client_send_text_partial(client, data, strlen(data), portMAX_DELAY);
 }
@@ -246,7 +246,6 @@ void gt_websocket_client_create_task()
                             \"bot_character\": \"朋友\",\"bot_personality\": \"%s\",\
                             \"bot_tone\": \"%s\",\"llm_model\": \"abab6.5s-chat\",\
                             \"max_tokens\": 100,\"tts_model\": \"MM_TTSL_realtime_speech-01-turbo\",\
-                            \"session_token\":\"bd88b6e8-d797-4144-8f38-e33913046bbb\",\
                             \"language\": \"中文\"}}",\
                             emotion_output, cb_data.settings->voice_id,cb_data.settings->user_name, cb_data.settings->user_age, cb_data.settings->bot_name,\
                             cb_data.settings->bot_description, buf, cb_data.settings->bot_tone);
@@ -301,7 +300,7 @@ void gt_websocket_client_init()
                                          pdFALSE, NULL, shutdown_signaler);
     // shutdown_sema = xSemaphoreCreateBinary();
 
-    websocket_cfg.uri = "请填入接口文档链接";
+    websocket_cfg.uri = "ws://api.mindcraft.com.cn/socket-v1/?type=mcu&response_detail=1";
     websocket_cfg.reconnect_timeout_ms = 10000;
     websocket_cfg.network_timeout_ms = 6000;
     websocket_cfg.buffer_size = 4096;
@@ -1276,7 +1275,7 @@ void websocket_app_start(void)
 //     ESP_LOGI(TAG, "Endpoint uri: %s\n", line);
 
 // #else
-    websocket_cfg.uri = ""; //CONFIG_WEBSOCKET_URI;
+    websocket_cfg.uri = "ws://api.mindcraft.com.cn/socket-v1/?EIO=4&transport=websocket"; //CONFIG_WEBSOCKET_URI;
     websocket_cfg.reconnect_timeout_ms = 10000;
     websocket_cfg.network_timeout_ms = 6000;
 // #endif /* CONFIG_WEBSOCKET_URI_FROM_STDIN */
@@ -1315,7 +1314,7 @@ void websocket_app_start(void)
 
 #if 1
     // char data[] = {"{\"event_name\":\"auth_token\",\"event_params\":{\"token\":\"MC-demo\"}}"};
-    char data[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"auth_token\",\"event_params\":{\"token\":\"请填入自己申请的API KEY\"}}"};
+    char data[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"auth_token\",\"event_params\":{\"token\":\"API keys\"}}"};\"}}"};//设置请求头的时候要加上API keys
     esp_websocket_client_send_text(client, data, strlen(data), portMAX_DELAY);
 
     char sendData[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"action_agent\",\"event_params\":{\"agent_name\":\"llm_socket\",\"model\":\"deepseek-chat\",\"asr_text\":\"给我讲一讲小红帽和大灰狼的故事吧\"}}"};

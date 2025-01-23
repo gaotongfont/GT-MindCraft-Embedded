@@ -60,11 +60,7 @@ void waiting_rec_ui() {
     gt_obj_set_visible(rect_b, GT_INVISIBLE);
     gt_obj_set_visible(player_audio, GT_INVISIBLE);
     gt_player_stop(player_audio);
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     set_role_emote(player_emojis, img_emote, AI_EMOJIS_WAITING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
-#else
-    set_emojis_in_player(player_emojis, AI_EMOJIS_WAITING);
-#endif
 
     add_event_cb_for_imgbtn();
     gt_disp_invalid_area(screen_home);
@@ -85,12 +81,7 @@ static void recording_ui() {
     set_emojis_in_player(player_audio, AI_ANIM_AUDIO);
     gt_obj_set_visible(player_audio, GT_VISIBLE);
     gt_player_play(player_audio);
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     set_role_emote(player_emojis, img_emote, AI_EMOJIS_RECORDING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
-#else
-    set_emojis_in_player(player_emojis, AI_EMOJIS_RECORDING);
-#endif
-
 }
 
 /**
@@ -104,11 +95,7 @@ static void waiting_answer_ui() {
 	gt_label_set_font_color(lab2, gt_color_hex(0x5b8ad9));
 	gt_obj_set_pos(player_audio, 90, 264);
     set_emojis_in_player(player_audio, AI_ANIM_SMILE);
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     set_role_emote(player_emojis, img_emote, AI_EMOJIS_HAPPY, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
-#else
-    set_emojis_in_player(player_emojis, AI_EMOJIS_HAPPY);
-#endif
 
     gt_obj_remove_all_event_cb(imgbtn1);
 }
@@ -124,11 +111,7 @@ void identification_failed_ui() {
     gt_label_set_font_color(lab2, gt_color_hex(0xFF7859));
     gt_obj_set_visible(player_audio, GT_INVISIBLE);
     gt_player_stop(player_audio);
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     set_role_emote(player_emojis, img_emote, AI_EMOJIS_SYMPATHY, AI_EMOTE_XIAOZHI_SADNESS, AI_EMOTE_CAIJI_SADNESS);
-#else
-    set_emojis_in_player(player_emojis, AI_EMOJIS_SYMPATHY);
-#endif
 
     add_event_cb_for_imgbtn();
 }
@@ -399,7 +382,6 @@ gt_obj_st * gt_init_screen_home(void)
     gt_player_set_mode(player_emojis, GT_PLAYER_MODE_LOOP);
     gt_player_set_auto_play_period(player_emojis, 35);
 
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     img_emote = gt_img_create(screen_home);
     gt_obj_set_pos(img_emote, 35, 38);
 	gt_obj_set_size(img_emote, 169, 204);
@@ -420,9 +402,6 @@ gt_obj_st * gt_init_screen_home(void)
         gt_obj_set_visible(img_emote, GT_VISIBLE);
         set_emote_in_img(img_emote, AI_EMOTE_CAIJI_NEUTRAL);
     }
-#else
-    set_emojis_in_player(player_emojis, AI_EMOJIS_WAITING);
-#endif
 
     /** rect1 */
 	rect_b = gt_rect_create(screen_home);

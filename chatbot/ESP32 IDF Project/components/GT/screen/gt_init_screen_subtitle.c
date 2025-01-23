@@ -28,14 +28,13 @@ void set_emojis() {
         ESP_LOGE(TAG, "1111111111111111111111111111111\n");
         return;
     }
-    if (strcmp(cb_data.settings->bot_name, "蔡机") == 0) {
-        set_emojis_in_player(player1, AI_EMOJIS_CJ);
-        gt_obj_set_pos(player1, 4, 47);
-	    gt_obj_set_size(player1, 228, 184);
-        gt_player_set_auto_play_period(player1, 20);
-        ESP_LOGE(TAG, "2222222222222222222222222222222222\n");
+    if (strcmp(cb_data.settings->bot_name, "菜机") == 0) {
+        // set_emojis_in_player(player1, AI_EMOJIS_CJ);
+        // gt_obj_set_pos(player1, 4, 47);
+	    // gt_obj_set_size(player1, 228, 184);
+        // gt_player_set_auto_play_period(player1, 20);
+        // ESP_LOGE(TAG, "2222222222222222222222222222222222\n");
 
-    #if USE_ROLE_EMOTE_ONLINE_TEST_CODE
         if (strcmp(cb_data.answer->emotion_value, "sad") == 0) {
             set_emote_in_img(img_emote, AI_EMOTE_CAIJI_SADNESS);
         } else if (strcmp(cb_data.answer->emotion_value, "angry") == 0) {
@@ -53,14 +52,9 @@ void set_emojis() {
         } else {
             set_emote_in_img(img_emote, AI_EMOTE_CAIJI_NEUTRAL);
         }
-    #endif
 
     }
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     else if (strcmp(cb_data.settings->bot_name, "智酱") == 0) {
-#else
-    else {
-#endif
         if (strcmp(cb_data.answer->emotion_value, "happy") == 0) {
             set_emojis_in_player(player1, AI_EMOJIS_HAPPY);
         } else if (strcmp(cb_data.answer->emotion_value, "sad") == 0) {
@@ -76,7 +70,6 @@ void set_emojis() {
         ESP_LOGE(TAG, "333333333333333333333333333333\n");
 
     }
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
     else if (strcmp(cb_data.settings->bot_name, "小智") == 0) {
         if (strcmp(cb_data.answer->emotion_value, "sad") == 0) {
             set_emote_in_img(img_emote, AI_EMOTE_XIAOZHI_SADNESS);
@@ -96,11 +89,14 @@ void set_emojis() {
             set_emote_in_img(img_emote, AI_EMOTE_XIAOZHI_NEUTRAL);
         }
     }
-#endif
 }
 
 #if 1//USE_HTTP_STREAM
 void update_subtitles(ReceivedAnswerData* receive_data) {
+    if (receive_data == NULL) {
+        ESP_LOGE(TAG, "receive_data is NULL");
+        return;
+    }
     if (cb_data.answer == NULL) {
         ESP_LOGE(TAG, "cb_data.answer is NULL");
         return;
@@ -306,7 +302,6 @@ gt_obj_st * gt_init_screen_subtitle(void)
 	gt_player_set_mode(player1, GT_PLAYER_MODE_LOOP);
 	gt_player_set_auto_play_period(player1, 35);
 
-#if USE_ROLE_EMOTE_ONLINE_TEST_CODE
 	img_emote = gt_img_create(screen_subtitle);
     gt_obj_set_pos(img_emote, 35, 35);
 	gt_obj_set_size(img_emote, 169, 204);
@@ -326,7 +321,6 @@ gt_obj_st * gt_init_screen_subtitle(void)
         gt_obj_set_visible(img_emote, GT_VISIBLE);
         set_emote_in_img(img_emote, AI_EMOTE_CAIJI_NEUTRAL);
     }
-#endif
 
     //根据返回的情绪值设置不同的表情
     set_emojis();

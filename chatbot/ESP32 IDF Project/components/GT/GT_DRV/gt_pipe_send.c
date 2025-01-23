@@ -182,7 +182,7 @@ void gt_pipe_send_start(void)
     audio_pipeline_reset_elements(pipeline);
     audio_pipeline_terminate(pipeline);
 
-    audio_element_set_uri(http_stream, "");
+    audio_element_set_uri(http_stream, "http://api.mindcraft.com.cn/v1/data/chunk_update_file/");
     audio_pipeline_run(pipeline);
 }
 
@@ -309,7 +309,7 @@ void get_pipe_send_api_key(void)
     char *local_response_buffer = (char *)audio_malloc(MAX_HTTP_OUTPUT_BUFFER + 1);
     memset(local_response_buffer, 0, MAX_HTTP_OUTPUT_BUFFER + 1);
     esp_http_client_config_t config = {
-        .url = "",
+        .url = "http://api.mindcraft.com.cn/v1/data/chunk_update_file/",
         .event_handler = NULL,
         .user_data = local_response_buffer,        // Pass address of local buffer to get response
         .disable_auto_redirect = true,
@@ -322,7 +322,7 @@ void get_pipe_send_api_key(void)
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(get_api_key, HTTP_METHOD_GET);//设置 HTTP 请求的方法
     esp_http_client_set_header(get_api_key, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(get_api_key, "Authorization", "//设置请求头的时候要加上API keys");
+    esp_http_client_set_header(get_api_key, "Authorization", "API keys");//设置请求头的时候要加上API keys
     size_t end_boundary_len = strlen(boundary) + 6;
 
 
@@ -545,7 +545,7 @@ void gt_pipe_send_start(void)
     audio_pipeline_reset_elements(pipeline);
     audio_pipeline_terminate(pipeline);
 
-    audio_element_set_uri(http_stream, "");
+    audio_element_set_uri(http_stream, "http://api.mindcraft.com.cn/v1/mode_chunk/update/");
 
     audio_pipeline_run(pipeline);
 }
@@ -644,7 +644,7 @@ static esp_err_t resolve_answer_json(char *jbuf)
 //     char *local_response_buffer = (char *)audio_malloc(MAX_HTTP_OUTPUT_BUFFER + 1);
 //     memset(local_response_buffer, 0, MAX_HTTP_OUTPUT_BUFFER + 1);
 //     esp_http_client_config_t config = {
-//         .url =  "",
+//         .url =  "http://api.mindcraft.com.cn/v1/mode_chunk/",
 //         .event_handler = NULL,
 //         .user_data = local_response_buffer,        // Pass address of local buffer to get response
 //         .disable_auto_redirect = true,
@@ -657,7 +657,7 @@ static esp_err_t resolve_answer_json(char *jbuf)
 //     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
 //     esp_http_client_set_method(get_api_key, HTTP_METHOD_POST);//设置 HTTP 请求的方法
 //     esp_http_client_set_header(get_api_key, "Content-Type",content_type_header);//设置 HTTP 请求头
-//     esp_http_client_set_header(get_api_key, "Authorization", "//设置请求头的时候要加上API keys");
+//     esp_http_client_set_header(get_api_key, "Authorization", "API keys");//设置请求头的时候要加上API keys
 //     size_t end_boundary_len = strlen(boundary) + 6;
 
 
@@ -742,7 +742,7 @@ void get_pipe_send_api_key(void)
     char *local_response_buffer = (char *)audio_malloc(MAX_HTTP_OUTPUT_BUFFER + 1);
     memset(local_response_buffer, 0, MAX_HTTP_OUTPUT_BUFFER + 1);
     esp_http_client_config_t config = {
-        .url =  "",
+        .url =  "http://api.mindcraft.com.cn/v1/mode_chunk/",
         .event_handler = NULL,
         .user_data = local_response_buffer,        // Pass address of local buffer to get response
         .disable_auto_redirect = true,
@@ -755,7 +755,7 @@ void get_pipe_send_api_key(void)
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(get_api_key, HTTP_METHOD_POST);//设置 HTTP 请求的方法
     esp_http_client_set_header(get_api_key, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(get_api_key, "Authorization", "//设置请求头的时候要加上API keys");
+    esp_http_client_set_header(get_api_key, "Authorization", "API keys");//设置请求头的时候要加上API keys
     size_t end_boundary_len = strlen(boundary) + 6;
 
 

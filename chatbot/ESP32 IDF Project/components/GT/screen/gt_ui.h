@@ -20,7 +20,6 @@
 #include "gt_role_emote.h"
 
 
-#define USE_ROLE_EMOTE_ONLINE_TEST_CODE 01
 
 extern QueueHandle_t mYxQueue;
 extern QueueHandle_t mYxQueue2;

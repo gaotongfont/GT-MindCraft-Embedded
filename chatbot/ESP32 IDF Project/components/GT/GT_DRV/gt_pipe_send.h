@@ -11,10 +11,10 @@ extern "C" {
 #define API_KEY
 
 //创建任务url
-#define CREATE_TASK_URL ""
+#define CREATE_TASK_URL "http://api.mindcraft.com.cn/v1/stream_asr/"
 
 //提交数据url
-#define SUMBIT_DATA_URL ""
+#define SUMBIT_DATA_URL "http://api.mindcraft.com.cn/v1/stream_asr/update/"
 
 //参数设置
 #define CATEGORY "tencent_stream_asr"

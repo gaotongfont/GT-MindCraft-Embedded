@@ -26,7 +26,7 @@ esp_err_t create_room_http()
     malloc_receive_buf();//recerve_buf申请堆空间
 
     esp_http_client_config_t config = {
-        .url = " ",
+        .url = "http://api.mindcraft.com.cn/v1/session/",
         .user_data = NULL,//local_response_buffer,        // Pass address of local buffer to get response
         .buffer_size = 1024,
         .disable_auto_redirect = true,
@@ -64,7 +64,7 @@ esp_err_t create_room_http()
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(client, HTTP_METHOD_POST);//设置 HTTP 请求的方法
     esp_http_client_set_header(client, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(client, "Authorization", "//设置请求头的时候要加上API keys");
+    esp_http_client_set_header(client, "Authorization", "API keys");//设置请求头的时候要加上API keys
 
     size_t end_boundary_len = strlen(boundary) + 6;
     size_t total_data_len = extra_pram_len + end_boundary_len;
@@ -189,7 +189,7 @@ esp_err_t get_historical_message_http()
     creat_historyData();//申请历史记录的堆空间
 
     char urlString[255] = {0};
-    sprintf(urlString, "",HISTORY_GROUP_COUNT*2, receive_buf);
+    sprintf(urlString, "https://api.mindcraft.com.cn/v1/message/?size=%d&session_token=%s",HISTORY_GROUP_COUNT*2, receive_buf);
     esp_http_client_config_t config = {
         .url = urlString,
         .user_data = NULL,//local_response_buffer,        // Pass address of local buffer to get response
@@ -206,7 +206,7 @@ esp_err_t get_historical_message_http()
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(client, HTTP_METHOD_GET);//设置 HTTP 请求的方法
     esp_http_client_set_header(client, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(client, "Authorization", "//设置请求头的时候要加上API keys");
+    esp_http_client_set_header(client, "Authorization", "API keys");//设置请求头的时候要加上API keys
 
     size_t end_boundary_len = strlen(boundary) + 6;
     size_t total_data_len =  end_boundary_len;
@@ -340,7 +340,7 @@ esp_err_t clear_historical_message_http()
     const char boundary[] = {"----WebKitFormBoundary7MA4YWxkTrZu0gW"};//分隔符    /
 
     esp_http_client_config_t config = {
-        .url = "",
+        .url = "http://api.mindcraft.com.cn/v1/message/clear/",
         .user_data = NULL,//local_response_buffer,        // Pass address of local buffer to get response
         .buffer_size = 1024,
         .disable_auto_redirect = true,
@@ -366,7 +366,7 @@ esp_err_t clear_historical_message_http()
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(client, HTTP_METHOD_POST);//设置 HTTP 请求的方法
     esp_http_client_set_header(client, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(client, "Authorization", "//设置请求头的时候要加上API keys");
+    esp_http_client_set_header(client, "Authorization", "API keys");//设置请求头的时候要加上API keys
 
     size_t end_boundary_len = strlen(boundary) + 6;
     size_t total_data_len =  extra_pram_len + end_boundary_len;
