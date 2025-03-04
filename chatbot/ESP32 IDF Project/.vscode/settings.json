@@ -97,11 +97,36 @@
     "wifi_config.h": "c",
     "gt_ui.h": "c",
     "gt_audio_play.h": "c",
-    "complex": "c"
+    "complex": "c",
+    "esp_wifi.h": "c",
+    "audio_pipeline.h": "c",
+    "audio_common.h": "c",
+    "chrono": "c",
+    "future": "c",
+    "*.def": "c",
+    "xlocmon": "cpp",
+    "xlocnum": "cpp",
+    "xtr1common": "cpp",
+    "gt_font_config.h": "c",
+    "wifi_event.h": "c",
+    "wifi.h": "c",
+    "esp_event.h": "c",
+    "gt_gui_task.h": "c",
+    "typeinfo": "c",
+    "esp_websocket_client.h": "c",
+    "gt_websocket.h": "c",
+    "gt_task_protocol.h": "c",
+    "ES8311.C": "cpp"
 },
 "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
 ],
 "idf.flashType": "UART",
-"idf.portWin": "COM15"
+"idf.portWin": "COM4",
+"idf.customExtraVars": {
+    "OPENOCD_SCRIPTS": "c:\\ESP32-IDF\\esp-idf\\tools\\tools\\openocd-esp32\\v0.12.0-esp32-20240726/openocd-esp32/share/openocd/scripts",
+    "IDF_CCACHE_ENABLE": "1",
+    "ESP_ROM_ELF_DIR": "c:\\ESP32-IDF\\esp-idf\\tools\\tools\\esp-rom-elfs\\20230320/",
+    "IDF_TARGET": "esp32s3"
+}
 }

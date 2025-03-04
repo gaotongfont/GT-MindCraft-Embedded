@@ -34,30 +34,41 @@
 
 #define NO_DATA_TIMEOUT_SEC 60
 
+#define MC_API_KEY
+
 static const char *TAG = "websocket";
 
 static TimerHandle_t shutdown_signal_timer;
 static SemaphoreHandle_t shutdown_sema;
 
 
-static esp_websocket_client_handle_t client;
-static TimerHandle_t gt_timer;
-static SemaphoreHandle_t checkroom_semaphore;
-static SemaphoreHandle_t create_semaphore;
+static esp_websocket_client_handle_t client = NULL;
+// static TimerHandle_t gt_timer;
+// static SemaphoreHandle_t checkroom_semaphore;
+// static SemaphoreHandle_t create_semaphore;
 static int sem_takecount = 0;
 static WEBSOCKET_RECEIVED_DATA* clock_buf = NULL;
 
 static bool isFirstAudiouri = false;
 ReceivedAnswerData* chat_bot_receive = NULL;
+static GT_PROTOCOL* gt_pro = NULL;
+
 static char* chatbot_audio_uri = NULL;
 static int audio_uri_len = 0;
 
 static gt_obj_st* serve_dialog = NULL;
+static WEB_HISTORY_DATA* web_history_data[WEB_HISTORY_ARRY*2] = {NULL};
 
 extern ChatbotData cb_data;
 extern QueueHandle_t mYxQueue3;
-extern SemaphoreHandle_t tts_audio_sem;
+extern QueueHandle_t gui_task_queue;
+extern QueueHandle_t web_audio_queue;
 
+extern SemaphoreHandle_t tts_audio_sem;
+SemaphoreHandle_t web_history_sem = NULL;
+static GT_WEB_PROTOCOL* gt_web_protocol = NULL;
+
+static WEBSOCKET_STATUS websocket_status_flag = 0;
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -97,12 +108,14 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
     switch (event_id) {
     case WEBSOCKET_EVENT_CONNECTED:
         ESP_LOGI(TAG, "WEBSOCKET_EVENT_CONNECTED");
+        websocket_status_flag = WEBSOCKET_CONNECTED;
         gt_dialog_close(serve_dialog);
         gt_websocket_client_request();
-
+        
         break;
     case WEBSOCKET_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "WEBSOCKET_EVENT_DISCONNECTED");
+        websocket_status_flag = WEBSOCKET_DISCONNECTED;
         log_error_if_nonzero("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
         if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
             log_error_if_nonzero("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
@@ -115,21 +128,26 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
         ESP_LOGI(TAG, "Received opcode=%d", data->op_code);
         if (data->op_code == 0x08 && data->data_len == 2) {
             ESP_LOGW(TAG, "Received closed message with code=%d", 256 * data->data_ptr[0] + data->data_ptr[1]);
-        } else {
-            ESP_LOGW(TAG, "Received=%.*s\n\n", data->data_len, (char *)data->data_ptr);
         }
 
         char* jbuf = (char*)audio_malloc(data->data_len+1);
         memset(jbuf, 0, data->data_len+1);
         memcpy(jbuf, data->data_ptr, data->data_len);
 
-        chat_bot_receive = (ReceivedAnswerData*)audio_malloc(sizeof(ReceivedAnswerData));
-        memset(chat_bot_receive, 0, sizeof(ReceivedAnswerData));
-
-        if(websocket_chatbot_json_parse(jbuf, chat_bot_receive) != -1)
+        // chat_bot_receive = (ReceivedAnswerData*)audio_malloc(sizeof(ReceivedAnswerData));
+        // memset(chat_bot_receive, 0, sizeof(ReceivedAnswerData));
+        int res = websocket_chatbot_json_parse(jbuf, chat_bot_receive);
+        if(res == 1)
         {
             BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-            xQueueSendFromISR(mYxQueue3, &chat_bot_receive, &xHigherPriorityTaskWoken);
+            #if 1 
+                gt_pro->head_type = REC_WEB_DATA;
+                gt_pro->data = chat_bot_receive;
+                xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
+            #else
+                xQueueSendFromISR(mYxQueue3, &chat_bot_receive, &xHigherPriorityTaskWoken);
+            #endif 
+            
             if(isFirstAudiouri == true)
             {
                 if(chat_bot_receive->tts_audio != NULL)
@@ -138,20 +156,36 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
                     if(chat_bot_receive->tts_audio != NULL && strcmp(chat_bot_receive->tts_audio, "") != 0)
                     {
                         ESP_LOGE(TAG, "clock_buf->recover_data.tts_audio = %s", chat_bot_receive->tts_audio);
-                        set_chatbot_audio_uri(chat_bot_receive->tts_audio);
-                        // xSemaphoreGive(tts_audio_sem);
-                        if (xSemaphoreGive(tts_audio_sem) == pdPASS) {
-                            ESP_LOGI(TAG, "Semaphore successfully given");
-                        }
-                        isFirstAudiouri = false;
+                        
+                        #if 0
+                            xQueueSend(web_audio_queue, &chat_bot_receive->tts_audio, portMAX_DELAY);
+                        #else
+                            set_chatbot_audio_uri(chat_bot_receive->tts_audio);
+                            if (xSemaphoreGive(tts_audio_sem) == pdPASS) 
+                            {
+                                ESP_LOGI(TAG, "Semaphore successfully given");
+                            }
+                            isFirstAudiouri = false;
+                        #endif
+                      
                     }
                 }
             }
         }
+        else if(res == -2)
+        {
+            gt_pro->head_type = REC_WEB_DATA;
+            gt_pro->data = chat_bot_receive;
+            xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
+        }
+        else if(res == -3)
+        {
+            chat_bot_receive->is_web_first_response = true;
+        }    
         else
         {
-            audio_free(chat_bot_receive);
-            chat_bot_receive = NULL;
+            // audio_free(chat_bot_receive);
+            // chat_bot_receive = NULL;
             ESP_LOGW(TAG, "chat_bot_receive = NULL");
         }
         audio_free(jbuf);
@@ -170,12 +204,12 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
         // }
 
         ESP_LOGW(TAG, "Total payload length=%d, data_len=%d, current payload offset=%d\r\n", data->payload_len, data->data_len, data->payload_offset);
-        xTimerReset(shutdown_signal_timer, portMAX_DELAY);
+        // xTimerReset(shutdown_signal_timer, portMAX_DELAY);
 
         break;
     case WEBSOCKET_EVENT_ERROR:
         ESP_LOGI(TAG, "WEBSOCKET_EVENT_ERROR");
-        serve_dialog_init();
+        //serve_dialog_init();
         log_error_if_nonzero("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
         if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
             log_error_if_nonzero("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
@@ -186,13 +220,12 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
     }
 }
 
-
 void gt_websocket_client_request()
 {
-    char data[] = {"{\"socket_type\":\"agent_event\",\"event_name\":\"auth_token\",\"event_params\": \
-                    {\"token\":\"API keys\"}}"};//设置请求头的时候要加上API keys
+    char data[150] = {0};
+    snprintf(data, sizeof(data), "{\"socket_type\":\"agent_event\",\"event_name\":\"auth_token\",\"event_params\": \
+                    {\"token\":\"%s\"}}", API_KEY);
     esp_websocket_client_send_text(client, data, strlen(data), portMAX_DELAY);
-    // esp_websocket_client_send_text_partial(client, data, strlen(data), portMAX_DELAY);
 }
 
 int check_opcode(unsigned char opcode)
@@ -212,10 +245,8 @@ int check_opcode(unsigned char opcode)
 void gt_websocket_client_checkroom_isexist()
 {
     char data_create[] = {"{\"socket_type\":\"interface_call\",\"event_name\":\"session_check\",\"event_params\": \
-                            {\"session_token\":\"bd88b6e8-d797-4144-8f38-e33913046bbb\"}}"};
+                            {\"session_token\":\"room_id\"}}"};
     esp_websocket_client_send_text(client, data_create, strlen(data_create), portMAX_DELAY);
-    // esp_websocket_client_send_text_partial(client, data_create, strlen(data_create), portMAX_DELAY);
-    // esp_websocket_client_send_fin(client, portMAX_DELAY);
 }
 
 void gt_websocket_client_create_room()
@@ -224,7 +255,22 @@ void gt_websocket_client_create_room()
                             {\"session_name\":\"test\",\"session_remark\":\"{}\",\"config_data\":{},\"model\": \
                             \"deepseek-chat\",\"prompt\":\"#\",\"temperature\":0.2,\"max_tokens\":4000,\"history_length\":8}}"};
     esp_websocket_client_send_text(client, data_create, strlen(data_create), portMAX_DELAY);
-    // esp_websocket_client_send_cont_msg(client, data_create, strlen(data_create), portMAX_DELAY);
+}
+
+void gt_websocket_client_get_history_message()
+{
+    char data_buf[256] = {0};
+    snprintf(data_buf, 256, "{\"socket_type\":\"interface_call\",\"event_name\":\"message_list\",\"event_params\": \
+                             {\"session_token\":\"%s\",\"size\":6}}", chat_bot_receive->session_token);
+    esp_websocket_client_send_text(client, data_buf, strlen(data_buf), portMAX_DELAY);
+}
+
+void gt_websocket_client_clear_history_message()
+{
+    char data_buf[256] = {0};
+    snprintf(data_buf, 256, "{\"socket_type\":\"interface_call\",\"event_name\":\"message_clear\",\"event_params\": \
+                            {\"session_token\":\"%s\"}}", chat_bot_receive->session_token);
+    esp_websocket_client_send_text(client, data_buf, strlen(data_buf), portMAX_DELAY);
 }
 
 void gt_websocket_client_create_task()
@@ -232,11 +278,11 @@ void gt_websocket_client_create_task()
     int i = 0;
     char buf[30] = {0};
     char personality[20] = {0};
-    // char emotion_output[10] = {0};
     bool emotion_output = true;
     char data_create_2[2500] = {0};
     emotion_output = strcmp(cb_data.settings->emotion_value, "打开") == 0 ? true : false;
     sprintf(buf, "%s,%s,%s,%s", cb_data.settings->bot_personality[0], cb_data.settings->bot_personality[1], cb_data.settings->bot_personality[2], cb_data.settings->bot_personality[3]);
+
     snprintf(data_create_2, 2500, "{\"socket_type\": \"agent_event\",\"event_name\": \"agent_action\",\
                             \"event_params\": { \"agent_name\": \"chat_bot_v2\",\"upload_format\": \"pcm\",\
                             \"upload_sample_rate\": 16000,\"mode\": \"customize\",\
@@ -246,11 +292,10 @@ void gt_websocket_client_create_task()
                             \"bot_character\": \"朋友\",\"bot_personality\": \"%s\",\
                             \"bot_tone\": \"%s\",\"llm_model\": \"abab6.5s-chat\",\
                             \"max_tokens\": 100,\"tts_model\": \"MM_TTSL_realtime_speech-01-turbo\",\
+                            \"session_token\":\"%s\",\
                             \"language\": \"中文\"}}",\
                             emotion_output, cb_data.settings->voice_id,cb_data.settings->user_name, cb_data.settings->user_age, cb_data.settings->bot_name,\
-                            cb_data.settings->bot_description, buf, cb_data.settings->bot_tone);
-
-    printf("--------------------------------data_create_2 = %s\n", data_create_2);
+                            cb_data.settings->bot_description, buf, cb_data.settings->bot_tone, chat_bot_receive->session_token);
 
     char data_create[] = {"{\"socket_type\": \"agent_event\",\"event_name\": \"agent_action\", \
                             \"event_params\": { \"agent_name\": \"chat_bot_v2\",\"upload_format\": \"pcm\", \
@@ -264,20 +309,6 @@ void gt_websocket_client_create_task()
     esp_websocket_client_send_text(client, data_create_2, strlen(data_create_2), portMAX_DELAY);
 }
 
-void gt_websocket_client_get_history_message()
-{
-    char data_create[] = {"{\"socket_type\":\"interface_call\",\"event_name\":\"message_list\",\"event_params\": \
-                            {\"session_token\":\"bd88b6e8-d797-4144-8f38-e33913046bbb\",\"size\":8}}"};
-    esp_websocket_client_send_text(client, data_create, strlen(data_create), portMAX_DELAY);
-}
-
-void gt_websocket_client_clear_history_message()
-{
-    char data_create[] = {"{\"socket_type\":\"interface_call\",\"event_name\":\"message_clear\",\"event_params\": \
-                            {\"session_token\":\"bd88b6e8-d797-4144-8f38-e33913046bbb\"}}"};
-    esp_websocket_client_send_text(client, data_create, strlen(data_create), portMAX_DELAY);
-}
-
 void gt_websocket_client_stop_send_audio_data()
 {
     char data_create[] = {"{\"socket_type\": \"intervent_event\", \"event_name\":\"agent_action\"}"};
@@ -288,19 +319,30 @@ void gt_websocket_client_stop_receive_data()
 {
     char data_create[] = {"{\"socket_type\": \"intervent_event\",\"event_name\": \"stream_output\"}"};
     esp_websocket_client_send_text(client, data_create, strlen(data_create), portMAX_DELAY);
-    ESP_LOGE(TAG, "gt_websocket_client_stop_receive_data !!!!!!!!!!!!!!");
+}
+
+static void malloc_web_history_data()
+{
+    int i = 0;
+    for(; i < WEB_HISTORY_ARRY*2; i++)
+    {
+        web_history_data[i] = (WEB_HISTORY_DATA*)audio_malloc(sizeof(WEB_HISTORY_DATA));
+    }
 }
 
 void gt_websocket_client_init()
 {
+    gt_web_protocol = (GT_WEB_PROTOCOL*)audio_malloc(sizeof(GT_WEB_PROTOCOL));
+    memset(gt_web_protocol, 0, sizeof(GT_WEB_PROTOCOL));
+
     esp_websocket_client_config_t websocket_cfg = {};
     clock_buf = (WEBSOCKET_RECEIVED_DATA*)audio_malloc(sizeof(WEBSOCKET_RECEIVED_DATA));
     memset(clock_buf, 0, sizeof(WEBSOCKET_RECEIVED_DATA));
-    shutdown_signal_timer = xTimerCreate("Websocket shutdown timer", NO_DATA_TIMEOUT_SEC * 1000 / portTICK_PERIOD_MS,
-                                         pdFALSE, NULL, shutdown_signaler);
+    // shutdown_signal_timer = xTimerCreate("Websocket shutdown timer", NO_DATA_TIMEOUT_SEC * 1000 / portTICK_PERIOD_MS,
+    //                                      pdFALSE, NULL, shutdown_signaler);
     // shutdown_sema = xSemaphoreCreateBinary();
 
-    websocket_cfg.uri = "ws://api.mindcraft.com.cn/socket-v1/?type=mcu&response_detail=1";
+    websocket_cfg.uri = WEB_LINK;
     websocket_cfg.reconnect_timeout_ms = 10000;
     websocket_cfg.network_timeout_ms = 6000;
     websocket_cfg.buffer_size = 4096;
@@ -310,35 +352,50 @@ void gt_websocket_client_init()
     clock_buf = (WEBSOCKET_RECEIVED_DATA*)audio_calloc(1, sizeof(WEBSOCKET_RECEIVED_DATA));
     client = esp_websocket_client_init(&websocket_cfg);
     esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocket_event_handler, (void *)client);
-    esp_websocket_client_start(client);
-    xTimerStart(shutdown_signal_timer, portMAX_DELAY);
+    // esp_websocket_client_start(client);
+    // xTimerStart(shutdown_signal_timer, portMAX_DELAY);
     // gt_websocket_client_request();
     // xSemaphoreTake(shutdown_sema, portMAX_DELAY);
-    ESP_LOGE(TAG, "esp_websocket_client close connect !!!!!!!");
+    
+    malloc_web_history_data();
+    
+    chat_bot_receive = (ReceivedAnswerData*)audio_malloc(sizeof(ReceivedAnswerData));
+    memset(chat_bot_receive, 0, sizeof(ReceivedAnswerData));
+    chat_bot_receive->is_web_first_response = true;
+
+    gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+    memset(gt_pro, 0, sizeof(GT_PROTOCOL));
+
+    web_history_sem = xSemaphoreCreateBinary();
+}
+
+int gt_web_status()
+{
+    return websocket_status_flag;
 }
 
 void gt_websocket_send_data(char* data)
 {
-    if (esp_websocket_client_is_connected(client))
-    {
-        esp_websocket_client_send_bin(client, data, 2048, portMAX_DELAY);
-        esp_websocket_client_send_bin(client, data+2048, 2048, portMAX_DELAY);
-        // esp_websocket_client_send_bin_partial(client, data, 2048, portMAX_DELAY);
-        // esp_websocket_client_send_cont_msg(client, data+2048, 2048, portMAX_DELAY);
-        // esp_websocket_client_send_fin(client, portMAX_DELAY);
-        ESP_LOGI(TAG, "esp_websocket_client send successfull !!!!!!!");
-    }
-    else
+    if (false == esp_websocket_client_is_connected(client)) 
     {
         ESP_LOGE(TAG, "esp_websocket_client is not connected");
+        return;
     }
+    esp_websocket_client_send_bin(client, data, 2048, portMAX_DELAY);
+    esp_websocket_client_send_bin(client, data + 2048, 2048, portMAX_DELAY);
+    ESP_LOGI(TAG, "esp_websocket_client send successful !!!!!!!");
+}
 
+bool gt_websocket_client_state()
+{
+    return esp_websocket_client_is_connected(client);
 }
 
 void gt_websocket_client_start()
 {
     int gt_res = 0;
     gt_res = esp_websocket_client_start(client);
+ 
     if(gt_res == ESP_FAIL)
     {
         ESP_LOGE(TAG, "esp_websocket_client_start is FAIL");
@@ -353,6 +410,7 @@ void gt_websocket_client_close()
 {
     int gt_res = 0;
     gt_res = esp_websocket_client_close(client, portMAX_DELAY);
+    websocket_status_flag = WEBSOCKET_DISCONNECTED;
     if(gt_res == ESP_FAIL)
     {
         ESP_LOGE(TAG, "gt_websocket_client_close is FAIL");
@@ -372,6 +430,7 @@ void gt_websocket_client_destroy()
 
 void set_isFirstAudiouri(bool value)
 {
+    chat_bot_receive->is_web_first_response = value;
     isFirstAudiouri = value;
 }
 
@@ -383,9 +442,6 @@ void set_chatbot_audio_uri(char* audio_uri)
         chatbot_audio_uri = NULL;
     }
     chatbot_audio_uri = audio_uri;
-    // chatbot_audio_uri = (char*)audio_malloc(strlen(audio_uri)+1);
-    // memset(chatbot_audio_uri, 0, strlen(audio_uri)+1);
-    // strcpy(chatbot_audio_uri, audio_uri);
 }
 
 char* get_chatbot_audio_uri()
@@ -418,8 +474,140 @@ void free_chatbot_audio_uri()
 
 void serve_dialog_init()
 {
-    serve_dialog = serve_disconnect_dialog();
+    gt_scr_id_t screen_id = gt_scr_stack_get_current_id();
+    if (screen_id == GT_ID_SCREEN_HOME || screen_id == GT_ID_SCREEN_SETUP || screen_id == GT_ID_FUNCTION_SETTINGS || screen_id == GT_ID_SCREEN_SUBTITLE)
+    {
+        serve_dialog = serve_disconnect_dialog();
+    }
 }
+
+void set_web_session_token(char* web_room_id, int len)
+{
+    chat_bot_receive->session_token = (char*)audio_malloc(len+1);
+    memset(chat_bot_receive->session_token, 0, len+1);
+    strcpy(chat_bot_receive->session_token, web_room_id);
+}
+
+WEB_HISTORY_DATA** get_web_history_array()
+{
+    return web_history_data;
+}
+
+int websocket_parse_socket_message(char *jbuf)
+{
+    cJSON *json = cJSON_Parse(jbuf);
+    if (json == NULL) {
+        ESP_LOGE(TAG, "Failed to parse JSON");
+        return -1;  // 返回失败
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Successfull to parse JSON");
+    }
+    cJSON *socket_message = NULL;
+    socket_message = cJSON_GetObjectItem(json, "socket_message");
+    if(socket_message != NULL)
+    {
+        if(strcmp(socket_message->valuestring, "connection_established") == 0)
+        {
+            return ESP_OK;
+        }
+    }
+    return ESP_FAIL;
+}
+
+int websocket_chatbot_json_parse(char *jbuf, ReceivedAnswerData* receive_buf)
+{
+    // 解析 JSON 响应
+    int res = 0;
+    ESP_LOGI(TAG, "jbuf = %s", jbuf);
+    cJSON *json = cJSON_Parse(jbuf);
+    if (json == NULL) {
+        ESP_LOGE(TAG, "Failed to parse JSON");
+        return -1;  // 返回失败
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Successfull to parse JSON");
+    }
+    char* socket_message_string = NULL;
+    cJSON *socket_type = NULL, *interface_name = NULL, *socket_message = NULL;
+    cJSON *agent_output = NULL, *socket_data = NULL, *event_name = NULL, *socket_status = NULL;
+    agent_output = cJSON_GetObjectItem(json, "agent_output");
+    socket_data = cJSON_GetObjectItem(json, "socket_data");
+    if(agent_output == NULL && socket_data == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to parse socket_data or agent_output");
+        return -1;
+    }
+    do{
+        GET_VALUESTRING(socket_type, json, "socket_type", receive_buf->socket_type);
+        GET_VALUEINT(socket_status, json, "socket_status", receive_buf->socket_status);
+        if(receive_buf->socket_status == 3001 || receive_buf->socket_status == 4006)
+        {
+            return -2;
+        }
+        GET_VALUESTRING(socket_message, json, "socket_message", socket_message_string);
+        if(strcmp(socket_message_string, "agent_stop") == 0)
+        {
+            audio_free(socket_message_string);
+            return -3;
+        }
+    }while(0);
+    if(strcmp(socket_type->valuestring, "agent_event") == 0) //机器人回复
+    {
+        printf("clock_buf->socket_type = %s\r\n", receive_buf->socket_type);
+        cJSON* recover_json = NULL;
+        do{
+            GET_VALUESTRING(recover_json, agent_output, "llm_response", receive_buf->llm_response);
+            GET_VALUESTRING(recover_json, agent_output, "tts_audio", receive_buf->tts_audio);
+            GET_VALUEDOUBLE(recover_json, agent_output, "to_sleep", receive_buf->audio_seconds);
+            GET_VALUESTRING(recover_json, agent_output, "emotion_value", receive_buf->emotion_value);
+            // GET_VALUESTRING(recover_json, agent_output, "user_input", clock_buf->user_input);
+            res = 1;
+        }while(0);
+    }
+    else if(strcmp(socket_type->valuestring, "interface_call") == 0)
+    {
+        cJSON *recover_json = NULL, *data_array = NULL, *result = NULL, *count = NULL;
+        int array_index = 0, history_count = 0;
+        interface_name = cJSON_GetObjectItem(socket_data, "interface_name");
+        printf("interface_name = %s\r\n", interface_name->valuestring);
+
+        if(strcmp(interface_name->valuestring, "message_list") == 0)
+        {
+            result = cJSON_GetObjectItem(socket_data, "result");
+            count = cJSON_GetObjectItem(socket_data, "count");
+            web_history_data[0]->count = count->valueint;
+            do{
+                data_array = cJSON_GetArrayItem(result, array_index);
+                GET_VALUESTRING(recover_json, data_array, "message_content", web_history_data[array_index]->message_content);
+                GET_VALUESTRING(recover_json, data_array, "message_category", web_history_data[array_index]->message_category);
+                printf("web_history_data[%d]:%s\r\n", array_index, web_history_data[array_index]->message_content);
+                printf("web_history_data[%d]:%s\r\n", array_index, web_history_data[array_index]->message_category);
+                array_index++;
+            }while(array_index < web_history_data[0]->count);
+            xSemaphoreGive(web_history_sem);
+        }
+        else if(strcmp(interface_name->valuestring, "create_session") == 0)
+        {
+            do{
+                GET_VALUESTRING(recover_json, socket_data, "session_token", receive_buf->session_token);
+                printf("session_token = %s\r\n", receive_buf->session_token);
+                xQueueSend(web_room_id_queue, &receive_buf->session_token, portMAX_DELAY);
+                res = 2;
+            }while(0);
+        }
+    }
+
+    cJSON_Delete(json);
+    return res;  // -1:解析失败 0:解析成功
+
+}
+
+
+
+
 
 /**
  * @brief 解析口语json数据
@@ -1059,73 +1247,6 @@ int websocket_json_parse(char *jbuf, WEBSOCKET_RECEIVED_DATA* clock_buf)
 
 }
 
-#else
-int websocket_parse_socket_message(char *jbuf)
-{
-    cJSON *json = cJSON_Parse(jbuf);
-    if (json == NULL) {
-        ESP_LOGE(TAG, "Failed to parse JSON");
-        return -1;  // 返回失败
-    }
-    else
-    {
-        ESP_LOGI(TAG, "Successfull to parse JSON");
-    }
-    cJSON *socket_message = NULL;
-    socket_message = cJSON_GetObjectItem(json, "socket_message");
-    if(socket_message != NULL)
-    {
-        if(strcmp(socket_message->valuestring, "connection_established") == 0)
-        {
-            return ESP_OK;
-        }
-    }
-    return ESP_FAIL;
-}
-
-int websocket_chatbot_json_parse(char *jbuf, ReceivedAnswerData* receive_buf)
-{
-    // 解析 JSON 响应
-    ESP_LOGI(TAG, "jbuf = %s", jbuf);
-    cJSON *json = cJSON_Parse(jbuf);
-    if (json == NULL) {
-        ESP_LOGE(TAG, "Failed to parse JSON");
-        return -1;  // 返回失败
-    }
-    else
-    {
-        ESP_LOGI(TAG, "Successfull to parse JSON");
-    }
-    cJSON *socket_type = NULL;
-    cJSON *agent_output = NULL, *socket_data = NULL, *event_name = NULL;
-    agent_output = cJSON_GetObjectItem(json, "agent_output");
-    if(agent_output == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to parse socket_data or agent_output");
-        return -1;
-    }
-    do{
-        GET_VALUESTRING(socket_type, json, "socket_type", receive_buf->socket_type);
-    }while(0);
-
-    if(strcmp(socket_type->valuestring, "agent_event") == 0) //机器人回复
-    {
-        printf("clock_buf->socket_type = %s\r\n", receive_buf->socket_type);
-        cJSON* recover_json = NULL;
-        do{
-            GET_VALUESTRING(recover_json, agent_output, "llm_response", receive_buf->llm_response);
-            GET_VALUESTRING(recover_json, agent_output, "tts_audio", receive_buf->tts_audio);
-            GET_VALUEDOUBLE(recover_json, agent_output, "to_sleep", receive_buf->audio_seconds);
-            GET_VALUESTRING(recover_json, agent_output, "emotion_value", receive_buf->emotion_value);
-            // GET_VALUESTRING(recover_json, agent_output, "user_input", clock_buf->user_input);
-
-        }while(0);
-    }
-
-    cJSON_Delete(json);
-    return 0;  // -1:解析失败 0:解析成功
-
-}
 #endif
     // if(strcmp(agent_type->valuestring, "text") == 0)
     // {
@@ -1313,13 +1434,11 @@ void websocket_app_start(void)
 
 
 #if 1
-    // char data[] = {"{\"event_name\":\"auth_token\",\"event_params\":{\"token\":\"MC-demo\"}}"};
-    char data[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"auth_token\",\"event_params\":{\"token\":\"API keys\"}}"};\"}}"};//设置请求头的时候要加上API keys
+    char data[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"auth_token\",\"event_params\":{\"token\":\"API\"}}"};
     esp_websocket_client_send_text(client, data, strlen(data), portMAX_DELAY);
 
     char sendData[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"action_agent\",\"event_params\":{\"agent_name\":\"llm_socket\",\"model\":\"deepseek-chat\",\"asr_text\":\"给我讲一讲小红帽和大灰狼的故事吧\"}}"};
     esp_websocket_client_send_text(client, sendData, strlen(sendData), portMAX_DELAY);
-    // esp_websocket_client_send_text_partial(client, data, sizeof(data), portMAX_DELAY);
 #else
     char data[32];
     int i = 0;

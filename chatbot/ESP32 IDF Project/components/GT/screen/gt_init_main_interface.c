@@ -13,9 +13,15 @@ static gt_obj_st * imgbtn1 = NULL;
 static gt_obj_st * imgbtn2 = NULL;
 
 
+static GT_WIFI_PROTOCOL* wifi = NULL;
+static GT_WEB_PROTOCOL* web = NULL;
+static int wifi_flag = 0;
+static int web_flag = 0;
+
 void set_wifi_status_icon(gt_wifi_icon_status_et status) {
     switch (status) {
         case WIFI_NO_CONNECTED:
+            ESP_LOGI(TAG, "set_wifi_status_icon 1111");
             gt_imgbtn_set_src(imgbtn1, "f:img_WIFIsignal5_16x12.png");
             break;
         case WIFI_SIGNAL_1:
@@ -27,10 +33,12 @@ void set_wifi_status_icon(gt_wifi_icon_status_et status) {
         case WIFI_SIGNAL_3:
             gt_imgbtn_set_src(imgbtn1, "f:img_WIFIsignal2_16x12.png");
             break;
-        case WIFI_SIGNAL_4:
+        case WIFI_SIGNAL_4:  
             gt_imgbtn_set_src(imgbtn1, "f:img_WIFIsignal1_16x12.png");
             break;
-    }
+        default:
+        break;
+    }  
     gt_disp_invalid_area(imgbtn1);
 }
 
@@ -42,6 +50,12 @@ void update_wifi_icon() {
 }
 
 static void AIRobots_0_cb(gt_event_st * e) {
+    if(gt_web_status() != 1)
+    {
+        ESP_LOGW(TAG, "wifi or websocket disconnect");
+        return;
+    }
+
 	gt_disp_stack_load_scr_anim(GT_ID_SCREEN_HOME, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
 
     char room_id[40] = {0};
@@ -49,6 +63,8 @@ static void AIRobots_0_cb(gt_event_st * e) {
     erase_data_from_nvs("room_id");
     // store_data_in_nvs("room_id", "eeed2c61-65ad-4811-910b-a5072bac257f");
 #endif
+
+#if (WEBSOCKET_HTTP_SWITCH == 0)
     read_data_from_nvs("room_id", room_id, 40);
     if (strcmp(room_id, "") == 0) {
         create_room_http();
@@ -56,6 +72,26 @@ static void AIRobots_0_cb(gt_event_st * e) {
         ESP_LOGI(TAG, "---------room_id: %s\r\n", room_id);
         set_session_token(room_id);
     }
+
+#elif (WEBSOCKET_HTTP_SWITCH == 2)
+    char* web_room_id = (char*)audio_malloc(sizeof(40));
+    memset(web_room_id, 0, sizeof(40));
+    //erase_data_from_nvs("web_room_id");
+    read_data_from_nvs("web_room_id", room_id, 40);
+    printf("web_room_id = %s\r\n", room_id);
+    if (strcmp(room_id, "") == 0) {
+        gt_websocket_client_create_room();
+        xQueueReceive(web_room_id_queue, &web_room_id, portMAX_DELAY);
+        printf("web_room_id = %s\r\n", web_room_id);
+        store_data_in_nvs("web_room_id", web_room_id);
+        vQueueDelete(web_room_id_queue);
+    } else {
+        ESP_LOGI(TAG, "---------web_room_id: %s\r\n", room_id);
+        set_web_session_token(room_id, strlen(room_id));
+    }
+    audio_free(web_room_id);
+#endif
+
 }
 
 static void setup_0_cb(gt_event_st * e) {
@@ -95,15 +131,11 @@ gt_obj_st * gt_init_main_interface(void)
 	gt_obj_set_size(imgbtn1, 16, 12);
     gt_imgbtn_set_src(imgbtn1, "f:img_WIFIsignal5_16x12.png");
 
-
-
 	/** imgbtn2 */
 	imgbtn2 = gt_imgbtn_create(main_interface);
 	gt_obj_set_pos(imgbtn2, 206, 4);
 	gt_obj_set_size(imgbtn2, 22, 12);
 	gt_imgbtn_set_src(imgbtn2, "f:img_Battery_22x12.png");
-
-
 
 	return main_interface;
 }

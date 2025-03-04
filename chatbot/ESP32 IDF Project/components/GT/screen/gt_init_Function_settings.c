@@ -23,6 +23,8 @@ static gt_obj_st * imgbtn11 = NULL;
 static gt_obj_st * lab6 = NULL;
 static gt_obj_st* list1 = NULL;
 static gt_obj_st * input1 = NULL;
+static gt_obj_st * input_on_dialog = NULL;
+
 static uint8_t funct_list_option = AI_SETTING_NONE;
 
 static void screen_setup_0_cb(gt_event_st * e) {
@@ -44,13 +46,20 @@ static void img1_0_cb(gt_event_st * e) {
 }
 
 static void keypay_common_key_cb(gt_event_st * e) {
+    if (NULL == input1) return;
+    if (NULL == input_on_dialog) return;
+
     gt_obj_st * target_obj = e->target;
     char *text = gt_btn_get_text(target_obj);
     ESP_LOGI(TAG,"-------------------------%s\n", text);
     gt_input_append_value(input1, text);
+    gt_input_append_value(input_on_dialog, text);
 }
 
 static void keypay_ok_key_cb(gt_event_st * e) {
+    if (NULL == input1) return;
+    if (NULL == input_on_dialog) return;
+
     char *text = gt_input_get_value(input1);
     ESP_LOGI(TAG,"-------------------------%s\n", text);
     gt_obj_st * target_obj = (gt_obj_st * )e->origin->parent;
@@ -60,10 +69,15 @@ static void keypay_ok_key_cb(gt_event_st * e) {
     cb_data.settings->max_output_size = (cb_data.settings->max_output_size < 50) ? 50 : cb_data.settings->max_output_size;
     cb_data.settings->max_output_size = (cb_data.settings->max_output_size > 4000) ? 4000 : cb_data.settings->max_output_size;
     gt_input_set_value(input1, " %d", cb_data.settings->max_output_size);
+    gt_input_set_value(input_on_dialog, " %d", cb_data.settings->max_output_size);
 }
 
 static void keypay_delete_key_cb(gt_event_st * e) {
+    if (NULL == input1) return;
+    if (NULL == input_on_dialog) return;
+
     gt_input_del_value(input1);
+    gt_input_del_value(input_on_dialog);
 }
 
 gt_obj_st * _Numeric_Keypad_dialog1Copy_init() {
@@ -86,13 +100,23 @@ gt_obj_st * _Numeric_Keypad_dialog1Copy_init() {
 
 	/** dialog1Copy */
 	dialog1Copy = gt_dialog_create(false);
-	gt_obj_set_pos(dialog1Copy, 9, 81);
-	gt_obj_set_size(dialog1Copy, 219, 164);
+	gt_obj_set_pos(dialog1Copy, 9, 31);
+	gt_obj_set_size(dialog1Copy, 219, 214);
 	gt_dialog_set_bgcolor(dialog1Copy, gt_color_hex(0x181B22));
 	gt_dialog_set_border_color(dialog1Copy, gt_color_hex(0xc7c7c7));
 	gt_dialog_set_border_width(dialog1Copy, 0);
 	gt_dialog_set_border_radius(dialog1Copy, 15);
 
+    input_on_dialog = gt_input_create(dialog1Copy);
+	gt_obj_set_pos(input_on_dialog, 28, 47);
+	gt_obj_set_size(input_on_dialog, 182, 44);
+	gt_input_set_font_color(input_on_dialog, gt_color_hex(0xffffff));
+	gt_input_set_font_align(input_on_dialog, GT_ALIGN_LEFT_MID);
+	gt_input_set_placeholder(input_on_dialog, "50~4000");
+    gt_input_set_value(input_on_dialog, " %d", cb_data.settings->max_output_size);
+	gt_input_set_border_width(input_on_dialog, 2);
+	gt_input_set_bg_color(input_on_dialog, gt_color_hex(0x30384A));
+    gt_input_set_border_color(input_on_dialog, gt_color_hex(0x30384A));
 
 	/** d */
 	d = gt_btn_create(dialog1Copy);

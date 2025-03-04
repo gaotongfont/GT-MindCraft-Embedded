@@ -19,8 +19,8 @@ static void Cancel_0_cb(gt_event_st * e) {
 }
 
 static void Sure_0_cb(gt_event_st * e) {
-    ESP_LOGE("TAG", "---------------scan_wifi_list[selected_idx].password: %s\n", scan_wifi_list[selected_idx].password);
-    wifi_sta_connect(scan_wifi_list[selected_idx].name, scan_wifi_list[selected_idx].password);
+    // ESP_LOGE("TAG", "---------------scan_wifi_list[selected_idx].password: %s\n", scan_wifi_list[selected_idx].password);
+    // wifi_sta_connect(scan_wifi_list[selected_idx].name, scan_wifi_list[selected_idx].password);
 }
 
 gt_obj_st * gt_init_connection_failed(void)

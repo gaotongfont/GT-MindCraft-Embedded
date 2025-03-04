@@ -89,6 +89,44 @@ void set_emojis() {
             set_emote_in_img(img_emote, AI_EMOTE_XIAOZHI_NEUTRAL);
         }
     }
+    else if (strcmp(cb_data.settings->bot_name, "小鲸鱼") == 0) {
+        if (strcmp(cb_data.answer->emotion_value, "sad") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_SADNESS);
+        } else if (strcmp(cb_data.answer->emotion_value, "angry") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_ANGER);
+        } else if (strcmp(cb_data.answer->emotion_value, "happy") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_HAPPY);
+        }  else if (strcmp(cb_data.answer->emotion_value, "fearful") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_FEAR);
+        } else if (strcmp(cb_data.answer->emotion_value, "surprised") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_SURPRISE);
+        } else if (strcmp(cb_data.answer->emotion_value, "disgusted") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_DISGUST);
+        } else if (strcmp(cb_data.answer->emotion_value, "neutral") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_NEUTRAL);
+        } else {
+            set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_NEUTRAL);
+        }
+    }
+    else if (strcmp(cb_data.settings->bot_name, "哪吒") == 0) {
+        if (strcmp(cb_data.answer->emotion_value, "sad") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_SADNESS);
+        } else if (strcmp(cb_data.answer->emotion_value, "angry") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_ANGER);
+        } else if (strcmp(cb_data.answer->emotion_value, "happy") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_HAPPY);
+        }  else if (strcmp(cb_data.answer->emotion_value, "fearful") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_FEAR);
+        } else if (strcmp(cb_data.answer->emotion_value, "surprised") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_SURPRISE);
+        } else if (strcmp(cb_data.answer->emotion_value, "disgusted") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_DISGUST);
+        } else if (strcmp(cb_data.answer->emotion_value, "neutral") == 0) {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_NEUTRAL);
+        } else {
+            set_emote_in_img(img_emote, AI_EMOTE_NEZHA_NEUTRAL);
+        }
+    }
 }
 
 #if 1//USE_HTTP_STREAM
@@ -266,17 +304,17 @@ static void emptybt_0_cb(gt_event_st * e) {
 static void speaking_ui_in_subtitle(void) {
     gt_label_set_text(lab2, "正在说话...");
     // set_emojis_in_player(player1, AI_EMOJIS_RECORDING);
-    set_role_emote(player1, img_emote, AI_EMOJIS_RECORDING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
+    set_role_emote(player1, img_emote, AI_EMOJIS_RECORDING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL, AI_EMOTE_XIAOJINGYU_NEUTRAL, AI_EMOTE_NEZHA_NEUTRAL);
 }
 static void identifying_ui_in_subtitle(void) {
     gt_label_set_text(lab2, "正在识别...");
     // set_emojis_in_player(player1, AI_EMOJIS_HAPPY);
-    set_role_emote(player1, img_emote, AI_EMOJIS_HAPPY, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
+    set_role_emote(player1, img_emote, AI_EMOJIS_HAPPY, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL, AI_EMOTE_XIAOJINGYU_NEUTRAL, AI_EMOTE_NEZHA_NEUTRAL);
 }
 void identifying_failed_ui_in_subtitle(void) {
     gt_label_set_text(lab2, "识别失败，请重试");
     // set_emojis_in_player(player1, AI_EMOJIS_SYMPATHY);
-    set_role_emote(player1, img_emote, AI_EMOJIS_SYMPATHY, AI_EMOTE_XIAOZHI_SADNESS, AI_EMOTE_CAIJI_SADNESS);
+    set_role_emote(player1, img_emote, AI_EMOJIS_SYMPATHY, AI_EMOTE_XIAOZHI_SADNESS, AI_EMOTE_CAIJI_SADNESS,  AI_EMOTE_XIAOJINGYU_SADNESS, AI_EMOTE_NEZHA_SADNESS);
 }
 
 static void voice_btn_recording_cb(gt_event_st * e) {
@@ -320,6 +358,16 @@ gt_obj_st * gt_init_screen_subtitle(void)
         gt_obj_set_visible(player1, GT_INVISIBLE);
         gt_obj_set_visible(img_emote, GT_VISIBLE);
         set_emote_in_img(img_emote, AI_EMOTE_CAIJI_NEUTRAL);
+    } else if (strcmp(cb_data.settings->bot_name, "小鲸鱼") == 0)
+    {
+        gt_obj_set_visible(player1, GT_INVISIBLE);
+        gt_obj_set_visible(img_emote, GT_VISIBLE);
+        set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_NEUTRAL);
+    } else if (strcmp(cb_data.settings->bot_name, "哪吒") == 0)
+    {
+        gt_obj_set_visible(player1, GT_INVISIBLE);
+        gt_obj_set_visible(img_emote, GT_VISIBLE);
+        set_emote_in_img(img_emote, AI_EMOTE_NEZHA_NEUTRAL);
     }
 
     //根据返回的情绪值设置不同的表情

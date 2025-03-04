@@ -22,8 +22,8 @@ typedef struct{
    int session_id;
    char* session_token;
    char* message_category;
-   char* message_content;
-   char* created_at;
+   char* message_content;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+   char* created_at; 
 }HistoricalMessage;
 
 

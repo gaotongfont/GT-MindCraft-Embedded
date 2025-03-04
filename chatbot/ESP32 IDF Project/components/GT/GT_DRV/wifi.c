@@ -7,14 +7,15 @@ EventGroupHandle_t wifi_event_group;
 #define WIFI_CONNECTED_BIT  BIT1  // 连接成功标志
 #define WIFI_FAIL_BIT       BIT2  // 连接失败标志
 
-#define DEFAULT_SCAN_LIST_SIZE 8
+
 
 network_connet_info network_connet;
 static const char *TAG = "scan_connect";
 
-wifi_info_t *scan_wifi_list;
+
 uint16_t ap_count = 0;
 bool allow_reconnect = true;
+static uint8_t wifilist_item_index = 0;
 
 /**
  * @brief Get the current wifi config
@@ -74,43 +75,50 @@ int8_t get_current_rssi_level() {
 
 void set_current_wifi_isConnected()
 {
-    for (size_t i = 0; i < ap_count; i++) {
-        if (i != selected_idx)
-        {
-            scan_wifi_list[i].isConnected = false;
-        }else {
-            scan_wifi_list[i].isConnected = true;
-        }
-    }
+    // for (size_t i = 0; i < ap_count; i++) 
+    // {
+    //     if (i != wifilist_item_index)
+    //     {
+    //         scan_wifi_list[i].isConnected = false;
+    //     }else {
+    //         scan_wifi_list[i].isConnected = true;
+    //     }
+    // }
 }
 
-void reset_current_wifi_isConnected()
+void set_wifilist_item_index(uint8_t value)
 {
-    for (size_t i = 0; i < ap_count; i++) {
+    wifilist_item_index = value;
+}
+
+void reset_wifi_status(WIFI_ITEM_INFO* scan_wifi_list, int count)
+{
+    for (size_t i = 0; i < count; i++) 
+    {
         scan_wifi_list[i].isConnected = false;
     }
 }
 
 bool check_cur_wifi_is_in_wifi_list(char *name, char *password) {
     bool wifi_is_found = false;
-    for (size_t i = 0; i < ap_count; i++) {
-        if (strcmp(name, scan_wifi_list[i].name) == 0)
-        {
-            wifi_is_found = true;
-            selected_idx = i;
-            ESP_LOGI(TAG,"--------selected_idx = %d\n", selected_idx);
-            if (scan_wifi_list[selected_idx].password != NULL) {
-                audio_free(scan_wifi_list[selected_idx].password);
-            }
-            scan_wifi_list[selected_idx].password = (char *)audio_malloc(strlen(password) + 1);
-            if (scan_wifi_list[selected_idx].password == NULL) {
-                ESP_LOGE(TAG, "Failed to allocate memory for password");
-                return false;
-            }
-            strcpy(scan_wifi_list[selected_idx].password, (const char *)password);
-            break;
-        }
-    }
+    // for (size_t i = 0; i < ap_count; i++) {
+    //     if (strcmp(name, scan_wifi_list[i].name) == 0)
+    //     {
+    //         wifi_is_found = true;
+    //         selected_idx = i;
+    //         ESP_LOGI(TAG,"--------selected_idx = %d\n", selected_idx);
+    //         if (scan_wifi_list[selected_idx].password != NULL) {
+    //             audio_free(scan_wifi_list[selected_idx].password);
+    //         }
+    //         scan_wifi_list[selected_idx].password = (char *)audio_malloc(strlen(password) + 1);
+    //         if (scan_wifi_list[selected_idx].password == NULL) {
+    //             ESP_LOGE(TAG, "Failed to allocate memory for password");
+    //             return false;
+    //         }
+    //         strcpy(scan_wifi_list[selected_idx].password, (const char *)password);
+    //         break;
+    //     }
+    // }
     return wifi_is_found;
 }
 /**
@@ -120,7 +128,7 @@ bool check_cur_wifi_is_in_wifi_list(char *name, char *password) {
  */
 void connet_display(uint8_t flag)
 {
-    ESP_LOGI(TAG,"--------flag = 0x%x\n", flag);
+    // ESP_LOGI(TAG,"--------flag = 0x%x\n", flag);
 
     if((flag & 0x80) == 0x80)
     {
@@ -138,15 +146,15 @@ void connet_display(uint8_t flag)
     else if ((flag & 0x02) == 0x02)
     {
         // wifi_connected_fail_ui();
-        gt_scr_id_t screen_id = gt_scr_stack_get_current_id();
-        ESP_LOGI(TAG,">>---------------screen_id: %d\n",screen_id);
-        if (screen_id == GT_ID_MAIN_INTERFACE)
-        {
-            update_wifi_icon();
-        } else if (screen_id == GT_ID_WIFI_LIST){
-            vTaskDelay(300);
-            gt_disp_stack_load_scr_anim(GT_ID_CONNECTION_FAILED, GT_SCR_ANIM_TYPE_NONE, 200, 0, true);
-        }
+        // gt_scr_id_t screen_id = gt_scr_stack_get_current_id();
+        // ESP_LOGI(TAG,">>---------------screen_id: %d\n",screen_id);
+        // if (screen_id == GT_ID_MAIN_INTERFACE)
+        // {
+        //     update_wifi_icon();
+        // } else if (screen_id == GT_ID_WIFI_LIST){
+        //     vTaskDelay(300);
+        //     gt_disp_stack_load_scr_anim(GT_ID_CONNECTION_FAILED, GT_SCR_ANIM_TYPE_NONE, 200, 0, true);
+        // }
         is_auto_connected_end = true;
         ESP_LOGI(TAG,"--------wifi connecting fail\n");
     }
@@ -154,11 +162,10 @@ void connet_display(uint8_t flag)
     {
         ESP_LOGI(TAG,"--------%s\n",network_connet.ip_buf);
         // waiting_rec_ui();
-        ESP_LOGE(TAG, "---------------selected_idx: %u\n", selected_idx);
-        set_current_wifi_isConnected();
-        change_wifi_connect_tip(flag);
+        // set_current_wifi_isConnected();
+        // change_wifi_connect_tip(flag);
         is_auto_connected_end = true;
-        ESP_LOGI(TAG,"--------wifi connecting success\n");
+        // ESP_LOGI(TAG,"--------wifi connecting success\n");
     }
 
     network_connet.connet_state &= 0x00;
@@ -186,8 +193,6 @@ void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id
         network_connet.connet_state |= 0x04;
         network_connet.fun(network_connet.connet_state);
         // esp_wifi_connect();
-        ESP_LOGI(TAG, "------------------------aaaaaaaaaaaaaaaaaa");
-
     }
     /* 连接WIFI事件 */
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED)
@@ -254,7 +259,8 @@ void wifi_init(void) {
     ESP_ERROR_CHECK(esp_wifi_start());
 }
 
-void wifi_scan(void) {
+int wifi_scan(WIFI_ITEM_INFO* scan_wifi_list) 
+{
 
     // 清除之前的 AP 列表
     ESP_ERROR_CHECK(esp_wifi_clear_ap_list());
@@ -271,39 +277,47 @@ void wifi_scan(void) {
     memset(ap_info, 0, sizeof(ap_info));
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, ap_info));
     // 打印扫描结果
-    // for (int i = 0; i < ap_count; i++) {
-    //     ESP_LOGI(TAG, "SSID: %s, RSSI: %d, Channel: %d", ap_info[i].ssid, ap_info[i].rssi, ap_info[i].primary);
-    // }
-    scan_wifi_list = (wifi_info_t *) audio_malloc(ap_count * sizeof(wifi_info_t));
-    if (scan_wifi_list == NULL) {
-        ESP_LOGE(TAG, "Failed to allocate memory for wifi_info_array");
-        return; // 处理内存分配失败的情况
-    }
+
     for (size_t i = 0; i < ap_count; i++)
     {
-        scan_wifi_list[i].name = (char *)audio_malloc(strlen((const char *)ap_info[i].ssid) + 1);
-        if (scan_wifi_list[i].name == NULL) {
-            ESP_LOGE(TAG, "Failed to allocate memory for SSID");
-            continue;
+        if(scan_wifi_list[i].name == NULL)
+        {
+            scan_wifi_list[i].name = (char *)audio_malloc(strlen((const char *)ap_info[i].ssid) + 1);
+            memset(scan_wifi_list[i].name, 0, strlen((const char *)ap_info[i].ssid) + 1);
         }
+        else if(scan_wifi_list[i].name != NULL)
+        {
+            if(strlen((const char *)ap_info[i].ssid) > strlen(scan_wifi_list[i].name))
+            {
+                audio_free(scan_wifi_list[i].name);
+                scan_wifi_list[i].name = (char *)audio_malloc(strlen((const char *)ap_info[i].ssid) + 1);
+            }
+            memset(scan_wifi_list[i].name, 0, strlen((const char *)ap_info[i].ssid) + 1);
+        }
+        
+        // if (scan_wifi_list[i].name == NULL) {
+        //     ESP_LOGE(TAG, "Failed to allocate memory for SSID");
+        //     continue;
+        // }
         strcpy(scan_wifi_list[i].name, (const char *)ap_info[i].ssid);
 
         // scan_wifi_list[i].password = NULL;
-        scan_wifi_list[i].password = (char *)audio_malloc(1);
-        if (scan_wifi_list[i].password == NULL) {
-            ESP_LOGE(TAG, "Failed to allocate memory for password");
-            continue;
-        }
-        scan_wifi_list[i].password[0] = '\0'; // 初始化为空字符串
-        scan_wifi_list[i].isConnected = false;
+        // scan_wifi_list[i].password = (char *)audio_malloc(1);
+        // if (scan_wifi_list[i].password == NULL) {
+        //     ESP_LOGE(TAG, "Failed to allocate memory for password");
+        //     continue;
+        // }
+        // scan_wifi_list[i].password[0] = '\0'; // 初始化为空字符串
+        // scan_wifi_list[i].isConnected = false;
         ESP_LOGI(TAG,"----------------scan_wifi_list[i].name = %s\n", scan_wifi_list[i].name);
     }
+    return ap_count;
 }
 
-void wifi_sta_connect(char *name, char *password) {
+int wifi_sta_connect(char *name, char *password) {
     if (name == NULL || password == NULL) {
         ESP_LOGE(TAG, "Invalid SSID or password");
-        return;
+        return -1;
     }
 
     network_connet.connet_state = 0x00;
@@ -328,6 +342,7 @@ void wifi_sta_connect(char *name, char *password) {
     };
 
     // 将 name 和 password 复制到 wifi_config 中
+    printf("name = %s\r\n",name);
     strncpy((char *)wifi_config.sta.ssid, (char *)name, sizeof(wifi_config.sta.ssid) - 1);
     strncpy((char *)wifi_config.sta.password, (char *)password, sizeof(wifi_config.sta.password) - 1);
 
@@ -346,12 +361,70 @@ void wifi_sta_connect(char *name, char *password) {
         pdFALSE,
         pdFALSE,
         portMAX_DELAY);
-    if (bits & WIFI_CONNECTED_BIT) {
+    if (bits & WIFI_CONNECTED_BIT) 
+    {
         ESP_LOGI(TAG, "Successfully connected to WiFi.");
-    } else if (bits & WIFI_FAIL_BIT) {
+        return GT_WIFI_CONNECTED;
+    } 
+    else if (bits & WIFI_FAIL_BIT) 
+    {
         ESP_LOGE(TAG, "Failed to connect to WiFi.");
-    } else {
+        return GT_WIFI_DISCONNECTED;
+    } 
+    else
+    {
         ESP_LOGE(TAG, "Unexpected event occurred.");
+        return GT_WIFI_UNEXPECTED;
     }
 }
+
+
+uint8_t store_wifi_name_pwd(char* wifi_name, char* wifi_pwd)
+{   
+    uint8_t res = 0;
+    res = store_data_in_nvs("wifiname", wifi_name);
+    if(res != 0)
+    {
+        return 1;
+    }
+    res = store_data_in_nvs("wifipassword", wifi_name);
+    if(res != 0)
+    {
+        return 2;
+    }
+    return 0;
+}
+
+uint8_t get_wifi_name_pwd(char* wifi_name, char* wifi_pwd)
+{
+    uint8_t res = 0;
+    res = read_data_from_nvs("wifiname", wifi_name, 40);
+    if(res != 0)
+    {
+        return 1;
+    }
+    res = read_data_from_nvs("wifipassword", wifi_pwd, 40);
+    if(res != 0)
+    {
+        return 2;
+    }
+    return 0;
+}
+
+uint8_t erase_wifi_name_pwd()
+{
+    uint8_t res = 0;
+    res = erase_data_from_nvs("wifiname");
+    if(res != 0)
+    {
+        return 1;
+    }
+    res = erase_data_from_nvs("wifipassword");
+    if(res != 0)
+    {
+        return 2;
+    }
+    return 0;
+}
+
 #endif

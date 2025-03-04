@@ -1,0 +1,3572 @@
+diff --git a/components/esp_websocket_client/.cz.yaml b/components/esp_websocket_client/.cz.yaml
+new file mode 100644
+index 0000000000..4363640eae
+--- /dev/null
++++ b/components/esp_websocket_client/.cz.yaml
+@@ -0,0 +1,8 @@
++---
++commitizen:
++  bump_message: 'bump(websocket): $current_version -> $new_version'
++  pre_bump_hooks: python ../../ci/changelog.py esp_websocket_client
++  tag_format: websocket-v$version
++  version: 1.2.3
++  version_files:
++  - idf_component.yml
+diff --git a/components/esp_websocket_client/CHANGELOG.md b/components/esp_websocket_client/CHANGELOG.md
+new file mode 100644
+index 0000000000..fd54a3e52d
+--- /dev/null
++++ b/components/esp_websocket_client/CHANGELOG.md
+@@ -0,0 +1,182 @@
++# Changelog
++
++## [1.2.3](https://github.com/espressif/esp-protocols/commits/websocket-v1.2.3)
++
++### Features
++
++- Expanded example to demonstrate the transfer over TLS ([0d0630ed76](https://github.com/espressif/esp-protocols/commit/0d0630ed76))
++
++### Bug Fixes
++
++- fix esp_event dependency management ([1fb02a9a60](https://github.com/espressif/esp-protocols/commit/1fb02a9a60))
++- Skip warn on zero timeout and auto reconnect is disabled ([5b467cbf5c](https://github.com/espressif/esp-protocols/commit/5b467cbf5c))
++- Fixed to use int return value in Tx functions ([9c54b72e1f](https://github.com/espressif/esp-protocols/commit/9c54b72e1f))
++- Fixed Tx functions with DYNAMIC_BUFFER ([16174470ee](https://github.com/espressif/esp-protocols/commit/16174470ee))
++- added dependency checks, sdkconfig.defaults and refined README.md ([312982e4aa](https://github.com/espressif/esp-protocols/commit/312982e4aa))
++- Close websocket and dispatch event if server does not close within a reasonable amount of time. ([d85311880d](https://github.com/espressif/esp-protocols/commit/d85311880d))
++- Continue waiting for TCP connection to be closed ([2b092e0db4](https://github.com/espressif/esp-protocols/commit/2b092e0db4))
++
++### Updated
++
++- docs(websocket): Added README for websocket host example ([2f7c58259d](https://github.com/espressif/esp-protocols/commit/2f7c58259d))
++
++## [1.2.2](https://github.com/espressif/esp-protocols/commits/websocket-v1.2.2)
++
++### Bug Fixes
++
++- continuation after FIN in websocket client (#460) ([774d1c75e6](https://github.com/espressif/esp-protocols/commit/774d1c75e6))
++- Re-applie refs to common comps idf_component.yml ([9fe44a4504](https://github.com/espressif/esp-protocols/commit/9fe44a4504))
++
++## [1.2.1](https://github.com/espressif/esp-protocols/commits/websocket-v1.2.1)
++
++### Bug Fixes
++
++- consider failure if return value of `esp_websocket_client_send_with_exact_opcode` less than 0 ([f523b4d](https://github.com/espressif/esp-protocols/commit/f523b4d))
++- fix of return value for `esp_websocket_client_send_with_opcode` API ([ba33588](https://github.com/espressif/esp-protocols/commit/ba33588))
++
++## [1.2.0](https://github.com/espressif/esp-protocols/commits/websocket-v1.2.0)
++
++### Features
++
++- Added new API `esp_websocket_client_append_header` ([39e9725](https://github.com/espressif/esp-protocols/commit/39e9725))
++- Added new APIs to support fragmented messages transmission ([fae80e2](https://github.com/espressif/esp-protocols/commit/fae80e2))
++
++### Bug Fixes
++
++- Reference common component from IDF ([74fc228](https://github.com/espressif/esp-protocols/commit/74fc228))
++- Revert referencing protocol_examples_common from IDF ([b176d3a](https://github.com/espressif/esp-protocols/commit/b176d3a))
++- reference protocol_examples_common from IDF ([025ede1](https://github.com/espressif/esp-protocols/commit/025ede1))
++- specify override_path in example manifests ([d5e7898](https://github.com/espressif/esp-protocols/commit/d5e7898))
++- Return status code correctly on esp_websocket_client_send_with_opcode ([ac8f1de](https://github.com/espressif/esp-protocols/commit/ac8f1de))
++- Fix pytest exclusion, gitignore, and changelog checks ([2696221](https://github.com/espressif/esp-protocols/commit/2696221))
++
++## [1.1.0](https://github.com/espressif/esp-protocols/commits/websocket-v1.1.0)
++
++### Features
++
++- Added linux port for websocket ([a22391a](https://github.com/espressif/esp-protocols/commit/a22391a))
++
++### Bug Fixes
++
++- added idf_component.yml for examples ([d273e10](https://github.com/espressif/esp-protocols/commit/d273e10))
++
++## [1.0.1](https://github.com/espressif/esp-protocols/commits/websocket-v1.0.1)
++
++### Bug Fixes
++
++- esp_websocket_client client allow sending 0 byte packets ([b5177cb](https://github.com/espressif/esp-protocols/commit/b5177cb))
++- Cleaned up printf/format warnings (-Wno-format) ([e085826](https://github.com/espressif/esp-protocols/commit/e085826))
++- Added unit tests to CI + minor fix to pass it ([c974c14](https://github.com/espressif/esp-protocols/commit/c974c14))
++- Reintroduce missing CHANGELOGs ([200cbb3](https://github.com/espressif/esp-protocols/commit/200cbb3), [#235](https://github.com/espressif/esp-protocols/issues/235))
++
++### Updated
++
++- docs(common): updated component and example links ([f48d9b2](https://github.com/espressif/esp-protocols/commit/f48d9b2))
++- docs(common): improving documentation ([ca3fce0](https://github.com/espressif/esp-protocols/commit/ca3fce0))
++- Fix weird error message spacings ([8bb207e](https://github.com/espressif/esp-protocols/commit/8bb207e))
++
++## [1.0.0](https://github.com/espressif/esp-protocols/commits/996fef7)
++
++### Updated
++
++- esp_websocket_client: Updated version to 1.0.0 Updated tests to run agains release-v5.0 ([996fef7](https://github.com/espressif/esp-protocols/commit/996fef7))
++- esp_websocket_client: * Error handling improved to show status code from server * Added new API `esp_websocket_client_set_headers` * Dispatches 'WEBSOCKET_EVENT_BEFORE_CONNECT' event before tcp connection ([d047ff5](https://github.com/espressif/esp-protocols/commit/d047ff5))
++- unite all tags under common structure py test: update tags under common structure ([c6db3ea](https://github.com/espressif/esp-protocols/commit/c6db3ea))
++- websocket: Support HTTP basic authorization ([1b13448](https://github.com/espressif/esp-protocols/commit/1b13448))
++- Add task_name config option ([1d68884](https://github.com/espressif/esp-protocols/commit/1d68884))
++- Add websocket error messages ([d68624e](https://github.com/espressif/esp-protocols/commit/d68624e))
++- websocket: Added new API `esp_websocket_client_destroy_on_exit` ([f9b4790](https://github.com/espressif/esp-protocols/commit/f9b4790))
++- Added badges with version of components to the respective README files ([e4c8a59](https://github.com/espressif/esp-protocols/commit/e4c8a59))
++
++
++## [0.0.4](https://github.com/espressif/esp-protocols/commits/3330b96)
++
++### Updated
++
++- websocket: make `esp_websocket_client_send_with_opcode` a public API ([3330b96](https://github.com/espressif/esp-protocols/commit/3330b96))
++- websocket: updated example to use local websocket echo server ([55dc564](https://github.com/espressif/esp-protocols/commit/55dc564))
++- CI: Created a common requirements.txt ([23a537b](https://github.com/espressif/esp-protocols/commit/23a537b))
++- Examples: using pytest.ini from top level directory ([aee016d](https://github.com/espressif/esp-protocols/commit/aee016d))
++- CI: fixing the files to be complient with pre-commit hooks ([945bd17](https://github.com/espressif/esp-protocols/commit/945bd17))
++- websocket: updated example to show json data transfer ([3456781](https://github.com/espressif/esp-protocols/commit/3456781))
++
++
++## [0.0.3](https://github.com/espressif/esp-protocols/commits/5c245db)
++
++### Updated
++
++- esp_websocket_client: Upgraded version to 0.0.3 ([5c245db](https://github.com/espressif/esp-protocols/commit/5c245db))
++- CI: Fix build issues ([6e4e4fa](https://github.com/espressif/esp-protocols/commit/6e4e4fa))
++
++
++## [0.0.2](https://github.com/espressif/esp-protocols/commits/57afa38)
++
++### Features
++
++- Optimize memory size for websocket client init ([4cefcd3](https://github.com/espressif/esp-protocols/commit/4cefcd3))
++- allow users to attach CA bundle ([d56b5d9](https://github.com/espressif/esp-protocols/commit/d56b5d9))
++
++### Bug Fixes
++
++- Docs to refer esp-protocols ([91a177e](https://github.com/espressif/esp-protocols/commit/91a177e))
++
++### Updated
++
++- Bump asio/mdns/esp_websocket_client versions ([57afa38](https://github.com/espressif/esp-protocols/commit/57afa38))
++- ignore format warnings ([d66f9dc](https://github.com/espressif/esp-protocols/commit/d66f9dc))
++- Minor fixes here and there ([8fe2a3a](https://github.com/espressif/esp-protocols/commit/8fe2a3a))
++- CI: Added CI example run job ([76298ff](https://github.com/espressif/esp-protocols/commit/76298ff))
++- Implement websocket client connect error ([9e37f53](https://github.com/espressif/esp-protocols/commit/9e37f53))
++- Add methods to allow get/set of websocket client ping interval ([e55f54b](https://github.com/espressif/esp-protocols/commit/e55f54b))
++- esp_websocket_client: Expose frame fin flag in websocket event ([b72a9ae](https://github.com/espressif/esp-protocols/commit/b72a9ae))
++
++
++## [0.0.1](https://github.com/espressif/esp-protocols/commits/80c3cf0)
++
++### Updated
++
++- websocket: Initial version based on IDF 5.0 ([80c3cf0](https://github.com/espressif/esp-protocols/commit/80c3cf0))
++- freertos: Remove legacy data types ([b3c777a](https://github.com/espressif/esp-protocols/commit/b3c777a), [IDF@57fd78f](https://github.com/espressif/esp-idf/commit/57fd78f5baf93a368a82cf4b2e00ca17ffc09115))
++- websocket: Added configs `reconnect_timeout_ms` and `network_timeout_ms` ([8ce791e](https://github.com/espressif/esp-protocols/commit/8ce791e), [IDF#8263](https://github.com/espressif/esp-idf/issues/8263), [IDF@6c26d65](https://github.com/espressif/esp-idf/commit/6c26d6520311f83c2ebe852a487c36185a429a69))
++- Add http_parser (new component) dependency ([bece6e7](https://github.com/espressif/esp-protocols/commit/bece6e7), [IDF@8e94cf2](https://github.com/espressif/esp-idf/commit/8e94cf2bb1498e94045e73e649f1046111fc6f9f))
++- websocket: removed deprecated API "esp_websocket_client_send" ([46bd32d](https://github.com/espressif/esp-protocols/commit/46bd32d), [IDF@7f6ab93](https://github.com/espressif/esp-idf/commit/7f6ab93f7e52bddaf4c030d7337ea5574f33381d))
++- refactor (test_utils)!: separate file for memory check functions ([525c70c](https://github.com/espressif/esp-protocols/commit/525c70c), [IDF@16514f9](https://github.com/espressif/esp-idf/commit/16514f93f06cd833306459d615458536a9f2e5cd))
++- Build & config: Remove leftover files from the unsupported "make" build system ([19c0455](https://github.com/espressif/esp-protocols/commit/19c0455), [IDF@766aa57](https://github.com/espressif/esp-idf/commit/766aa5708443099f3f033b739cda0e1de101cca6))
++- transport: Add CONFI_WS_TRANSPORT for optimize the code size ([9118e0f](https://github.com/espressif/esp-protocols/commit/9118e0f), [IDF@8b02c90](https://github.com/espressif/esp-idf/commit/8b02c9026af32352c8c4ed23025fb42182db6cae))
++- ws_client: Fix const correctness in the API config structure ([fbdbd55](https://github.com/espressif/esp-protocols/commit/fbdbd55), [IDF@70b1247](https://github.com/espressif/esp-idf/commit/70b1247a47f4583fccd8a91bf6cc532e5741e632))
++- components: Remove repeated keep alive function by ssl layer function ([de7cd72](https://github.com/espressif/esp-protocols/commit/de7cd72), [IDF@c79a907](https://github.com/espressif/esp-idf/commit/c79a907e4fef0c54175ad5659bc0df45a40745c9))
++- components: Support bind socket to specified interface in esp_http_client and esp_websocket_client component ([4a608ec](https://github.com/espressif/esp-protocols/commit/4a608ec), [IDF@bead359](https://github.com/espressif/esp-idf/commit/bead3599abd875d746e64cd6749574ff2c155adb))
++- esp_websocket_client: Don't log the filename when logging "Websocket already stop" ([f0351ff](https://github.com/espressif/esp-protocols/commit/f0351ff), [IDF@10bde42](https://github.com/espressif/esp-idf/commit/10bde42551b479bd4bfccc9d3c6d983f8abe0b87))
++- websocket: Add websocket unit tests ([9219ff7](https://github.com/espressif/esp-protocols/commit/9219ff7), [IDF@cd01a0c](https://github.com/espressif/esp-idf/commit/cd01a0ca81ef2ba5648fd7712c9bf45bbf252339))
++- websockets: Set keepalive options after adding transport to the list ([86aa0b8](https://github.com/espressif/esp-protocols/commit/86aa0b8), [IDF@99805d8](https://github.com/espressif/esp-idf/commit/99805d880f41857702b3bbb35bc0dfaf7dec3aec))
++- websocket: Add configurable ping interval ([1933367](https://github.com/espressif/esp-protocols/commit/1933367), [IDF@9ff9137](https://github.com/espressif/esp-idf/commit/9ff9137e7a8b64e956c1c63e95a48f4049ad571e))
++- ws_transport: Add option to propagate control packets to the app ([95cf983](https://github.com/espressif/esp-protocols/commit/95cf983), [IDF#6307](https://github.com/espressif/esp-idf/issues/6307), [IDF@acc7bd2](https://github.com/espressif/esp-idf/commit/acc7bd2ca45c21033cbd02220a27c3c1ecdd5ad0))
++- Add options for esp_http_client and esp_websocket_client to support keepalive ([8a6c320](https://github.com/espressif/esp-protocols/commit/8a6c320), [IDF@b53e46a](https://github.com/espressif/esp-idf/commit/b53e46a68e8671c73e8aafe2602de5ff5a77e3db))
++- websocket: support mutual tls for websocket Closes https://github.com/espressif/esp-idf/issues/6059 ([d1dd6ec](https://github.com/espressif/esp-protocols/commit/d1dd6ec), [IDF#6059](https://github.com/espressif/esp-idf/issues/6059), [IDF@5ab774f](https://github.com/espressif/esp-idf/commit/5ab774f9d8e119fff56b566fa2f9bdad853bf701))
++- Whitespace: Automated whitespace fixes (large commit) ([d376480](https://github.com/espressif/esp-protocols/commit/d376480), [IDF@66fb5a2](https://github.com/espressif/esp-idf/commit/66fb5a29bbdc2482d67c52e6f66b303378c9b789))
++- Websocket client: avoid deadlock if stop called from event handler ([e90272c](https://github.com/espressif/esp-protocols/commit/e90272c), [IDF@c2bb076](https://github.com/espressif/esp-idf/commit/c2bb0762bb5c24cb170bc9c96fdadb86ae2f06e7))
++- tcp_transport: Added internal API for underlying socket, used for custom select on connection end for WS ([6d12d06](https://github.com/espressif/esp-protocols/commit/6d12d06), [IDF@5e9f8b5](https://github.com/espressif/esp-idf/commit/5e9f8b52e7a87371370205a387b2d94e5ac6cbf9))
++- ws_client: Added support for close frame, closing connection gracefully ([1455bc0](https://github.com/espressif/esp-protocols/commit/1455bc0), [IDF@b213f2c](https://github.com/espressif/esp-idf/commit/b213f2c6d3d78ba3a95005e3206d4ce370b8a649))
++- driver, http_client, web_socket, tcp_transport: remove __FILE__ from log messages ([01b4f64](https://github.com/espressif/esp-protocols/commit/01b4f64), [IDF#5637](https://github.com/espressif/esp-idf/issues/5637), [IDF@caaf62b](https://github.com/espressif/esp-idf/commit/caaf62bdad965e6b58bba74171986414057f6757))
++-  websocket_client : fix some issues for websocket client ([6ab0aea](https://github.com/espressif/esp-protocols/commit/6ab0aea), [IDF@341e480](https://github.com/espressif/esp-idf/commit/341e48057349d92c3b8afe5f9c0fcd0aa47500b0))
++- websocket: add configurable timeout for PONG not received ([b71c49c](https://github.com/espressif/esp-protocols/commit/b71c49c), [IDF@0049385](https://github.com/espressif/esp-idf/commit/0049385850daebfe2222c8f0526b896ffaeacdd9))
++- websocket client: the client now aborts the connection if send fails. ([f8e3ba7](https://github.com/espressif/esp-protocols/commit/f8e3ba7), [IDF@6bebfc8](https://github.com/espressif/esp-idf/commit/6bebfc84f3ed9c96bcb331fd0d5b0bbb26ce07a4))
++- ws_client: fix fragmented send setting proper opcodes ([7a5b2d5](https://github.com/espressif/esp-protocols/commit/7a5b2d5), [IDF#4974](https://github.com/espressif/esp-idf/issues/4974), [IDF@14992e6](https://github.com/espressif/esp-idf/commit/14992e62c5573d8b6076281f16b4fe11d6bc8f87))
++- esp32: add implementation of esp_timer based on TG0 LAC timer ([17281a5](https://github.com/espressif/esp-protocols/commit/17281a5), [IDF@739eb05](https://github.com/espressif/esp-idf/commit/739eb05bb97736b70507e7ebcfee58e670672d23))
++- tcp_transport/ws_client: websockets now correctly handle messages longer than buffer ([aec6a75](https://github.com/espressif/esp-protocols/commit/aec6a75), [IDF@ffeda30](https://github.com/espressif/esp-idf/commit/ffeda3003c92102d2d5b145c9adb3ea3105cbbda))
++- websocket: added missing event data ([a6be8e2](https://github.com/espressif/esp-protocols/commit/a6be8e2), [IDF@7c0e376](https://github.com/espressif/esp-idf/commit/7c0e3765ec009acaf2ef439e98895598b5fd9aaf))
++- Add User-Agent and additional headers to esp_websocket_client ([a48b0fa](https://github.com/espressif/esp-protocols/commit/a48b0fa), [IDF@9200250](https://github.com/espressif/esp-idf/commit/9200250f512146e348f84ebfc76f9e82e2070da2))
++- ws_client: fix handling timeouts by websocket client. ([1fcc001](https://github.com/espressif/esp-protocols/commit/1fcc001), [IDF#4316](https://github.com/espressif/esp-idf/issues/4316), [IDF@e1f9829](https://github.com/espressif/esp-idf/commit/e1f982921a08022ca4307900fc058ccacccd26d0))
++- websocket_client: fix locking mechanism in ws-client task and when sending data ([d0121b9](https://github.com/espressif/esp-protocols/commit/d0121b9), [IDF@7c5011f](https://github.com/espressif/esp-idf/commit/7c5011f411b7662feb50fd1e53114bec390d8c2e))
++- ws_client: fix for not sending ping responses, updated to pass events also for PING and PONG messages, added interfaces to send both binary and text data ([f55d839](https://github.com/espressif/esp-protocols/commit/f55d839), [IDF@abf9345](https://github.com/espressif/esp-idf/commit/abf9345b85559f4a922e8387f48336fb09994041))
++- websocket_client: fix URI parsing to include also query part in websocket connection path ([f5a26c4](https://github.com/espressif/esp-protocols/commit/f5a26c4), [IDF@271e6c4](https://github.com/espressif/esp-idf/commit/271e6c4c9c57ca6715c1435a71fe3974cd2b18b3))
++- ws_client: fixed posting to event loop with websocket timeout ([23f6a1d](https://github.com/espressif/esp-protocols/commit/23f6a1d), [IDF@5050506](https://github.com/espressif/esp-idf/commit/50505068c45fbe97611be9b7f2c30b8160cbb9e3))
++- ws_client: added subprotocol configuration option to websocket client ([2553d65](https://github.com/espressif/esp-protocols/commit/2553d65), [IDF@de6ea39](https://github.com/espressif/esp-idf/commit/de6ea396f17be820153da6acaf977c1bf11806fb))
++- ws_client: fixed path config issue when ws server configured using host and path instead of uri ([67949f9](https://github.com/espressif/esp-protocols/commit/67949f9), [IDF@c0ba9e1](https://github.com/espressif/esp-idf/commit/c0ba9e19fc6cff79f5760b991c259970bd4abeab))
++- ws_client: fixed transport config option when server address configured as host, port, transport rather then uri ([bfc88ab](https://github.com/espressif/esp-protocols/commit/bfc88ab), [IDF@adee25d](https://github.com/espressif/esp-idf/commit/adee25d90e100a169e959f94db23621f6ffab0e6))
++- esp_wifi: wifi support new event mechanism ([4d64495](https://github.com/espressif/esp-protocols/commit/4d64495), [IDF@003a987](https://github.com/espressif/esp-idf/commit/003a9872b7de69d799e9d37521cfbcaff9b37e85))
++- tools: Mass fixing of empty prototypes (for -Wstrict-prototypes) ([da74a4a](https://github.com/espressif/esp-protocols/commit/da74a4a), [IDF@afbaf74](https://github.com/espressif/esp-idf/commit/afbaf74007e89d016dbade4072bf2e7a3874139a))
++- ws_client: fix double delete issue in ws client initialization ([f718676](https://github.com/espressif/esp-protocols/commit/f718676), [IDF@9b507c4](https://github.com/espressif/esp-idf/commit/9b507c45c86cf491466d705cd7896c6f6e500d0d))
++- ws_client: removed dependency on internal tcp_transport header ([13a40d2](https://github.com/espressif/esp-protocols/commit/13a40d2), [IDF@d143356](https://github.com/espressif/esp-idf/commit/d1433564ecfc885f80a7a261a88ab87d227cf1c2))
++- examples: use new component registration api ([35d6f9a](https://github.com/espressif/esp-protocols/commit/35d6f9a), [IDF@6771eea](https://github.com/espressif/esp-idf/commit/6771eead80534c51efb2033c04769ef5893b4838))
++- esp_websocket_client: Add websocket client component ([f3a0586](https://github.com/espressif/esp-protocols/commit/f3a0586), [IDF#2829](https://github.com/espressif/esp-idf/issues/2829), [IDF@2a2d932](https://github.com/espressif/esp-idf/commit/2a2d932cfe2404057c71bc91d9d9416200e67a03))
+diff --git a/components/esp_websocket_client/CMakeLists.txt b/components/esp_websocket_client/CMakeLists.txt
+new file mode 100644
+index 0000000000..3e93b839a4
+--- /dev/null
++++ b/components/esp_websocket_client/CMakeLists.txt
+@@ -0,0 +1,21 @@
++idf_build_get_property(target IDF_TARGET)
++
++if(NOT CONFIG_WS_TRANSPORT AND NOT CMAKE_BUILD_EARLY_EXPANSION)
++    message(STATUS "Websocket transport is disabled so the esp_websocket_client component will not be built")
++    # note: the component is still included in the build so it can become visible again in config
++    # without needing to re-run CMake. However no source or header files are built.
++    idf_component_register()
++    return()
++endif()
++
++if(${IDF_TARGET} STREQUAL "linux")
++	idf_component_register(SRCS "esp_websocket_client.c"
++                    INCLUDE_DIRS "include"
++                    REQUIRES esp-tls tcp_transport http_parser esp_event nvs_flash esp_stubs json
++                    PRIV_REQUIRES esp_timer)
++else()
++    idf_component_register(SRCS "esp_websocket_client.c"
++                    INCLUDE_DIRS "include"
++                    REQUIRES lwip esp-tls tcp_transport http_parser esp_event
++                    PRIV_REQUIRES esp_timer)
++endif()
+diff --git a/components/esp_websocket_client/Kconfig b/components/esp_websocket_client/Kconfig
+new file mode 100644
+index 0000000000..6fe449f68d
+--- /dev/null
++++ b/components/esp_websocket_client/Kconfig
+@@ -0,0 +1,10 @@
++menu "ESP WebSocket client"
++
++    config ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER
++        bool "Enable websocket client dynamic buffer for send and receive data"
++        default n
++        help
++            Enable this option will reallocated buffer when send or receive data and free them when end of use.
++            This can save about 2 KB memory when no websocket data send and receive.
++
++endmenu
+diff --git a/components/esp_websocket_client/LICENSE b/components/esp_websocket_client/LICENSE
+new file mode 100644
+index 0000000000..d645695673
+--- /dev/null
++++ b/components/esp_websocket_client/LICENSE
+@@ -0,0 +1,202 @@
++
++                                 Apache License
++                           Version 2.0, January 2004
++                        http://www.apache.org/licenses/
++
++   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
++
++   1. Definitions.
++
++      "License" shall mean the terms and conditions for use, reproduction,
++      and distribution as defined by Sections 1 through 9 of this document.
++
++      "Licensor" shall mean the copyright owner or entity authorized by
++      the copyright owner that is granting the License.
++
++      "Legal Entity" shall mean the union of the acting entity and all
++      other entities that control, are controlled by, or are under common
++      control with that entity. For the purposes of this definition,
++      "control" means (i) the power, direct or indirect, to cause the
++      direction or management of such entity, whether by contract or
++      otherwise, or (ii) ownership of fifty percent (50%) or more of the
++      outstanding shares, or (iii) beneficial ownership of such entity.
++
++      "You" (or "Your") shall mean an individual or Legal Entity
++      exercising permissions granted by this License.
++
++      "Source" form shall mean the preferred form for making modifications,
++      including but not limited to software source code, documentation
++      source, and configuration files.
++
++      "Object" form shall mean any form resulting from mechanical
++      transformation or translation of a Source form, including but
++      not limited to compiled object code, generated documentation,
++      and conversions to other media types.
++
++      "Work" shall mean the work of authorship, whether in Source or
++      Object form, made available under the License, as indicated by a
++      copyright notice that is included in or attached to the work
++      (an example is provided in the Appendix below).
++
++      "Derivative Works" shall mean any work, whether in Source or Object
++      form, that is based on (or derived from) the Work and for which the
++      editorial revisions, annotations, elaborations, or other modifications
++      represent, as a whole, an original work of authorship. For the purposes
++      of this License, Derivative Works shall not include works that remain
++      separable from, or merely link (or bind by name) to the interfaces of,
++      the Work and Derivative Works thereof.
++
++      "Contribution" shall mean any work of authorship, including
++      the original version of the Work and any modifications or additions
++      to that Work or Derivative Works thereof, that is intentionally
++      submitted to Licensor for inclusion in the Work by the copyright owner
++      or by an individual or Legal Entity authorized to submit on behalf of
++      the copyright owner. For the purposes of this definition, "submitted"
++      means any form of electronic, verbal, or written communication sent
++      to the Licensor or its representatives, including but not limited to
++      communication on electronic mailing lists, source code control systems,
++      and issue tracking systems that are managed by, or on behalf of, the
++      Licensor for the purpose of discussing and improving the Work, but
++      excluding communication that is conspicuously marked or otherwise
++      designated in writing by the copyright owner as "Not a Contribution."
++
++      "Contributor" shall mean Licensor and any individual or Legal Entity
++      on behalf of whom a Contribution has been received by Licensor and
++      subsequently incorporated within the Work.
++
++   2. Grant of Copyright License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      copyright license to reproduce, prepare Derivative Works of,
++      publicly display, publicly perform, sublicense, and distribute the
++      Work and such Derivative Works in Source or Object form.
++
++   3. Grant of Patent License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      (except as stated in this section) patent license to make, have made,
++      use, offer to sell, sell, import, and otherwise transfer the Work,
++      where such license applies only to those patent claims licensable
++      by such Contributor that are necessarily infringed by their
++      Contribution(s) alone or by combination of their Contribution(s)
++      with the Work to which such Contribution(s) was submitted. If You
++      institute patent litigation against any entity (including a
++      cross-claim or counterclaim in a lawsuit) alleging that the Work
++      or a Contribution incorporated within the Work constitutes direct
++      or contributory patent infringement, then any patent licenses
++      granted to You under this License for that Work shall terminate
++      as of the date such litigation is filed.
++
++   4. Redistribution. You may reproduce and distribute copies of the
++      Work or Derivative Works thereof in any medium, with or without
++      modifications, and in Source or Object form, provided that You
++      meet the following conditions:
++
++      (a) You must give any other recipients of the Work or
++          Derivative Works a copy of this License; and
++
++      (b) You must cause any modified files to carry prominent notices
++          stating that You changed the files; and
++
++      (c) You must retain, in the Source form of any Derivative Works
++          that You distribute, all copyright, patent, trademark, and
++          attribution notices from the Source form of the Work,
++          excluding those notices that do not pertain to any part of
++          the Derivative Works; and
++
++      (d) If the Work includes a "NOTICE" text file as part of its
++          distribution, then any Derivative Works that You distribute must
++          include a readable copy of the attribution notices contained
++          within such NOTICE file, excluding those notices that do not
++          pertain to any part of the Derivative Works, in at least one
++          of the following places: within a NOTICE text file distributed
++          as part of the Derivative Works; within the Source form or
++          documentation, if provided along with the Derivative Works; or,
++          within a display generated by the Derivative Works, if and
++          wherever such third-party notices normally appear. The contents
++          of the NOTICE file are for informational purposes only and
++          do not modify the License. You may add Your own attribution
++          notices within Derivative Works that You distribute, alongside
++          or as an addendum to the NOTICE text from the Work, provided
++          that such additional attribution notices cannot be construed
++          as modifying the License.
++
++      You may add Your own copyright statement to Your modifications and
++      may provide additional or different license terms and conditions
++      for use, reproduction, or distribution of Your modifications, or
++      for any such Derivative Works as a whole, provided Your use,
++      reproduction, and distribution of the Work otherwise complies with
++      the conditions stated in this License.
++
++   5. Submission of Contributions. Unless You explicitly state otherwise,
++      any Contribution intentionally submitted for inclusion in the Work
++      by You to the Licensor shall be under the terms and conditions of
++      this License, without any additional terms or conditions.
++      Notwithstanding the above, nothing herein shall supersede or modify
++      the terms of any separate license agreement you may have executed
++      with Licensor regarding such Contributions.
++
++   6. Trademarks. This License does not grant permission to use the trade
++      names, trademarks, service marks, or product names of the Licensor,
++      except as required for reasonable and customary use in describing the
++      origin of the Work and reproducing the content of the NOTICE file.
++
++   7. Disclaimer of Warranty. Unless required by applicable law or
++      agreed to in writing, Licensor provides the Work (and each
++      Contributor provides its Contributions) on an "AS IS" BASIS,
++      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++      implied, including, without limitation, any warranties or conditions
++      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
++      PARTICULAR PURPOSE. You are solely responsible for determining the
++      appropriateness of using or redistributing the Work and assume any
++      risks associated with Your exercise of permissions under this License.
++
++   8. Limitation of Liability. In no event and under no legal theory,
++      whether in tort (including negligence), contract, or otherwise,
++      unless required by applicable law (such as deliberate and grossly
++      negligent acts) or agreed to in writing, shall any Contributor be
++      liable to You for damages, including any direct, indirect, special,
++      incidental, or consequential damages of any character arising as a
++      result of this License or out of the use or inability to use the
++      Work (including but not limited to damages for loss of goodwill,
++      work stoppage, computer failure or malfunction, or any and all
++      other commercial damages or losses), even if such Contributor
++      has been advised of the possibility of such damages.
++
++   9. Accepting Warranty or Additional Liability. While redistributing
++      the Work or Derivative Works thereof, You may choose to offer,
++      and charge a fee for, acceptance of support, warranty, indemnity,
++      or other liability obligations and/or rights consistent with this
++      License. However, in accepting such obligations, You may act only
++      on Your own behalf and on Your sole responsibility, not on behalf
++      of any other Contributor, and only if You agree to indemnify,
++      defend, and hold each Contributor harmless for any liability
++      incurred by, or claims asserted against, such Contributor by reason
++      of your accepting any such warranty or additional liability.
++
++   END OF TERMS AND CONDITIONS
++
++   APPENDIX: How to apply the Apache License to your work.
++
++      To apply the Apache License to your work, attach the following
++      boilerplate notice, with the fields enclosed by brackets "[]"
++      replaced with your own identifying information. (Don't include
++      the brackets!)  The text should be enclosed in the appropriate
++      comment syntax for the file format. We also recommend that a
++      file or class name and description of purpose be included on the
++      same "printed page" as the copyright notice for easier
++      identification within third-party archives.
++
++   Copyright [yyyy] [name of copyright owner]
++
++   Licensed under the Apache License, Version 2.0 (the "License");
++   you may not use this file except in compliance with the License.
++   You may obtain a copy of the License at
++
++       http://www.apache.org/licenses/LICENSE-2.0
++
++   Unless required by applicable law or agreed to in writing, software
++   distributed under the License is distributed on an "AS IS" BASIS,
++   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++   See the License for the specific language governing permissions and
++   limitations under the License.
+diff --git a/components/esp_websocket_client/README.md b/components/esp_websocket_client/README.md
+new file mode 100644
+index 0000000000..bffb1aa663
+--- /dev/null
++++ b/components/esp_websocket_client/README.md
+@@ -0,0 +1,13 @@
++# ESP WEBSOCKET CLIENT
++
++[![Component Registry](https://components.espressif.com/components/espressif/esp_websocket_client/badge.svg)](https://components.espressif.com/components/espressif/esp_websocket_client)
++
++The `esp-websocket_client` component is a managed component for `esp-idf` that contains implementation of [WebSocket protocol client](https://datatracker.ietf.org/doc/html/rfc6455) for ESP32
++
++## Examples
++
++Get started with example test [example](https://github.com/espressif/esp-protocols/tree/master/components/esp_websocket_client/examples):
++
++## Documentation
++
++* View the full [html documentation](https://docs.espressif.com/projects/esp-protocols/esp_websocket_client/docs/latest/index.html)
+diff --git a/components/esp_websocket_client/esp_websocket_client.c b/components/esp_websocket_client/esp_websocket_client.c
+new file mode 100644
+index 0000000000..9232cef387
+--- /dev/null
++++ b/components/esp_websocket_client/esp_websocket_client.c
+@@ -0,0 +1,1291 @@
++/*
++ * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <stdio.h>
++
++#include "esp_websocket_client.h"
++#include "esp_transport.h"
++#include "esp_transport_tcp.h"
++#include "esp_transport_ssl.h"
++/* using uri parser */
++#include "http_parser.h"
++#include "freertos/task.h"
++#include "freertos/semphr.h"
++#include "freertos/queue.h"
++#include "freertos/event_groups.h"
++#include "esp_log.h"
++#include "esp_timer.h"
++#include "esp_tls_crypto.h"
++#include "esp_system.h"
++#include <errno.h>
++#include <arpa/inet.h>
++
++static const char *TAG = "websocket_client";
++
++#define WEBSOCKET_TCP_DEFAULT_PORT      (80)
++#define WEBSOCKET_SSL_DEFAULT_PORT      (443)
++#define WEBSOCKET_BUFFER_SIZE_BYTE      (1024)
++#define WEBSOCKET_RECONNECT_TIMEOUT_MS  (10*1000)
++#define WEBSOCKET_TASK_PRIORITY         (5)
++#define WEBSOCKET_TASK_STACK            (4*1024)
++#define WEBSOCKET_NETWORK_TIMEOUT_MS    (10*1000)
++#define WEBSOCKET_PING_INTERVAL_SEC     (10)
++#define WEBSOCKET_EVENT_QUEUE_SIZE      (1)
++#define WEBSOCKET_PINGPONG_TIMEOUT_SEC  (120)
++#define WEBSOCKET_KEEP_ALIVE_IDLE       (5)
++#define WEBSOCKET_KEEP_ALIVE_INTERVAL   (5)
++#define WEBSOCKET_KEEP_ALIVE_COUNT      (3)
++
++#define ESP_WS_CLIENT_MEM_CHECK(TAG, a, action) if (!(a)) {                                         \
++        ESP_LOGE(TAG,"%s(%d): %s", __FUNCTION__, __LINE__, "Memory exhausted");                     \
++        action;                                                                                     \
++        }
++
++#define ESP_WS_CLIENT_ERR_OK_CHECK(TAG, err, action)  { \
++        esp_err_t _esp_ws_err_to_check = err;           \
++        if (_esp_ws_err_to_check != ESP_OK) {           \
++            ESP_LOGE(TAG,"%s(%d): Expected ESP_OK; reported: %d", __FUNCTION__, __LINE__, _esp_ws_err_to_check); \
++            action;                                     \
++            }                                           \
++        }
++
++#define ESP_WS_CLIENT_STATE_CHECK(TAG, a, action) if ((a->state) < WEBSOCKET_STATE_INIT) {                                         \
++        ESP_LOGE(TAG,"%s(%d): %s", __FUNCTION__, __LINE__, "Websocket already stop"); \
++        action;                                                                                     \
++        }
++
++#define WS_OVER_TCP_SCHEME  "ws"
++#define WS_OVER_TLS_SCHEME  "wss"
++#define WS_HTTP_BASIC_AUTH  "Basic "
++
++const static int STOPPED_BIT = BIT0;
++const static int CLOSE_FRAME_SENT_BIT = BIT1;   // Indicates that a close frame was sent by the client
++// and we are waiting for the server to continue with clean close
++
++ESP_EVENT_DEFINE_BASE(WEBSOCKET_EVENTS);
++
++typedef struct {
++    const char                 *task_name;
++    int                         task_stack;
++    int                         task_prio;
++    char                        *uri;
++    char                        *host;
++    char                        *path;
++    char                        *scheme;
++    char                        *username;
++    char                        *password;
++    char                        *auth;
++    int                         port;
++    bool                        auto_reconnect;
++    void                        *user_context;
++    int                         network_timeout_ms;
++    char                        *subprotocol;
++    char                        *user_agent;
++    char                        *headers;
++    int                         pingpong_timeout_sec;
++    size_t                      ping_interval_sec;
++    const char                  *cert;
++    size_t                      cert_len;
++    const char                  *client_cert;
++    size_t                      client_cert_len;
++    const char                  *client_key;
++    size_t                      client_key_len;
++    bool                        use_global_ca_store;
++    bool                        skip_cert_common_name_check;
++    esp_err_t                   (*crt_bundle_attach)(void *conf);
++} websocket_config_storage_t;
++
++typedef enum {
++    WEBSOCKET_STATE_ERROR = -1,
++    WEBSOCKET_STATE_UNKNOW = 0,
++    WEBSOCKET_STATE_INIT,
++    WEBSOCKET_STATE_CONNECTED,
++    WEBSOCKET_STATE_WAIT_TIMEOUT,
++    WEBSOCKET_STATE_CLOSING,
++} websocket_client_state_t;
++
++struct esp_websocket_client {
++    esp_event_loop_handle_t     event_handle;
++    TaskHandle_t                task_handle;
++    esp_websocket_error_codes_t error_handle;
++    esp_transport_list_handle_t transport_list;
++    esp_transport_handle_t      transport;
++    websocket_config_storage_t *config;
++    websocket_client_state_t    state;
++    uint64_t                    keepalive_tick_ms;
++    uint64_t                    reconnect_tick_ms;
++    uint64_t                    ping_tick_ms;
++    uint64_t                    pingpong_tick_ms;
++    int                         wait_timeout_ms;
++    int                         auto_reconnect;
++    bool                        run;
++    bool                        wait_for_pong_resp;
++    bool                        selected_for_destroying;
++    EventGroupHandle_t          status_bits;
++    SemaphoreHandle_t            lock;
++    size_t                      errormsg_size;
++    char                        *errormsg_buffer;
++    char                        *rx_buffer;
++    char                        *tx_buffer;
++    int                         buffer_size;
++    bool                        last_fin;
++    ws_transport_opcodes_t      last_opcode;
++    int                         payload_len;
++    int                         payload_offset;
++    esp_transport_keep_alive_t  keep_alive_cfg;
++    struct ifreq                *if_name;
++};
++
++static uint64_t _tick_get_ms(void)
++{
++    return esp_timer_get_time() / 1000;
++}
++
++static esp_err_t esp_websocket_new_buf(esp_websocket_client_handle_t client, bool is_tx)
++{
++#ifdef CONFIG_ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER
++    if (is_tx) {
++        if (client->tx_buffer) {
++            free(client->tx_buffer);
++        }
++
++        client->tx_buffer = calloc(1, client->buffer_size);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->tx_buffer, return ESP_ERR_NO_MEM);
++    } else {
++        if (client->rx_buffer) {
++            free(client->rx_buffer);
++        }
++
++        client->rx_buffer = calloc(1, client->buffer_size);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->rx_buffer, return ESP_ERR_NO_MEM);
++    }
++#endif
++    return ESP_OK;
++}
++
++static void esp_websocket_free_buf(esp_websocket_client_handle_t client, bool is_tx)
++{
++#ifdef CONFIG_ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER
++    if (is_tx) {
++        if (client->tx_buffer) {
++            free(client->tx_buffer);
++            client->tx_buffer = NULL;
++        }
++    } else {
++        if (client->rx_buffer) {
++            free(client->rx_buffer);
++            client->rx_buffer = NULL;
++        }
++    }
++#endif
++}
++
++static esp_err_t esp_websocket_client_dispatch_event(esp_websocket_client_handle_t client,
++        esp_websocket_event_id_t event,
++        const char *data,
++        int data_len)
++{
++    esp_err_t err;
++    esp_websocket_event_data_t event_data;
++
++    event_data.client = client;
++    event_data.user_context = client->config->user_context;
++    event_data.data_ptr = data;
++    event_data.data_len = data_len;
++    event_data.fin = client->last_fin;
++    event_data.op_code = client->last_opcode;
++    event_data.payload_len = client->payload_len;
++    event_data.payload_offset = client->payload_offset;
++
++    if (client->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
++        event_data.error_handle.esp_tls_last_esp_err = esp_tls_get_and_clear_last_error(esp_transport_get_error_handle(client->transport),
++                &client->error_handle.esp_tls_stack_err,
++                &client->error_handle.esp_tls_cert_verify_flags);
++        event_data.error_handle.esp_transport_sock_errno = esp_transport_get_errno(client->transport);
++    }
++    event_data.error_handle.error_type = client->error_handle.error_type;
++    event_data.error_handle.esp_ws_handshake_status_code = client->error_handle.esp_ws_handshake_status_code;
++
++
++    if ((err = esp_event_post_to(client->event_handle,
++                                 WEBSOCKET_EVENTS, event,
++                                 &event_data,
++                                 sizeof(esp_websocket_event_data_t),
++                                 portMAX_DELAY)) != ESP_OK) {
++        return err;
++    }
++    return esp_event_loop_run(client->event_handle, 0);
++}
++
++static esp_err_t esp_websocket_client_abort_connection(esp_websocket_client_handle_t client, esp_websocket_error_type_t error_type)
++{
++    ESP_WS_CLIENT_STATE_CHECK(TAG, client, return ESP_FAIL);
++    esp_transport_close(client->transport);
++
++    if (client->config->auto_reconnect) {
++        client->reconnect_tick_ms = _tick_get_ms();
++        ESP_LOGI(TAG, "Reconnect after %d ms", client->wait_timeout_ms);
++    }
++
++    client->error_handle.error_type = error_type;
++    client->state = WEBSOCKET_STATE_WAIT_TIMEOUT;
++    esp_websocket_client_dispatch_event(client, WEBSOCKET_EVENT_DISCONNECTED, NULL, 0);
++    return ESP_OK;
++}
++
++static esp_err_t esp_websocket_client_error(esp_websocket_client_handle_t client, const char *format, ...) __attribute__ ((format (printf, 2, 3)));
++static esp_err_t esp_websocket_client_error(esp_websocket_client_handle_t client, const char *format, ...)
++{
++    va_list myargs;
++    va_start(myargs, format);
++
++    size_t needed_size = vsnprintf(NULL, 0, format, myargs);
++    needed_size++; // null terminator
++
++    if (needed_size > client->errormsg_size) {
++        if (client->errormsg_buffer) {
++            free(client->errormsg_buffer);
++        }
++        client->errormsg_buffer = malloc(needed_size);
++        if (client->errormsg_buffer == NULL) {
++            client->errormsg_size = 0;
++            ESP_LOGE(TAG, "Failed to allocate...");
++            return ESP_ERR_NO_MEM;
++        }
++        client->errormsg_size = needed_size;
++    }
++
++    needed_size = vsnprintf(client->errormsg_buffer, client->errormsg_size, format, myargs);
++
++    va_end(myargs);
++
++    ESP_LOGE(TAG, "%s", client->errormsg_buffer);
++
++    esp_websocket_client_dispatch_event(client, WEBSOCKET_EVENT_ERROR, client->errormsg_buffer, needed_size);
++    return ESP_OK;
++}
++
++static char *http_auth_basic(const char *username, const char *password)
++{
++    int out;
++    char *user_info = NULL;
++    char *digest = NULL;
++    size_t n = 0;
++
++    if (asprintf(&user_info, "%s:%s", username, password) < 0) {
++        return NULL;
++    }
++
++    if (!user_info) {
++        ESP_LOGE(TAG, "No enough memory for user information");
++        return NULL;
++    }
++
++    esp_crypto_base64_encode(NULL, 0, &n, (const unsigned char *)user_info, strlen(user_info));
++    digest = calloc(1, strlen(WS_HTTP_BASIC_AUTH) + n + 1);
++    if (digest) {
++        strcpy(digest, WS_HTTP_BASIC_AUTH);
++        esp_crypto_base64_encode((unsigned char *)digest + 6, n, (size_t *)&out, (const unsigned char *)user_info, strlen(user_info));
++    }
++    free(user_info);
++    return digest;
++}
++
++static esp_err_t esp_websocket_client_set_config(esp_websocket_client_handle_t client, const esp_websocket_client_config_t *config)
++{
++    websocket_config_storage_t *cfg = client->config;
++    cfg->task_prio = config->task_prio;
++    if (cfg->task_prio <= 0) {
++        cfg->task_prio = WEBSOCKET_TASK_PRIORITY;
++    }
++
++    cfg->task_name = config->task_name;
++
++    cfg->task_stack = config->task_stack;
++    if (cfg->task_stack == 0) {
++        cfg->task_stack = WEBSOCKET_TASK_STACK;
++    }
++
++    if (config->host) {
++        cfg->host = strdup(config->host);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->host, return ESP_ERR_NO_MEM);
++    }
++
++    if (config->port) {
++        cfg->port = config->port;
++    }
++
++    if (config->username) {
++        free(cfg->username);
++        cfg->username = strdup(config->username);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->username, return ESP_ERR_NO_MEM);
++    }
++
++    if (config->password) {
++        free(cfg->password);
++        cfg->password = strdup(config->password);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->password, return ESP_ERR_NO_MEM);
++    }
++
++    if (cfg->username && cfg->password) {
++        free(cfg->auth);
++        cfg->auth = http_auth_basic(cfg->username, cfg->password);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->auth, return ESP_ERR_NO_MEM);
++    }
++
++    if (config->uri) {
++        free(cfg->uri);
++        cfg->uri = strdup(config->uri);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->uri, return ESP_ERR_NO_MEM);
++    }
++    if (config->path) {
++        free(cfg->path);
++        cfg->path = strdup(config->path);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->path, return ESP_ERR_NO_MEM);
++    }
++    if (config->subprotocol) {
++        free(cfg->subprotocol);
++        cfg->subprotocol = strdup(config->subprotocol);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->subprotocol, return ESP_ERR_NO_MEM);
++    }
++    if (config->user_agent) {
++        free(cfg->user_agent);
++        cfg->user_agent = strdup(config->user_agent);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->user_agent, return ESP_ERR_NO_MEM);
++    }
++    if (config->headers) {
++        free(cfg->headers);
++        cfg->headers = strdup(config->headers);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, cfg->headers, return ESP_ERR_NO_MEM);
++    }
++
++
++    cfg->user_context = config->user_context;
++    cfg->auto_reconnect = true;
++    if (config->disable_auto_reconnect) {
++        cfg->auto_reconnect = false;
++    }
++
++    if (config->disable_pingpong_discon) {
++        cfg->pingpong_timeout_sec = 0;
++    } else if (config->pingpong_timeout_sec) {
++        cfg->pingpong_timeout_sec = config->pingpong_timeout_sec;
++    } else {
++        cfg->pingpong_timeout_sec = WEBSOCKET_PINGPONG_TIMEOUT_SEC;
++    }
++
++    if (config->network_timeout_ms <= 0) {
++        cfg->network_timeout_ms = WEBSOCKET_NETWORK_TIMEOUT_MS;
++        ESP_LOGW(TAG, "`network_timeout_ms` is not set, or it is less than or equal to zero, using default time out %d (milliseconds)", WEBSOCKET_NETWORK_TIMEOUT_MS);
++    } else {
++        cfg->network_timeout_ms = config->network_timeout_ms;
++    }
++
++    if (config->ping_interval_sec == 0) {
++        cfg->ping_interval_sec = WEBSOCKET_PING_INTERVAL_SEC;
++    } else {
++        cfg->ping_interval_sec = config->ping_interval_sec;
++    }
++
++    return ESP_OK;
++}
++
++static esp_err_t esp_websocket_client_destroy_config(esp_websocket_client_handle_t client)
++{
++    if (client == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    websocket_config_storage_t *cfg = client->config;
++    if (client->config == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    free(cfg->host);
++    free(cfg->uri);
++    free(cfg->path);
++    free(cfg->scheme);
++    free(cfg->username);
++    free(cfg->password);
++    free(cfg->auth);
++    free(cfg->subprotocol);
++    free(cfg->user_agent);
++    free(cfg->headers);
++    memset(cfg, 0, sizeof(websocket_config_storage_t));
++    free(client->config);
++    client->config = NULL;
++    return ESP_OK;
++}
++
++static void destroy_and_free_resources(esp_websocket_client_handle_t client)
++{
++    if (client->event_handle) {
++        esp_event_loop_delete(client->event_handle);
++    }
++    if (client->if_name) {
++        free(client->if_name);
++    }
++    esp_websocket_client_destroy_config(client);
++    if (client->transport_list) {
++        esp_transport_list_destroy(client->transport_list);
++    }
++    vQueueDelete(client->lock);
++    free(client->tx_buffer);
++    free(client->rx_buffer);
++    free(client->errormsg_buffer);
++    if (client->status_bits) {
++        vEventGroupDelete(client->status_bits);
++    }
++    free(client);
++    client = NULL;
++}
++
++static esp_err_t set_websocket_transport_optional_settings(esp_websocket_client_handle_t client, const char *scheme)
++{
++    esp_transport_handle_t trans = esp_transport_list_get_transport(client->transport_list, scheme);
++    if (trans) {
++        const esp_transport_ws_config_t config = {
++            .ws_path = client->config->path,
++            .sub_protocol = client->config->subprotocol,
++            .user_agent = client->config->user_agent,
++            .headers = client->config->headers,
++            .auth = client->config->auth,
++            .propagate_control_frames = true
++        };
++        return esp_transport_ws_set_config(trans, &config);
++    }
++    return ESP_ERR_INVALID_ARG;
++}
++
++static esp_err_t esp_websocket_client_create_transport(esp_websocket_client_handle_t client)
++{
++    if (!client->config->scheme) {
++        ESP_LOGE(TAG, "No scheme found");
++        return ESP_FAIL;
++    }
++
++    if (client->transport_list) {
++        esp_transport_list_destroy(client->transport_list);
++        client->transport_list = NULL;
++    }
++
++    client->transport_list = esp_transport_list_init();
++    ESP_WS_CLIENT_MEM_CHECK(TAG, client->transport_list, return ESP_ERR_NO_MEM);
++    if (strcasecmp(client->config->scheme, WS_OVER_TCP_SCHEME) == 0) {
++        esp_transport_handle_t tcp = esp_transport_tcp_init();
++        ESP_WS_CLIENT_MEM_CHECK(TAG, tcp, return ESP_ERR_NO_MEM);
++
++        esp_transport_set_default_port(tcp, WEBSOCKET_TCP_DEFAULT_PORT);
++        esp_transport_list_add(client->transport_list, tcp, "_tcp"); // need to save to transport list, for cleanup
++        if (client->keep_alive_cfg.keep_alive_enable) {
++            esp_transport_tcp_set_keep_alive(tcp, &client->keep_alive_cfg);
++        }
++        if (client->if_name) {
++            esp_transport_tcp_set_interface_name(tcp, client->if_name);
++        }
++
++        esp_transport_handle_t ws = esp_transport_ws_init(tcp);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, ws, return ESP_ERR_NO_MEM);
++
++        esp_transport_set_default_port(ws, WEBSOCKET_TCP_DEFAULT_PORT);
++        esp_transport_list_add(client->transport_list, ws, WS_OVER_TCP_SCHEME);
++        ESP_WS_CLIENT_ERR_OK_CHECK(TAG, set_websocket_transport_optional_settings(client, WS_OVER_TCP_SCHEME), return ESP_FAIL;)
++    } else if (strcasecmp(client->config->scheme, WS_OVER_TLS_SCHEME) == 0) {
++        esp_transport_handle_t ssl = esp_transport_ssl_init();
++        ESP_WS_CLIENT_MEM_CHECK(TAG, ssl, return ESP_ERR_NO_MEM);
++
++        esp_transport_set_default_port(ssl, WEBSOCKET_SSL_DEFAULT_PORT);
++        esp_transport_list_add(client->transport_list, ssl, "_ssl"); // need to save to transport list, for cleanup
++        if (client->config->use_global_ca_store == true) {
++            esp_transport_ssl_enable_global_ca_store(ssl);
++        } else if (client->config->cert) {
++            if (!client->config->cert_len) {
++                esp_transport_ssl_set_cert_data(ssl, client->config->cert, strlen(client->config->cert));
++            } else {
++                esp_transport_ssl_set_cert_data_der(ssl, client->config->cert, client->config->cert_len);
++            }
++        }
++        if (client->config->client_cert) {
++            if (!client->config->client_cert_len) {
++                esp_transport_ssl_set_client_cert_data(ssl, client->config->client_cert, strlen(client->config->client_cert));
++            } else {
++                esp_transport_ssl_set_client_cert_data_der(ssl, client->config->client_cert, client->config->client_cert_len);
++            }
++        }
++        if (client->config->client_key) {
++            if (!client->config->client_key_len) {
++                esp_transport_ssl_set_client_key_data(ssl, client->config->client_key, strlen(client->config->client_key));
++            } else {
++                esp_transport_ssl_set_client_key_data_der(ssl, client->config->client_key, client->config->client_key_len);
++            }
++        }
++        if (client->config->crt_bundle_attach) {
++#ifdef CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
++            esp_transport_ssl_crt_bundle_attach(ssl, client->config->crt_bundle_attach);
++#else //CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
++            ESP_LOGE(TAG, "crt_bundle_attach configured but not enabled in menuconfig: Please enable MBEDTLS_CERTIFICATE_BUNDLE option");
++#endif
++        }
++        if (client->config->skip_cert_common_name_check) {
++            esp_transport_ssl_skip_common_name_check(ssl);
++        }
++
++        esp_transport_handle_t wss = esp_transport_ws_init(ssl);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, wss, return ESP_ERR_NO_MEM);
++
++        esp_transport_set_default_port(wss, WEBSOCKET_SSL_DEFAULT_PORT);
++
++        esp_transport_list_add(client->transport_list, wss, WS_OVER_TLS_SCHEME);
++        ESP_WS_CLIENT_ERR_OK_CHECK(TAG, set_websocket_transport_optional_settings(client, WS_OVER_TLS_SCHEME), return ESP_FAIL;)
++    } else {
++        ESP_LOGE(TAG, "Not support this websocket scheme %s, only support %s and %s", client->config->scheme, WS_OVER_TCP_SCHEME, WS_OVER_TLS_SCHEME);
++        return ESP_FAIL;
++    }
++    return ESP_OK;
++}
++
++static int esp_websocket_client_send_with_exact_opcode(esp_websocket_client_handle_t client, ws_transport_opcodes_t opcode, const uint8_t *data, int len, TickType_t timeout)
++{
++    int ret = -1;
++    int need_write = len;
++    int wlen = 0, widx = 0;
++    bool contained_fin = opcode & WS_TRANSPORT_OPCODES_FIN;
++
++    if (esp_websocket_new_buf(client, true) != ESP_OK) {
++        ESP_LOGE(TAG, "Failed to setup tx buffer");
++        return -1;
++    }
++
++    while (widx < len || opcode) {  // allow for sending "current_opcode" only message with len==0
++        if (need_write > client->buffer_size) {
++            need_write = client->buffer_size;
++            opcode = opcode & ~WS_TRANSPORT_OPCODES_FIN;
++        } else if (contained_fin) {
++            opcode = opcode | WS_TRANSPORT_OPCODES_FIN;
++        }
++        memcpy(client->tx_buffer, data + widx, need_write);
++        // send with ws specific way and specific opcode
++        wlen = esp_transport_ws_send_raw(client->transport, opcode, (char *)client->tx_buffer, need_write,
++                                         (timeout == portMAX_DELAY) ? -1 : timeout * portTICK_PERIOD_MS);
++        if (wlen < 0 || (wlen == 0 && need_write != 0)) {
++            ret = wlen;
++            esp_websocket_free_buf(client, true);
++            esp_tls_error_handle_t error_handle = esp_transport_get_error_handle(client->transport);
++            if (error_handle) {
++                esp_websocket_client_error(client, "esp_transport_write() returned %d, transport_error=%s, tls_error_code=%i, tls_flags=%i, errno=%d",
++                                           ret, esp_err_to_name(error_handle->last_error), error_handle->esp_tls_error_code,
++                                           error_handle->esp_tls_flags, errno);
++            } else {
++                esp_websocket_client_error(client, "esp_transport_write() returned %d, errno=%d", ret, errno);
++            }
++            esp_websocket_client_abort_connection(client, WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT);
++            return ret;
++        }
++        opcode = 0;
++        widx += wlen;
++        need_write = len - widx;
++    }
++    esp_websocket_free_buf(client, true);
++    return widx;
++}
++
++esp_websocket_client_handle_t esp_websocket_client_init(const esp_websocket_client_config_t *config)
++{
++    esp_websocket_client_handle_t client = calloc(1, sizeof(struct esp_websocket_client));
++    ESP_WS_CLIENT_MEM_CHECK(TAG, client, return NULL);
++
++    esp_event_loop_args_t event_args = {
++        .queue_size = WEBSOCKET_EVENT_QUEUE_SIZE,
++        .task_name = NULL // no task will be created
++    };
++
++    if (esp_event_loop_create(&event_args, &client->event_handle) != ESP_OK) {
++        ESP_LOGE(TAG, "Error create event handler for websocket client");
++        free(client);
++        return NULL;
++    }
++
++    if (config->keep_alive_enable == true) {
++        client->keep_alive_cfg.keep_alive_enable = true;
++        client->keep_alive_cfg.keep_alive_idle = (config->keep_alive_idle == 0) ? WEBSOCKET_KEEP_ALIVE_IDLE : config->keep_alive_idle;
++        client->keep_alive_cfg.keep_alive_interval = (config->keep_alive_interval == 0) ? WEBSOCKET_KEEP_ALIVE_INTERVAL : config->keep_alive_interval;
++        client->keep_alive_cfg.keep_alive_count =  (config->keep_alive_count == 0) ? WEBSOCKET_KEEP_ALIVE_COUNT : config->keep_alive_count;
++    }
++
++    if (config->if_name) {
++        client->if_name = calloc(1, sizeof(struct ifreq) + 1);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->if_name, goto _websocket_init_fail);
++        memcpy(client->if_name, config->if_name, sizeof(struct ifreq));
++    }
++
++    client->lock = xSemaphoreCreateRecursiveMutex();
++    ESP_WS_CLIENT_MEM_CHECK(TAG, client->lock, goto _websocket_init_fail);
++
++    client->config = calloc(1, sizeof(websocket_config_storage_t));
++    ESP_WS_CLIENT_MEM_CHECK(TAG, client->config, goto _websocket_init_fail);
++
++    if (config->transport == WEBSOCKET_TRANSPORT_OVER_TCP) {
++        asprintf(&client->config->scheme, WS_OVER_TCP_SCHEME);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->scheme, goto _websocket_init_fail);
++    } else if (config->transport == WEBSOCKET_TRANSPORT_OVER_SSL) {
++        asprintf(&client->config->scheme, WS_OVER_TLS_SCHEME);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->scheme, goto _websocket_init_fail);
++    }
++
++    if (!config->disable_auto_reconnect && config->reconnect_timeout_ms <= 0) {
++        client->wait_timeout_ms = WEBSOCKET_RECONNECT_TIMEOUT_MS;
++        ESP_LOGW(TAG, "`reconnect_timeout_ms` is not set, or it is less than or equal to zero, using default time out %d (milliseconds)", WEBSOCKET_RECONNECT_TIMEOUT_MS);
++    } else {
++        client->wait_timeout_ms = config->reconnect_timeout_ms;
++    }
++
++    // configure ssl related parameters
++    client->config->use_global_ca_store = config->use_global_ca_store;
++    client->config->cert = config->cert_pem;
++    client->config->cert_len = config->cert_len;
++    client->config->client_cert = config->client_cert;
++    client->config->client_cert_len = config->client_cert_len;
++    client->config->client_key = config->client_key;
++    client->config->client_key_len = config->client_key_len;
++    client->config->skip_cert_common_name_check = config->skip_cert_common_name_check;
++    client->config->crt_bundle_attach = config->crt_bundle_attach;
++
++    if (config->uri) {
++        if (esp_websocket_client_set_uri(client, config->uri) != ESP_OK) {
++            ESP_LOGE(TAG, "Invalid uri");
++            goto _websocket_init_fail;
++        }
++    }
++
++    if (esp_websocket_client_set_config(client, config) != ESP_OK) {
++        ESP_LOGE(TAG, "Failed to set the configuration");
++        goto _websocket_init_fail;
++    }
++
++    if (client->config->scheme == NULL) {
++        asprintf(&client->config->scheme, WS_OVER_TCP_SCHEME);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->scheme, goto _websocket_init_fail);
++    }
++
++    client->keepalive_tick_ms = _tick_get_ms();
++    client->reconnect_tick_ms = _tick_get_ms();
++    client->ping_tick_ms = _tick_get_ms();
++    client->wait_for_pong_resp = false;
++    client->selected_for_destroying = false;
++
++    int buffer_size = config->buffer_size;
++    if (buffer_size <= 0) {
++        buffer_size = WEBSOCKET_BUFFER_SIZE_BYTE;
++    }
++    client->errormsg_buffer = NULL;
++    client->errormsg_size = 0;
++#ifndef CONFIG_ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER
++    client->rx_buffer = malloc(buffer_size);
++    ESP_WS_CLIENT_MEM_CHECK(TAG, client->rx_buffer, {
++        goto _websocket_init_fail;
++    });
++    client->tx_buffer = malloc(buffer_size);
++    ESP_WS_CLIENT_MEM_CHECK(TAG, client->tx_buffer, {
++        goto _websocket_init_fail;
++    });
++#endif
++    client->status_bits = xEventGroupCreate();
++    ESP_WS_CLIENT_MEM_CHECK(TAG, client->status_bits, {
++        goto _websocket_init_fail;
++    });
++
++    client->buffer_size = buffer_size;
++    return client;
++
++_websocket_init_fail:
++    esp_websocket_client_destroy(client);
++    return NULL;
++}
++
++esp_err_t esp_websocket_client_destroy(esp_websocket_client_handle_t client)
++{
++    if (client == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    if (client->run) {
++        esp_websocket_client_stop(client);
++    }
++    destroy_and_free_resources(client);
++    return ESP_OK;
++}
++
++esp_err_t esp_websocket_client_destroy_on_exit(esp_websocket_client_handle_t client)
++{
++    if (client == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    client->selected_for_destroying = true;
++    return ESP_OK;
++}
++
++esp_err_t esp_websocket_client_set_uri(esp_websocket_client_handle_t client, const char *uri)
++{
++    if (client == NULL || uri == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    struct http_parser_url puri;
++    http_parser_url_init(&puri);
++    int parser_status = http_parser_parse_url(uri, strlen(uri), 0, &puri);
++    if (parser_status != 0) {
++        ESP_LOGE(TAG, "Error parse uri = %s", uri);
++        return ESP_FAIL;
++    }
++    if (puri.field_data[UF_SCHEMA].len) {
++        free(client->config->scheme);
++        asprintf(&client->config->scheme, "%.*s", puri.field_data[UF_SCHEMA].len, uri + puri.field_data[UF_SCHEMA].off);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->scheme, return ESP_ERR_NO_MEM);
++    }
++
++    if (puri.field_data[UF_HOST].len) {
++        free(client->config->host);
++        asprintf(&client->config->host, "%.*s", puri.field_data[UF_HOST].len, uri + puri.field_data[UF_HOST].off);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->host, return ESP_ERR_NO_MEM);
++    }
++
++
++    if (puri.field_data[UF_PATH].len || puri.field_data[UF_QUERY].len) {
++        free(client->config->path);
++        if (puri.field_data[UF_QUERY].len == 0) {
++            asprintf(&client->config->path, "%.*s", puri.field_data[UF_PATH].len, uri + puri.field_data[UF_PATH].off);
++        } else if (puri.field_data[UF_PATH].len == 0)  {
++            asprintf(&client->config->path, "/?%.*s", puri.field_data[UF_QUERY].len, uri + puri.field_data[UF_QUERY].off);
++        } else {
++            asprintf(&client->config->path, "%.*s?%.*s", puri.field_data[UF_PATH].len, uri + puri.field_data[UF_PATH].off,
++                     puri.field_data[UF_QUERY].len, uri + puri.field_data[UF_QUERY].off);
++        }
++        ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->path, return ESP_ERR_NO_MEM);
++    }
++    if (puri.field_data[UF_PORT].off) {
++        client->config->port = strtol((const char *)(uri + puri.field_data[UF_PORT].off), NULL, 10);
++    }
++
++    if (puri.field_data[UF_USERINFO].len) {
++        char *user_info = NULL;
++        asprintf(&user_info, "%.*s", puri.field_data[UF_USERINFO].len, uri + puri.field_data[UF_USERINFO].off);
++        if (user_info) {
++            char *pass = strchr(user_info, ':');
++            if (pass) {
++                pass[0] = 0; //terminal username
++                pass ++;
++                free(client->config->password);
++                client->config->password = strdup(pass);
++                ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->password, return ESP_ERR_NO_MEM);
++            }
++            free(client->config->username);
++            client->config->username = strdup(user_info);
++            ESP_WS_CLIENT_MEM_CHECK(TAG, client->config->username, return ESP_ERR_NO_MEM);
++            free(user_info);
++        } else {
++            return ESP_ERR_NO_MEM;
++        }
++    }
++    return ESP_OK;
++}
++
++esp_err_t esp_websocket_client_set_headers(esp_websocket_client_handle_t client, const char *headers)
++{
++    if (client == NULL || client->state != WEBSOCKET_STATE_CONNECTED || headers == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++
++    xSemaphoreTakeRecursive(client->lock, portMAX_DELAY);
++    esp_err_t ret = esp_transport_ws_set_headers(client->transport, headers);
++    xSemaphoreGiveRecursive(client->lock);
++
++    return ret;
++}
++
++esp_err_t esp_websocket_client_append_header(esp_websocket_client_handle_t client, const char *key, const char *value)
++{
++    // Validate the input parameters
++    if (client == NULL || key == NULL || value == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++
++    websocket_config_storage_t *cfg = client->config;
++
++    // Calculate the length for "key: value\r\n"
++    size_t len = strlen(key) + strlen(value) + 5; // 5 accounts for ": \r\n" and null-terminator
++
++    // If no previous headers exist
++    if (cfg->headers == NULL) {
++        cfg->headers = (char *)malloc(len);
++        if (cfg->headers == NULL) {
++            ESP_LOGE(TAG, "Failed to allocate...");
++            return ESP_ERR_NO_MEM;
++        }
++        snprintf(cfg->headers, len, "%s: %s\r\n", key, value);
++        return ESP_OK;
++    }
++
++    // Extend the current headers to accommodate the new key-value pair
++    size_t current_len = strlen(cfg->headers);
++    size_t new_len = current_len + len;
++
++    // Allocate memory for new headers
++    char *new_headers = (char *)malloc(new_len);
++    if (new_headers == NULL) {
++        ESP_LOGE(TAG, "Failed to allocate...");
++        return ESP_ERR_NO_MEM;
++    }
++
++    // Copy old headers and append the new header
++    strcpy(new_headers, cfg->headers);
++    snprintf(new_headers + current_len, len, "%s: %s\r\n", key, value);
++
++    // Free old headers and assign the new header pointer to cfg->headers
++    free(cfg->headers);
++    cfg->headers = new_headers;
++
++    return ESP_OK;
++}
++
++static esp_err_t esp_websocket_client_recv(esp_websocket_client_handle_t client)
++{
++    int rlen;
++    client->payload_offset = 0;
++    if (esp_websocket_new_buf(client, false) != ESP_OK) {
++        ESP_LOGE(TAG, "Failed to setup rx buffer");
++        return ESP_FAIL;
++    }
++    do {
++        rlen = esp_transport_read(client->transport, client->rx_buffer, client->buffer_size, client->config->network_timeout_ms);
++        if (rlen < 0) {
++            esp_websocket_free_buf(client, false);
++            esp_tls_error_handle_t error_handle = esp_transport_get_error_handle(client->transport);
++            if (error_handle) {
++                esp_websocket_client_error(client, "esp_transport_read() failed with %d, transport_error=%s, tls_error_code=%i, tls_flags=%i, errno=%d",
++                                           rlen, esp_err_to_name(error_handle->last_error), error_handle->esp_tls_error_code,
++                                           error_handle->esp_tls_flags, errno);
++            } else {
++                esp_websocket_client_error(client, "esp_transport_read() failed with %d, errno=%d", rlen, errno);
++            }
++            return ESP_FAIL;
++        }
++        client->payload_len = esp_transport_ws_get_read_payload_len(client->transport);
++        client->last_fin = esp_transport_ws_get_fin_flag(client->transport);
++        client->last_opcode = esp_transport_ws_get_read_opcode(client->transport);
++
++        if (rlen == 0 && client->last_opcode == WS_TRANSPORT_OPCODES_NONE ) {
++            ESP_LOGV(TAG, "esp_transport_read timeouts");
++            esp_websocket_free_buf(client, false);
++            return ESP_OK;
++        }
++
++        esp_websocket_client_dispatch_event(client, WEBSOCKET_EVENT_DATA, client->rx_buffer, rlen);
++
++        client->payload_offset += rlen;
++    } while (client->payload_offset < client->payload_len);
++
++    // if a PING message received -> send out the PONG, this will not work for PING messages with payload longer than buffer len
++    if (client->last_opcode == WS_TRANSPORT_OPCODES_PING) {
++        const char *data = (client->payload_len == 0) ? NULL : client->rx_buffer;
++        ESP_LOGD(TAG, "Sending PONG with payload len=%d", client->payload_len);
++        esp_transport_ws_send_raw(client->transport, WS_TRANSPORT_OPCODES_PONG | WS_TRANSPORT_OPCODES_FIN, data, client->payload_len,
++                                  client->config->network_timeout_ms);
++    } else if (client->last_opcode == WS_TRANSPORT_OPCODES_PONG) {
++        client->wait_for_pong_resp = false;
++    } else if (client->last_opcode == WS_TRANSPORT_OPCODES_CLOSE) {
++        ESP_LOGD(TAG, "Received close frame");
++        client->state = WEBSOCKET_STATE_CLOSING;
++    }
++    esp_websocket_free_buf(client, false);
++    return ESP_OK;
++}
++
++static int esp_websocket_client_send_close(esp_websocket_client_handle_t client, int code, const char *additional_data, int total_len, TickType_t timeout);
++
++static void esp_websocket_client_task(void *pv)
++{
++    const int lock_timeout = portMAX_DELAY;
++    esp_websocket_client_handle_t client = (esp_websocket_client_handle_t) pv;
++    client->run = true;
++
++    //get transport by scheme
++    client->transport = esp_transport_list_get_transport(client->transport_list, client->config->scheme);
++
++    if (client->transport == NULL) {
++        ESP_LOGE(TAG, "There are no transports valid, stop websocket client");
++        client->run = false;
++    }
++    //default port
++    if (client->config->port == 0) {
++        client->config->port = esp_transport_get_default_port(client->transport);
++    }
++
++    client->state = WEBSOCKET_STATE_INIT;
++    xEventGroupClearBits(client->status_bits, STOPPED_BIT | CLOSE_FRAME_SENT_BIT);
++    int read_select = 0;
++    while (client->run) {
++        if (xSemaphoreTakeRecursive(client->lock, lock_timeout) != pdPASS) {
++            ESP_LOGE(TAG, "Failed to lock ws-client tasks, exiting the task...");
++            break;
++        }
++        switch ((int)client->state) {
++        case WEBSOCKET_STATE_INIT:
++            if (client->transport == NULL) {
++                ESP_LOGE(TAG, "There are no transport");
++                client->run = false;
++                break;
++            }
++            esp_websocket_client_dispatch_event(client, WEBSOCKET_EVENT_BEFORE_CONNECT, NULL, 0);
++            int result = esp_transport_connect(client->transport,
++                                               client->config->host,
++                                               client->config->port,
++                                               client->config->network_timeout_ms);
++            if (result < 0) {
++                esp_tls_error_handle_t error_handle = esp_transport_get_error_handle(client->transport);
++                client->error_handle.esp_ws_handshake_status_code  = esp_transport_ws_get_upgrade_request_status(client->transport);
++                if (error_handle) {
++                    esp_websocket_client_error(client, "esp_transport_connect() failed with %d, "
++                                               "transport_error=%s, tls_error_code=%i, tls_flags=%i, esp_ws_handshake_status_code=%d, errno=%d",
++                                               result, esp_err_to_name(error_handle->last_error), error_handle->esp_tls_error_code,
++                                               error_handle->esp_tls_flags, client->error_handle.esp_ws_handshake_status_code, errno);
++                } else {
++                    esp_websocket_client_error(client, "esp_transport_connect() failed with %d, esp_ws_handshake_status_code=%d, errno=%d",
++                                               result, client->error_handle.esp_ws_handshake_status_code, errno);
++                }
++                esp_websocket_client_abort_connection(client, WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT);
++                break;
++            }
++            ESP_LOGD(TAG, "Transport connected to %s://%s:%d", client->config->scheme, client->config->host, client->config->port);
++
++            client->state = WEBSOCKET_STATE_CONNECTED;
++            client->wait_for_pong_resp = false;
++            client->error_handle.error_type = WEBSOCKET_ERROR_TYPE_NONE;
++            esp_websocket_client_dispatch_event(client, WEBSOCKET_EVENT_CONNECTED, NULL, 0);
++            break;
++        case WEBSOCKET_STATE_CONNECTED:
++            if ((CLOSE_FRAME_SENT_BIT & xEventGroupGetBits(client->status_bits)) == 0) { // only send and check for PING
++                // if closing hasn't been initiated
++                if (_tick_get_ms() - client->ping_tick_ms > client->config->ping_interval_sec * 1000) {
++                    client->ping_tick_ms = _tick_get_ms();
++                    ESP_LOGD(TAG, "Sending PING...");
++                    esp_transport_ws_send_raw(client->transport, WS_TRANSPORT_OPCODES_PING | WS_TRANSPORT_OPCODES_FIN, NULL, 0, client->config->network_timeout_ms);
++
++                    if (!client->wait_for_pong_resp && client->config->pingpong_timeout_sec) {
++                        client->pingpong_tick_ms = _tick_get_ms();
++                        client->wait_for_pong_resp = true;
++                    }
++                }
++
++                if ( _tick_get_ms() - client->pingpong_tick_ms > client->config->pingpong_timeout_sec * 1000 ) {
++                    if (client->wait_for_pong_resp) {
++                        esp_websocket_client_error(client, "Error, no PONG received for more than %d seconds after PING", client->config->pingpong_timeout_sec);
++                        esp_websocket_client_abort_connection(client, WEBSOCKET_ERROR_TYPE_PONG_TIMEOUT);
++                        break;
++                    }
++                }
++            }
++
++
++            if (read_select == 0) {
++                ESP_LOGV(TAG, "Read poll timeout: skipping esp_transport_read()...");
++                break;
++            }
++            client->ping_tick_ms = _tick_get_ms();
++
++            if (esp_websocket_client_recv(client) == ESP_FAIL) {
++                ESP_LOGE(TAG, "Error receive data");
++                esp_websocket_client_abort_connection(client, WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT);
++                break;
++            }
++            break;
++        case WEBSOCKET_STATE_WAIT_TIMEOUT:
++
++            if (!client->config->auto_reconnect) {
++                client->run = false;
++                break;
++            }
++            if (_tick_get_ms() - client->reconnect_tick_ms > client->wait_timeout_ms) {
++                client->state = WEBSOCKET_STATE_INIT;
++                client->reconnect_tick_ms = _tick_get_ms();
++                ESP_LOGD(TAG, "Reconnecting...");
++            }
++            break;
++        case WEBSOCKET_STATE_CLOSING:
++            // if closing not initiated by the client echo the close message back
++            if ((CLOSE_FRAME_SENT_BIT & xEventGroupGetBits(client->status_bits)) == 0) {
++                ESP_LOGD(TAG, "Closing initiated by the server, sending close frame");
++                esp_transport_ws_send_raw(client->transport, WS_TRANSPORT_OPCODES_CLOSE | WS_TRANSPORT_OPCODES_FIN, NULL, 0, client->config->network_timeout_ms);
++                xEventGroupSetBits(client->status_bits, CLOSE_FRAME_SENT_BIT);
++            }
++            break;
++        default:
++            ESP_LOGD(TAG, "Client run iteration in a default state: %d", client->state);
++            break;
++        }
++        xSemaphoreGiveRecursive(client->lock);
++        if (WEBSOCKET_STATE_CONNECTED == client->state) {
++            read_select = esp_transport_poll_read(client->transport, 1000); //Poll every 1000ms
++            if (read_select < 0) {
++                esp_tls_error_handle_t error_handle = esp_transport_get_error_handle(client->transport);
++                if (error_handle) {
++                    esp_websocket_client_error(client, "esp_transport_poll_read() returned %d, transport_error=%s, tls_error_code=%i, tls_flags=%i, errno=%d",
++                                               read_select, esp_err_to_name(error_handle->last_error), error_handle->esp_tls_error_code,
++                                               error_handle->esp_tls_flags, errno);
++                } else {
++                    esp_websocket_client_error(client, "esp_transport_poll_read() returned %d, errno=%d", read_select, errno);
++                }
++                esp_websocket_client_abort_connection(client, WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT);
++            }
++        } else if (WEBSOCKET_STATE_WAIT_TIMEOUT == client->state) {
++            // waiting for reconnecting...
++            vTaskDelay(client->wait_timeout_ms / 2 / portTICK_PERIOD_MS);
++        } else if (WEBSOCKET_STATE_CLOSING == client->state &&
++                   (CLOSE_FRAME_SENT_BIT & xEventGroupGetBits(client->status_bits))) {
++            ESP_LOGD(TAG, " Waiting for TCP connection to be closed by the server");
++            int ret = esp_transport_ws_poll_connection_closed(client->transport, 1000);
++            if (ret == 0) {
++                ESP_LOGW(TAG, "Did not get TCP close within expected delay");
++
++            } else if (ret < 0) {
++                ESP_LOGW(TAG, "Connection terminated while waiting for clean TCP close");
++            }
++            client->run = false;
++            client->state = WEBSOCKET_STATE_UNKNOW;
++            esp_websocket_client_dispatch_event(client, WEBSOCKET_EVENT_CLOSED, NULL, 0);
++            break;
++        }
++    }
++
++    esp_transport_close(client->transport);
++    xEventGroupSetBits(client->status_bits, STOPPED_BIT);
++    client->state = WEBSOCKET_STATE_UNKNOW;
++    if (client->selected_for_destroying == true) {
++        destroy_and_free_resources(client);
++    }
++    vTaskDelete(NULL);
++}
++
++esp_err_t esp_websocket_client_start(esp_websocket_client_handle_t client)
++{
++    if (client == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    if (client->state >= WEBSOCKET_STATE_INIT) {
++        ESP_LOGE(TAG, "The client has started");
++        return ESP_FAIL;
++    }
++    if (esp_websocket_client_create_transport(client) != ESP_OK) {
++        ESP_LOGE(TAG, "Failed to create websocket transport");
++        return ESP_FAIL;
++    }
++
++    if (xTaskCreate(esp_websocket_client_task, client->config->task_name ? client->config->task_name : "websocket_task",
++                    client->config->task_stack, client, client->config->task_prio, &client->task_handle) != pdTRUE) {
++        ESP_LOGE(TAG, "Error create websocket task");
++        return ESP_FAIL;
++    }
++    xEventGroupClearBits(client->status_bits, STOPPED_BIT | CLOSE_FRAME_SENT_BIT);
++    return ESP_OK;
++}
++
++esp_err_t esp_websocket_client_stop(esp_websocket_client_handle_t client)
++{
++    if (client == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    if (!client->run) {
++        ESP_LOGW(TAG, "Client was not started");
++        return ESP_FAIL;
++    }
++
++    /* A running client cannot be stopped from the websocket task/event handler */
++    TaskHandle_t running_task = xTaskGetCurrentTaskHandle();
++    if (running_task == client->task_handle) {
++        ESP_LOGE(TAG, "Client cannot be stopped from websocket task");
++        return ESP_FAIL;
++    }
++
++
++    client->run = false;
++    xEventGroupWaitBits(client->status_bits, STOPPED_BIT, false, true, portMAX_DELAY);
++    client->state = WEBSOCKET_STATE_UNKNOW;
++    return ESP_OK;
++}
++
++static int esp_websocket_client_send_close(esp_websocket_client_handle_t client, int code, const char *additional_data, int total_len, TickType_t timeout)
++{
++    uint8_t *close_status_data = NULL;
++    // RFC6455#section-5.5.1: The Close frame MAY contain a body (indicated by total_len >= 2)
++    if (total_len >= 2) {
++        close_status_data = calloc(1, total_len);
++        ESP_WS_CLIENT_MEM_CHECK(TAG, close_status_data, return -1);
++        // RFC6455#section-5.5.1: The first two bytes of the body MUST be a 2-byte representing a status
++        uint16_t *code_network_order = (uint16_t *) close_status_data;
++        *code_network_order = htons(code);
++        memcpy(close_status_data + 2, additional_data, total_len - 2);
++    }
++    int ret = esp_websocket_client_send_with_opcode(client, WS_TRANSPORT_OPCODES_CLOSE, close_status_data, total_len, timeout);
++    free(close_status_data);
++    return ret;
++}
++
++
++static esp_err_t esp_websocket_client_close_with_optional_body(esp_websocket_client_handle_t client, bool send_body, int code, const char *data, int len, TickType_t timeout)
++{
++    if (client == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    if (!client->run) {
++        ESP_LOGW(TAG, "Client was not started");
++        return ESP_FAIL;
++    }
++
++    /* A running client cannot be stopped from the websocket task/event handler */
++    TaskHandle_t running_task = xTaskGetCurrentTaskHandle();
++    if (running_task == client->task_handle) {
++        ESP_LOGE(TAG, "Client cannot be stopped from websocket task");
++        return ESP_FAIL;
++    }
++
++    if (send_body) {
++        esp_websocket_client_send_close(client, code, data, len + 2, portMAX_DELAY); // len + 2 -> always sending the code
++    } else {
++        esp_websocket_client_send_close(client, 0, NULL, 0, portMAX_DELAY); // only opcode frame
++    }
++
++    // Set closing bit to prevent from sending PING frames while connected
++    xEventGroupSetBits(client->status_bits, CLOSE_FRAME_SENT_BIT);
++
++    if (STOPPED_BIT & xEventGroupWaitBits(client->status_bits, STOPPED_BIT, false, true, timeout)) {
++        return ESP_OK;
++    }
++
++    // If could not close gracefully within timeout, stop the client and disconnect
++    client->run = false;
++    xEventGroupWaitBits(client->status_bits, STOPPED_BIT, false, true, portMAX_DELAY);
++    client->state = WEBSOCKET_STATE_UNKNOW;
++    return ESP_OK;
++}
++
++esp_err_t esp_websocket_client_close_with_code(esp_websocket_client_handle_t client, int code, const char *data, int len, TickType_t timeout)
++{
++    return esp_websocket_client_close_with_optional_body(client, true, code, data, len, timeout);
++}
++
++esp_err_t esp_websocket_client_close(esp_websocket_client_handle_t client, TickType_t timeout)
++{
++    return esp_websocket_client_close_with_optional_body(client, false, 0, NULL, 0, timeout);
++}
++
++int esp_websocket_client_send_text(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout)
++{
++    return esp_websocket_client_send_with_opcode(client, WS_TRANSPORT_OPCODES_TEXT, (const uint8_t *)data, len, timeout);
++}
++
++int esp_websocket_client_send_text_partial(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout)
++{
++    return esp_websocket_client_send_with_exact_opcode(client, WS_TRANSPORT_OPCODES_TEXT, (const uint8_t *)data, len, timeout);
++}
++
++int esp_websocket_client_send_cont_msg(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout)
++{
++    return esp_websocket_client_send_with_exact_opcode(client, WS_TRANSPORT_OPCODES_CONT, (const uint8_t *)data, len, timeout);
++}
++
++int esp_websocket_client_send_bin(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout)
++{
++    return esp_websocket_client_send_with_opcode(client, WS_TRANSPORT_OPCODES_BINARY, (const uint8_t *)data, len, timeout);
++}
++
++int esp_websocket_client_send_bin_partial(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout)
++{
++    return esp_websocket_client_send_with_exact_opcode(client, WS_TRANSPORT_OPCODES_BINARY, (const uint8_t *)data, len, timeout);
++}
++
++int esp_websocket_client_send_fin(esp_websocket_client_handle_t client, TickType_t timeout)
++{
++    return esp_websocket_client_send_with_exact_opcode(client, WS_TRANSPORT_OPCODES_FIN, NULL, 0, timeout);
++}
++
++int esp_websocket_client_send_with_opcode(esp_websocket_client_handle_t client, ws_transport_opcodes_t opcode, const uint8_t *data, int len, TickType_t timeout)
++{
++    int ret = -1;
++    if (client == NULL || len < 0 || (data == NULL && len > 0)) {
++        ESP_LOGE(TAG, "Invalid arguments");
++        return -1;
++    }
++
++    if (xSemaphoreTakeRecursive(client->lock, timeout) != pdPASS) {
++        ESP_LOGE(TAG, "Could not lock ws-client within %" PRIu32 " timeout", timeout);
++        return -1;
++    }
++
++    if (!esp_websocket_client_is_connected(client)) {
++        ESP_LOGE(TAG, "Websocket client is not connected");
++        goto unlock_and_return;
++    }
++
++    if (client->transport == NULL) {
++        ESP_LOGE(TAG, "Invalid transport");
++        goto unlock_and_return;
++    }
++
++    ret = esp_websocket_client_send_with_exact_opcode(client, opcode | WS_TRANSPORT_OPCODES_FIN, data, len, timeout);
++    if (ret < 0) {
++        ESP_LOGE(TAG, "Failed to send the buffer");
++        goto unlock_and_return;
++    }
++unlock_and_return:
++    xSemaphoreGiveRecursive(client->lock);
++    return ret;
++}
++
++bool esp_websocket_client_is_connected(esp_websocket_client_handle_t client)
++{
++    if (client == NULL) {
++        return false;
++    }
++    return client->state == WEBSOCKET_STATE_CONNECTED;
++}
++
++size_t esp_websocket_client_get_ping_interval_sec(esp_websocket_client_handle_t client)
++{
++    if (client == NULL) {
++        ESP_LOGW(TAG, "Client was not initialized");
++        return 0;
++    }
++
++    if (client->config == NULL) {
++        ESP_LOGW(TAG, "No config available to change the ping interval");
++        return 0;
++    }
++
++    return client->config->ping_interval_sec;
++}
++
++esp_err_t esp_websocket_client_set_ping_interval_sec(esp_websocket_client_handle_t client, size_t ping_interval_sec)
++{
++    if (client == NULL) {
++        ESP_LOGW(TAG, "Client was not initialized");
++        return ESP_ERR_INVALID_ARG;
++    }
++
++    if (client->config == NULL) {
++        ESP_LOGW(TAG, "No config available to change the ping interval");
++        return ESP_ERR_INVALID_STATE;
++    }
++
++    client->config->ping_interval_sec = ping_interval_sec == 0 ? WEBSOCKET_PING_INTERVAL_SEC : ping_interval_sec;
++
++    return ESP_OK;
++}
++
++esp_err_t esp_websocket_register_events(esp_websocket_client_handle_t client,
++                                        esp_websocket_event_id_t event,
++                                        esp_event_handler_t event_handler,
++                                        void *event_handler_arg)
++{
++    if (client == NULL) {
++        return ESP_ERR_INVALID_ARG;
++    }
++    return esp_event_handler_register_with(client->event_handle, WEBSOCKET_EVENTS, event, event_handler, event_handler_arg);
++}
+diff --git a/components/esp_websocket_client/examples/linux/CMakeLists.txt b/components/esp_websocket_client/examples/linux/CMakeLists.txt
+new file mode 100644
+index 0000000000..f09f10185c
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/CMakeLists.txt
+@@ -0,0 +1,15 @@
++cmake_minimum_required(VERSION 3.5)
++
++include($ENV{IDF_PATH}/tools/cmake/project.cmake)
++
++set(common_component_dir ../../../../common_components)
++set(EXTRA_COMPONENT_DIRS
++   ../..
++  "${common_component_dir}/linux_compat/esp_timer"
++  "${common_component_dir}/linux_compat"
++  "${common_component_dir}/linux_compat/freertos"
++   $ENV{IDF_PATH}/examples/protocols/linux_stubs/esp_stubs
++   $ENV{IDF_PATH}/examples/common_components/protocol_examples_common)
++
++set(COMPONENTS main)
++project(websocket)
+diff --git a/components/esp_websocket_client/examples/linux/README.md b/components/esp_websocket_client/examples/linux/README.md
+new file mode 100644
+index 0000000000..7f0a921347
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/README.md
+@@ -0,0 +1,35 @@
++# ESP Websocket Client - Host Example
++
++This example demonstrates the ESP websocket client using the `linux` target. It allows for compilation and execution of the example directly within a Linux environment.
++
++## Compilation and Execution
++
++To compile and execute this example on Linux need to set target `linux`
++
++```
++idf.py --preview set-target linux
++idf.py build
++./websocket.elf
++```
++
++## Example Output
++
++```
++I (164532) websocket: [APP] Startup..
++I (164532) websocket: [APP] Free memory: 4294967295 bytes
++I (164532) websocket: [APP] IDF version: v5.3-dev-1353-gb3f7e2c8a4
++I (164538) websocket: Connecting to ws://echo.websocket.events...
++W (164538) websocket_client: `reconnect_timeout_ms` is not set, or it is less than or equal to zero, using default time out 10000 (milliseconds)
++W (164538) websocket_client: `network_timeout_ms` is not set, or it is less than or equal to zero, using default time out 10000 (milliseconds)
++I (165103) websocket: WEBSOCKET_EVENT_CONNECTED
++I (165539) websocket: Sending hello 0000
++I (165627) websocket: WEBSOCKET_EVENT_DATA
++I (165627) websocket: Received opcode=1
++W (165627) websocket: Received=hello 0000
++W (165627) websocket: Total payload length=10, data_len=10, current payload offset=0
++
++I (166539) websocket: Sending fragmented message
++```
++
++## Coverage Reporting
++For generating a coverage report, it's necessary to enable `CONFIG_GCOV_ENABLED=y` option. Set the following configuration in your project's SDK configuration file (`sdkconfig.ci.coverage`, `sdkconfig.ci.linux` or via `menuconfig`):
+diff --git a/components/esp_websocket_client/examples/linux/main/CMakeLists.txt b/components/esp_websocket_client/examples/linux/main/CMakeLists.txt
+new file mode 100644
+index 0000000000..76c253a316
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/main/CMakeLists.txt
+@@ -0,0 +1,14 @@
++idf_component_register(SRCS "main.c"
++                    INCLUDE_DIRS
++                    "."
++                    REQUIRES esp_websocket_client protocol_examples_common)
++
++if(CONFIG_GCOV_ENABLED)
++    target_compile_options(${COMPONENT_LIB} PUBLIC --coverage -fprofile-arcs -ftest-coverage)
++    target_link_options(${COMPONENT_LIB} PUBLIC  --coverage -fprofile-arcs -ftest-coverage)
++
++    idf_component_get_property(esp_websocket_client esp_websocket_client COMPONENT_LIB)
++
++    target_compile_options(${esp_websocket_client} PUBLIC --coverage -fprofile-arcs -ftest-coverage)
++    target_link_options(${esp_websocket_client} PUBLIC  --coverage -fprofile-arcs -ftest-coverage)
++endif()
+diff --git a/components/esp_websocket_client/examples/linux/main/Kconfig.projbuild b/components/esp_websocket_client/examples/linux/main/Kconfig.projbuild
+new file mode 100644
+index 0000000000..34de810dee
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/main/Kconfig.projbuild
+@@ -0,0 +1,15 @@
++menu "Host-test config"
++
++    config GCOV_ENABLED
++        bool "Coverage analyzer"
++        default n
++        help
++            Enables coverage analyzing for host tests.
++
++    config WEBSOCKET_URI
++          string "Websocket endpoint URI"
++          default "ws://echo.websocket.events"
++          help
++              URL of websocket endpoint this example connects to and sends echo
++
++endmenu
+diff --git a/components/esp_websocket_client/examples/linux/main/main.c b/components/esp_websocket_client/examples/linux/main/main.c
+new file mode 100644
+index 0000000000..e52dd42fd3
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/main/main.c
+@@ -0,0 +1,133 @@
++/*
++ * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++#include <stdio.h>
++#include "esp_log.h"
++#include "nvs_flash.h"
++#include "protocol_examples_common.h"
++
++#include "freertos/FreeRTOS.h"
++#include "freertos/task.h"
++#include "freertos/semphr.h"
++#include "freertos/event_groups.h"
++
++#include "esp_websocket_client.h"
++#include "esp_system.h"
++#include "esp_event.h"
++#include "esp_log.h"
++#include "esp_netif.h"
++
++static const char *TAG = "websocket";
++
++static void log_error_if_nonzero(const char *message, int error_code)
++{
++    if (error_code != 0) {
++        ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
++    }
++}
++
++static void websocket_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
++{
++    esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)event_data;
++    switch (event_id) {
++    case WEBSOCKET_EVENT_CONNECTED:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_CONNECTED");
++        break;
++    case WEBSOCKET_EVENT_DISCONNECTED:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_DISCONNECTED");
++        log_error_if_nonzero("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
++        if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
++            log_error_if_nonzero("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
++            log_error_if_nonzero("reported from tls stack", data->error_handle.esp_tls_stack_err);
++            log_error_if_nonzero("captured as transport's socket errno",  data->error_handle.esp_transport_sock_errno);
++        }
++        break;
++    case WEBSOCKET_EVENT_DATA:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_DATA");
++        ESP_LOGI(TAG, "Received opcode=%d", data->op_code);
++        if (data->op_code == 0x08 && data->data_len == 2) {
++            ESP_LOGW(TAG, "Received closed message with code=%d", 256 * data->data_ptr[0] + data->data_ptr[1]);
++        } else {
++            ESP_LOGW(TAG, "Received=%.*s", data->data_len, (char *)data->data_ptr);
++        }
++
++        // If received data contains json structure it succeed to parse
++        ESP_LOGW(TAG, "Total payload length=%d, data_len=%d, current payload offset=%d\r\n", data->payload_len, data->data_len, data->payload_offset);
++
++        break;
++    case WEBSOCKET_EVENT_ERROR:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_ERROR");
++        log_error_if_nonzero("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
++        if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
++            log_error_if_nonzero("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
++            log_error_if_nonzero("reported from tls stack", data->error_handle.esp_tls_stack_err);
++            log_error_if_nonzero("captured as transport's socket errno",  data->error_handle.esp_transport_sock_errno);
++        }
++        break;
++    }
++}
++
++
++static void websocket_app_start(void)
++{
++    esp_websocket_client_config_t websocket_cfg = {};
++
++    websocket_cfg.uri = CONFIG_WEBSOCKET_URI;
++
++    ESP_LOGI(TAG, "Connecting to %s...", websocket_cfg.uri);
++
++    esp_websocket_client_handle_t client = esp_websocket_client_init(&websocket_cfg);
++    // This call demonstrates adding another header; it's called to increase code coverage
++    esp_websocket_client_append_header(client, "HeaderNewKey", "value");
++
++    esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocket_event_handler, (void *)client);
++
++    esp_websocket_client_start(client);
++    char data[32];
++    int i = 0;
++    while (i < 1) {
++        if (esp_websocket_client_is_connected(client)) {
++            int len = sprintf(data, "hello %04d", i++);
++            ESP_LOGI(TAG, "Sending %s", data);
++            esp_websocket_client_send_text(client, data, len, portMAX_DELAY);
++        }
++        vTaskDelay(1000 / portTICK_PERIOD_MS);
++    }
++
++    ESP_LOGI(TAG, "Sending fragmented message");
++    vTaskDelay(1000 / portTICK_PERIOD_MS);
++    memset(data, 'a', sizeof(data));
++    esp_websocket_client_send_text_partial(client, data, sizeof(data), portMAX_DELAY);
++    memset(data, 'b', sizeof(data));
++    esp_websocket_client_send_cont_msg(client, data, sizeof(data), portMAX_DELAY);
++    esp_websocket_client_send_fin(client, portMAX_DELAY);
++
++    esp_websocket_client_destroy(client);
++}
++
++int main(void)
++{
++
++    ESP_LOGI(TAG, "[APP] Startup..");
++    ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
++    ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
++    esp_log_level_set("*", ESP_LOG_INFO);
++    esp_log_level_set("websocket_client", ESP_LOG_DEBUG);
++    esp_log_level_set("transport_ws", ESP_LOG_DEBUG);
++    esp_log_level_set("trans_tcp", ESP_LOG_DEBUG);
++
++    ESP_ERROR_CHECK(nvs_flash_init());
++    ESP_ERROR_CHECK(esp_netif_init());
++    ESP_ERROR_CHECK(esp_event_loop_create_default());
++
++    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
++     * Read "Establishing Wi-Fi or Ethernet Connection" section in
++     * examples/protocols/README.md for more information about this function.
++     */
++    ESP_ERROR_CHECK(example_connect());
++
++    websocket_app_start();
++    return 0;
++}
+diff --git a/components/esp_websocket_client/examples/linux/sdkconfig.ci.coverage b/components/esp_websocket_client/examples/linux/sdkconfig.ci.coverage
+new file mode 100644
+index 0000000000..12ff0dbb46
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/sdkconfig.ci.coverage
+@@ -0,0 +1,6 @@
++CONFIG_GCOV_ENABLED=y
++CONFIG_IDF_TARGET="linux"
++CONFIG_IDF_TARGET_LINUX=y
++CONFIG_ESP_EVENT_POST_FROM_ISR=n
++CONFIG_ESP_EVENT_POST_FROM_IRAM_ISR=n
++CONFIG_WEBSOCKET_URI="ws://echo.websocket.events"
+diff --git a/components/esp_websocket_client/examples/linux/sdkconfig.ci.linux b/components/esp_websocket_client/examples/linux/sdkconfig.ci.linux
+new file mode 100644
+index 0000000000..3c89f5fe3a
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/sdkconfig.ci.linux
+@@ -0,0 +1,5 @@
++CONFIG_IDF_TARGET="linux"
++CONFIG_IDF_TARGET_LINUX=y
++CONFIG_ESP_EVENT_POST_FROM_ISR=n
++CONFIG_ESP_EVENT_POST_FROM_IRAM_ISR=n
++CONFIG_WEBSOCKET_URI="ws://echo.websocket.events"
+diff --git a/components/esp_websocket_client/examples/linux/sdkconfig.defaults b/components/esp_websocket_client/examples/linux/sdkconfig.defaults
+new file mode 100644
+index 0000000000..3c89f5fe3a
+--- /dev/null
++++ b/components/esp_websocket_client/examples/linux/sdkconfig.defaults
+@@ -0,0 +1,5 @@
++CONFIG_IDF_TARGET="linux"
++CONFIG_IDF_TARGET_LINUX=y
++CONFIG_ESP_EVENT_POST_FROM_ISR=n
++CONFIG_ESP_EVENT_POST_FROM_IRAM_ISR=n
++CONFIG_WEBSOCKET_URI="ws://echo.websocket.events"
+diff --git a/components/esp_websocket_client/examples/target/CMakeLists.txt b/components/esp_websocket_client/examples/target/CMakeLists.txt
+new file mode 100644
+index 0000000000..6858816b3e
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/CMakeLists.txt
+@@ -0,0 +1,6 @@
++# The following lines of boilerplate have to be in your project's CMakeLists
++# in this exact order for cmake to work correctly
++cmake_minimum_required(VERSION 3.5)
++
++include($ENV{IDF_PATH}/tools/cmake/project.cmake)
++project(websocket_example)
+diff --git a/components/esp_websocket_client/examples/target/README.md b/components/esp_websocket_client/examples/target/README.md
+new file mode 100644
+index 0000000000..fd47add624
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/README.md
+@@ -0,0 +1,137 @@
++# Websocket Sample application
++
++This example will shows how to set up and communicate over a websocket.
++
++## How to Use Example
++
++### Hardware Required
++
++This example can be executed on any ESP32 board, the only required interface is WiFi and connection to internet or a local server.
++
++### Configure the project
++
++* Open the project configuration menu (`idf.py menuconfig`)
++* Configure Wi-Fi or Ethernet under "Example Connection Configuration" menu.
++* Configure the websocket endpoint URI under "Example Configuration", if "WEBSOCKET_URI_FROM_STDIN" is selected then the example application will connect to the URI it reads from stdin (used for testing)
++* To test a WebSocket client example over TLS, please enable one of the following configurations: `CONFIG_WS_OVER_TLS_MUTUAL_AUTH` or `CONFIG_WS_OVER_TLS_SERVER_AUTH`. See the sections below for more details.
++
++### Server Certificate Verification
++
++* Mutual Authentication: When `CONFIG_WS_OVER_TLS_MUTUAL_AUTH=y` is enabled, it's essential to provide valid certificates for both the server and client.
++  This ensures a secure two-way verification process.
++* Server-Only Authentication: To perform verification of the server's certificate only (without requiring a client certificate), set `CONFIG_WS_OVER_TLS_SERVER_AUTH=y`.
++  This method skips client certificate verification.
++* Example below demonstrates how to generate a new self signed certificates for the server and client using the OpenSSL command line tool
++
++Please note: This example represents an extremely simplified approach to generating self-signed certificates/keys with a single common CA, devoid of CN checks, lacking password protection, and featuring hardcoded key sizes and types. It is intended solely for testing purposes.
++In the outlined steps, we are omitting the configuration of the CN (Common Name) field due to the context of a testing environment. However, it's important to recognize that the CN field is a critical element of SSL/TLS certificates, significantly influencing the security and efficacy of HTTPS communications. This field facilitates the verification of a website's identity, enhancing trust and security in web interactions. In practical deployments beyond testing scenarios, ensuring the CN field is accurately set is paramount for maintaining the integrity and reliability of secure communications
++
++### Generating a self signed Certificates with OpenSSL
++* The example below outlines the process for creating new certificates for both the server and client using OpenSSL, a widely-used command line tool for implementing TLS protocol:
++
++```
++Generate the CA's Private Key;
++openssl genrsa -out ca_key.pem 2048
++
++Create the CA's Certificate
++openssl req -new -x509 -days 3650 -key ca_key.pem -out ca_cert.pem
++
++Generate the Server's Private Key
++openssl genrsa -out server_key.pem 2048
++
++Generate a Certificate Signing Request (CSR) for the Server
++openssl req -new -key server_key.pem -out server_csr.pem
++
++Sign the Server's CSR with the CA's Certificate
++openssl x509 -req -days 3650 -in server_csr.pem -CA ca_cert.pem -CAkey ca_key.pem -CAcreateserial -out server_cert.pem
++
++Generate the Client's Private Key
++openssl genrsa -out client_key.pem 2048
++
++Generate a Certificate Signing Request (CSR) for the Client
++openssl req -new -key client_key.pem -out client_csr.pem
++
++Sign the Client's CSR with the CA's Certificate
++openssl x509 -req -days 3650 -in client_csr.pem -CA ca_cert.pem -CAkey ca_key.pem -CAcreateserial -out client_cert.pem
++
++```
++
++Expiry time and metadata fields can be adjusted in the invocation.
++
++Please see the openssl man pages (man openssl) for more details.
++
++It is **strongly recommended** to not reuse the example certificate in your application;
++it is included only for demonstration.
++
++### Build and Flash
++
++Build the project and flash it to the board, then run monitor tool to view serial output:
++
++```
++idf.py -p PORT flash monitor
++```
++
++(To exit the serial monitor, type ``Ctrl-]``.)
++
++See the Getting Started Guide for full steps to configure and use ESP-IDF to build projects.
++
++## Example Output
++
++```
++I (482) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
++I (2492) example_connect: Ethernet Link Up
++I (4472) tcpip_adapter: eth ip: 192.168.2.137, mask: 255.255.255.0, gw: 192.168.2.2
++I (4472) example_connect: Connected to Ethernet
++I (4472) example_connect: IPv4 address: 192.168.2.137
++I (4472) example_connect: IPv6 address: fe80:0000:0000:0000:bedd:c2ff:fed4:a92b
++I (4482) WEBSOCKET: Connecting to ws://echo.websocket.events...
++I (5012) WEBSOCKET: WEBSOCKET_EVENT_CONNECTED
++I (5492) WEBSOCKET: Sending hello 0000
++I (6052) WEBSOCKET: WEBSOCKET_EVENT_DATA
++W (6052) WEBSOCKET: Received=hello 0000
++
++I (6492) WEBSOCKET: Sending hello 0001
++I (7052) WEBSOCKET: WEBSOCKET_EVENT_DATA
++W (7052) WEBSOCKET: Received=hello 0001
++
++I (7492) WEBSOCKET: Sending hello 0002
++I (8082) WEBSOCKET: WEBSOCKET_EVENT_DATA
++W (8082) WEBSOCKET: Received=hello 0002
++
++I (8492) WEBSOCKET: Sending hello 0003
++I (9152) WEBSOCKET: WEBSOCKET_EVENT_DATA
++W (9162) WEBSOCKET: Received=hello 0003
++
++```
++
++
++## Python Flask echo server
++
++By default, the `ws://echo.websocket.events` endpoint is used. You can setup a Python websocket echo server locally and try the `ws://<your-ip>:5000` endpoint. To do this, install Flask-sock Python package
++
++```
++pip install flask-sock
++```
++
++and start a Flask websocket echo server locally by executing the following Python code:
++
++```python
++from flask import Flask
++from flask_sock import Sock
++
++app = Flask(__name__)
++sock = Sock(app)
++
++
++@sock.route('/')
++def echo(ws):
++    while True:
++        data = ws.receive()
++        ws.send(data)
++
++
++if __name__ == '__main__':
++    # To run your Flask + WebSocket server in production you can use Gunicorn:
++    # gunicorn -b 0.0.0.0:5000 --workers 4 --threads 100 module:app
++    app.run(host="0.0.0.0", debug=True)
++```
+diff --git a/components/esp_websocket_client/examples/target/main/CMakeLists.txt b/components/esp_websocket_client/examples/target/main/CMakeLists.txt
+new file mode 100644
+index 0000000000..a3ed7674b1
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/CMakeLists.txt
+@@ -0,0 +1,22 @@
++set(SRC_FILES "websocket_example.c") # Define source files
++set(INCLUDE_DIRS ".") # Define include directories
++set(EMBED_FILES "") # Initialize an empty list for files to embed
++
++# Conditionally append files to the list based on configuration
++#if(CONFIG_WS_OVER_TLS_MUTAL_AUTH)
++    list(APPEND EMBED_FILES
++        "certs/client_cert.pem"
++        "certs/ca_cert.pem"
++        "certs/client_key.pem")
++#endif()
++
++# For testing purpose we are using CA of wss://echo.websocket.events
++#if(CONFIG_WS_OVER_TLS_SERVER_AUTH)
++    list(APPEND EMBED_FILES
++        "certs/ca_certificate_public_domain.pem")
++#endif()
++
++# Register the component with source files, include dirs, and any conditionally added embedded files
++idf_component_register(SRCS "${SRC_FILES}"
++                       INCLUDE_DIRS "${INCLUDE_DIRS}"
++                       EMBED_TXTFILES "${EMBED_FILES}")
+diff --git a/components/esp_websocket_client/examples/target/main/Kconfig.projbuild b/components/esp_websocket_client/examples/target/main/Kconfig.projbuild
+new file mode 100644
+index 0000000000..8fa2ce0a1e
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/Kconfig.projbuild
+@@ -0,0 +1,50 @@
++menu "Example Configuration"
++
++    choice WEBSOCKET_URI_SOURCE
++        prompt "Websocket URI source"
++        default WEBSOCKET_URI_FROM_STRING
++        help
++            Selects the source of the URI used in the example.
++
++        config WEBSOCKET_URI_FROM_STRING
++            bool "From string"
++
++        config WEBSOCKET_URI_FROM_STDIN
++            bool "From stdin"
++    endchoice
++
++    config WEBSOCKET_URI
++        string "Websocket endpoint URI"
++        depends on WEBSOCKET_URI_FROM_STRING
++        default "wss://echo.websocket.events"
++        help
++            URL of websocket endpoint this example connects to and sends echo
++
++    config WS_OVER_TLS_SERVER_AUTH
++        bool "Enable WebSocket over TLS with Server Certificate Verification Only"
++        default y
++        help
++            Enables WebSocket connections over TLS (WSS) with server certificate verification.
++            This setting mandates the client to verify the servers certificate, while the server
++            does not require client certificate verification.
++
++    config WS_OVER_TLS_MUTUAL_AUTH
++        bool "Enable WebSocket over TLS with Server Client Mutual Authentification"
++        default n
++        help
++            Enables WebSocket connections over TLS (WSS) with server and client mutual certificate verification.
++
++    config WS_OVER_TLS_SKIP_COMMON_NAME_CHECK
++        bool "Skip common name(CN) check during TLS authentification"
++        default n
++        help
++            Skipping Common Name(CN) check during TLS(WSS) authentificatio
++
++    if CONFIG_IDF_TARGET = "linux"
++      config GCOV_ENABLED
++          bool "Coverage analyzer"
++          default n
++          help
++              Enables coverage analyzing for host tests.
++      endif
++endmenu
+diff --git a/components/esp_websocket_client/examples/target/main/certs/ca_cert.pem b/components/esp_websocket_client/examples/target/main/certs/ca_cert.pem
+new file mode 100644
+index 0000000000..e9a27099b9
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/certs/ca_cert.pem
+@@ -0,0 +1,21 @@
++-----BEGIN CERTIFICATE-----
++MIIDazCCAlOgAwIBAgIUL04QhbSEt5oNbV4f7CeLLqTCw2gwDQYJKoZIhvcNAQEL
++BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
++GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDAyMjMwODA2MjVaFw0zNDAy
++MjAwODA2MjVaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEw
++HwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggEiMA0GCSqGSIb3DQEB
++AQUAA4IBDwAwggEKAoIBAQDjc78SuXAmJeBc0el2/m+2lwtk3J/VrNxHYkhjHa8K
++/ybU89VvKGuv9+L3IP67WMguFTaMgivJYUePjfMchtNJLJ+4cR9BkBKH4JnyXDae
++s0a5181LxRo8rqcaOw9hmJTgt9R4dIRTR3GN2/VLhlR+L9OTYA54RUtMyMMpyk5M
++YIJbcOwiwkVLsIYnexXDfgz9vQGl/2vBQ/RBtDBvbSyBiWox9SuzOrya1HUBzJkM
++Iu5L0bSa0LAeXHT3i3P1Y4WPt9ub70OhUNfJtHC+XbGFSEkkQG+lfbXU75XLoMWa
++iATMREOcb3Mq+pn1G8o1ZHVc6lBHUkfrNfxs5P/GQcSvAgMBAAGjUzBRMB0GA1Ud
++DgQWBBQGkdK2gR2HrQTnZnbuWO7I1+wdxDAfBgNVHSMEGDAWgBQGkdK2gR2HrQTn
++ZnbuWO7I1+wdxDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBx
++G0hFtMwV/agIwC3ZaYC36ZWiijFzWkJSZG+fqAy32mSoVL2uQvOT8vEfF0ZnAcPc
++JI4oI059dBhAVlwqv6uLHyD4Gf2bF4oSLljdTz3X23llF+/wrTC2LLqMrm09aUC0
++ac74Q0FVwVJJcqH1HgemCMVjna5MkwNA6B+q7uR3eQ692VqXk6vjd4fRLBg1bBO1
++hXjasfNxA8A9quORF5+rjYrwyUZHuzcs0FfSClckIt4tHKtt4moLufOW6/PM4fRe
++AgdDfiTupxYLJFz4hFPhfgCh4TjQ+f9+uP4IAjW42dJmTVZjLEku/hm5lxCFObAq
++RgfaNwH8Ug1r1xswjSZG
++-----END CERTIFICATE-----
+diff --git a/components/esp_websocket_client/examples/target/main/certs/ca_certificate_public_domain.pem b/components/esp_websocket_client/examples/target/main/certs/ca_certificate_public_domain.pem
+new file mode 100644
+index 0000000000..43b222a60a
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/certs/ca_certificate_public_domain.pem
+@@ -0,0 +1,30 @@
++-----BEGIN CERTIFICATE-----
++MIIFFjCCAv6gAwIBAgIRAJErCErPDBinU/bWLiWnX1owDQYJKoZIhvcNAQELBQAw
++TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh
++cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjAwOTA0MDAwMDAw
++WhcNMjUwOTE1MTYwMDAwWjAyMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3Mg
++RW5jcnlwdDELMAkGA1UEAxMCUjMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
++AoIBAQC7AhUozPaglNMPEuyNVZLD+ILxmaZ6QoinXSaqtSu5xUyxr45r+XXIo9cP
++R5QUVTVXjJ6oojkZ9YI8QqlObvU7wy7bjcCwXPNZOOftz2nwWgsbvsCUJCWH+jdx
++sxPnHKzhm+/b5DtFUkWWqcFTzjTIUu61ru2P3mBw4qVUq7ZtDpelQDRrK9O8Zutm
++NHz6a4uPVymZ+DAXXbpyb/uBxa3Shlg9F8fnCbvxK/eG3MHacV3URuPMrSXBiLxg
++Z3Vms/EY96Jc5lP/Ooi2R6X/ExjqmAl3P51T+c8B5fWmcBcUr2Ok/5mzk53cU6cG
++/kiFHaFpriV1uxPMUgP17VGhi9sVAgMBAAGjggEIMIIBBDAOBgNVHQ8BAf8EBAMC
++AYYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMBIGA1UdEwEB/wQIMAYB
++Af8CAQAwHQYDVR0OBBYEFBQusxe3WFbLrlAJQOYfr52LFMLGMB8GA1UdIwQYMBaA
++FHm0WeZ7tuXkAXOACIjIGlj26ZtuMDIGCCsGAQUFBwEBBCYwJDAiBggrBgEFBQcw
++AoYWaHR0cDovL3gxLmkubGVuY3Iub3JnLzAnBgNVHR8EIDAeMBygGqAYhhZodHRw
++Oi8veDEuYy5sZW5jci5vcmcvMCIGA1UdIAQbMBkwCAYGZ4EMAQIBMA0GCysGAQQB
++gt8TAQEBMA0GCSqGSIb3DQEBCwUAA4ICAQCFyk5HPqP3hUSFvNVneLKYY611TR6W
++PTNlclQtgaDqw+34IL9fzLdwALduO/ZelN7kIJ+m74uyA+eitRY8kc607TkC53wl
++ikfmZW4/RvTZ8M6UK+5UzhK8jCdLuMGYL6KvzXGRSgi3yLgjewQtCPkIVz6D2QQz
++CkcheAmCJ8MqyJu5zlzyZMjAvnnAT45tRAxekrsu94sQ4egdRCnbWSDtY7kh+BIm
++lJNXoB1lBMEKIq4QDUOXoRgffuDghje1WrG9ML+Hbisq/yFOGwXD9RiX8F6sw6W4
++avAuvDszue5L3sz85K+EC4Y/wFVDNvZo4TYXao6Z0f+lQKc0t8DQYzk1OXVu8rp2
++yJMC6alLbBfODALZvYH7n7do1AZls4I9d1P4jnkDrQoxB3UqQ9hVl3LEKQ73xF1O
++yK5GhDDX8oVfGKF5u+decIsH4YaTw7mP3GFxJSqv3+0lUFJoi5Lc5da149p90Ids
++hCExroL1+7mryIkXPeFM5TgO9r0rvZaBFOvV2z0gp35Z0+L4WPlbuEjN/lxPFin+
++HlUjr8gRsI3qfJOQFy/9rKIJR0Y/8Omwt/8oTWgy1mdeHmmjk7j1nYsvC9JSQ6Zv
++MldlTTKB3zhThV1+XWYp6rjd5JW1zbVWEkLNxE7GJThEUG3szgBVGP7pSWTUTsqX
++nLRbwHOoq7hHwg==
++-----END CERTIFICATE-----
+diff --git a/components/esp_websocket_client/examples/target/main/certs/client_cert.pem b/components/esp_websocket_client/examples/target/main/certs/client_cert.pem
+new file mode 100644
+index 0000000000..e99921a3c4
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/certs/client_cert.pem
+@@ -0,0 +1,20 @@
++-----BEGIN CERTIFICATE-----
++MIIDWjCCAkKgAwIBAgIUUPCOgMA2v09E29fCkogx3RUBRtEwDQYJKoZIhvcNAQEL
++BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
++GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDAyMjMwODA3MzFaFw0zNDAy
++MjAwODA3MzFaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEw
++HwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggEiMA0GCSqGSIb3DQEB
++AQUAA4IBDwAwggEKAoIBAQCrNeomxI2aoP+4iUy5SiA+41oHUDZDFeJOBjv5JCsK
++mlvFqxE9zynmPOVpuABErOJwzerPTa4NYKvuvs5CxVJUV5CXtWANuu9majioZNzj
++f877MDNX/GnZHK2gnkxVrZCPaDmx9yiMsFMXgmfdrDhwoUpXbdgSyeU/al9Ds2kF
++0hrHOH2LBWt/mVeLbONU5CC1HOdVVw+uRlhVlxnfhTPd/Nru3rJx7R0sN7qXcZpJ
++PL87WvrszLVOux24DeaOz9oiD2b7egFyUuq1BM25iCwi8s/Ths8xd0Ca1d8mEcHW
++FVd4w2+nUMXFE+IbP+wo6FXuiSaOBNri3rztpvCCMaWjAgMBAAGjQjBAMB0GA1Ud
++DgQWBBSOlA+9Vfbcfy8iS4HSd4V0KPtm4jAfBgNVHSMEGDAWgBQGkdK2gR2HrQTn
++ZnbuWO7I1+wdxDANBgkqhkiG9w0BAQsFAAOCAQEAOmzm/MwowKTrSpMSrmfA3MmW
++ULzsfa25WyAoTl90ATlg4653Y7pRaNfdvVvyi2V2LlPcmc7E0rfD53t1NxjDH1uM
++LgFMTNEaZ9nMRSW0kMiwaRpvmXS8Eb9PXfvIM/Mw0co/aMOtAQnfTGIqsgkQwKyk
++1GG7QKQq3p4QGu5ZaTnjnaoa79hODt+0xQDD1wp6C9xwBY0M4gndAi3wkOeFkGv+
++OmGPtaCBu5V9tJCZ9dfZvjkaK44NGwDw0urAcYRK2h7asnlflu7cnlGMBB0qY4kQ
++BX5WI8UjN6rECBHbtNRvEh06ogDdHbxYV+TibrqkkeDRw6HX1qqiEJ+iCgWEDQ==
++-----END CERTIFICATE-----
+diff --git a/components/esp_websocket_client/examples/target/main/certs/client_key.pem b/components/esp_websocket_client/examples/target/main/certs/client_key.pem
+new file mode 100644
+index 0000000000..68dcc7af61
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/certs/client_key.pem
+@@ -0,0 +1,28 @@
++-----BEGIN PRIVATE KEY-----
++MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCrNeomxI2aoP+4
++iUy5SiA+41oHUDZDFeJOBjv5JCsKmlvFqxE9zynmPOVpuABErOJwzerPTa4NYKvu
++vs5CxVJUV5CXtWANuu9majioZNzjf877MDNX/GnZHK2gnkxVrZCPaDmx9yiMsFMX
++gmfdrDhwoUpXbdgSyeU/al9Ds2kF0hrHOH2LBWt/mVeLbONU5CC1HOdVVw+uRlhV
++lxnfhTPd/Nru3rJx7R0sN7qXcZpJPL87WvrszLVOux24DeaOz9oiD2b7egFyUuq1
++BM25iCwi8s/Ths8xd0Ca1d8mEcHWFVd4w2+nUMXFE+IbP+wo6FXuiSaOBNri3rzt
++pvCCMaWjAgMBAAECggEAOTWjz16AXroLmRMv8v5E9h6sN6Ni7lnCrAXDRoYCZ+Ga
++Ztu5wCiYPJn+oqvcUxZd+Ammu6yeS1QRP468h20+DHbSFw+BUDU1x8gYtJQ3h0Fu
++3VqG3ZC3odfGYNRkd4CuvGy8Uq5e+1vz9/gYUuc4WNJccAiBWg3ir6UQviOWJV46
++LGfdEd9hVvIGl5pmArMBVYdpj9+JHunDtG4uQxiWla5pdLjlkC2mGexD18T9d718
++6I+o3YHv1Y9RPT1d4rNhYQWx6YdTTD2rmS7nTrzroj/4fXsblpXzR+/l7crlNERY
++67RMPwgDR1NiAbCAJKsSbMS66lRCNlhTM4YffGAN6QKBgQDkIdcNm9j49SK5Wbl5
++j8U6UbcVYPzPG+2ea+fDfUIafA0VQHIuX6FgA17Kp7BDX9ldKtSBpr0Z8vetVswr
++agmXVMR/7QdvnZ9NpL66YA/BRs67CvsryVu4AVAzThFGySmlcXGlPq47doWDQ3B9
++0BOEnVoeDXR3SabaNsEbhDYn1wKBgQDAIAUyhJcgz+LcgaAtBwdnEN57y66JlRVZ
++bsb6cEG/MNmnLjQYsplJjNbz4yrB5ukTChPTGRF/JQRqHoXh6DGQFHvobukwwA6x
++RAIIq0NLJ5HUipfOi+VpCbWUHdoUNhwjAB2qVtD4LXE2Lyn46C8ET5eRtRjUKpzV
++lpsq63KHFQKBgFB+cDbpCoGtXPcxZXQy+lA9jPAKLKmXHRyMzlX32F8n7iXVe3RJ
++YdNS3Rt8V4EuTK/G8PxeLNL/G80ZlyiqXX/79Ol+ZOVJJHBs9K8mPejgZwkwMrec
++cLRYIkg3/3iOehdaE9NOboOkqi9KmGKMDJb6PlXkQXflkO3l6/UdjU45AoGAen0v
++sxiTncjMU1eVfn+nuY8ouXaPbYoOFXmqBItDb5i+e3baohBj6F+Rv+ZKIVuNp6Ta
++JNErtYstOFcDdpbp2nkk0ni71WftNhkszsgZ3DV7JS3DQV0xwvj8ulUZ757b63is
++cShujHu0XR5OvTGSoEX6VVxHWyVb3lTp0sBPwU0CgYBe2Ieuya0X8mAbputFN64S
++Kv++dqktTUT8i+tp07sIrpDeYwO3D89x9kVSJj4ImlmhiBVGkxFWPkpGyBLotdse
++Ai/E6f5I7CDSZZC0ZucgcItNd4Yy459QY+dFwFtT3kIaD9ml8fnqQ83J9W8DWtv9
++6mY9FnUUufbJcpHxN58RTw==
++-----END PRIVATE KEY-----
+diff --git a/components/esp_websocket_client/examples/target/main/certs/server_cert.pem b/components/esp_websocket_client/examples/target/main/certs/server_cert.pem
+new file mode 100644
+index 0000000000..cb1e9dfe74
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/certs/server_cert.pem
+@@ -0,0 +1,20 @@
++-----BEGIN CERTIFICATE-----
++MIIDWjCCAkKgAwIBAgIUUPCOgMA2v09E29fCkogx3RUBRtAwDQYJKoZIhvcNAQEL
++BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
++GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDAyMjMwODA2NTlaFw0zNDAy
++MjAwODA2NTlaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEw
++HwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggEiMA0GCSqGSIb3DQEB
++AQUAA4IBDwAwggEKAoIBAQC8WWbDxnLzTSfuQaO+kQnnzbwjhUHWn58s+BIEaO8M
++GG6bX+8r/SH9XjMfFS36qAN3qxgRun3YoRTaHc2QByiGjf5IL4EAPDnLN+NzUIL5
++7Gi2QPQP/GksAsOGKWk/nMRPk1vcMptkFVIWSp474SQ0A92Z9z0dUIqBpjRa34kr
++HsAIcT59/EG7YBBadMk0fQIxQVLh3Vosky85q+0waFihe47Ef5U2UftexoUx4Vcz
++6EtP60Wx+4qN+FLsr+n2B7Oz2ITqfwgqLzjNLZwm9bMjcLZ0fWm1A/W1C989MXwI
++w6DAPEZv7pbgp8r9phyrNieSDuuRaCvFsaXh6troAjLxAgMBAAGjQjBAMB0GA1Ud
++DgQWBBRJCYAQG2+1FN5P/wyAR1AsrAyb4DAfBgNVHSMEGDAWgBQGkdK2gR2HrQTn
++ZnbuWO7I1+wdxDANBgkqhkiG9w0BAQsFAAOCAQEAmllul/GIH7RVq85mM/SxP47J
++M7Z7T032KuR3n/Psyv2iq/uEV2CUje3XrKNwR2PaJL4Q6CtoWy7xgIP+9CBbjddR
++M7sdNQab8P2crAUtBKnkNOl/na/5KnXnjwi/PmWJJ9i2Cqt0PPkaykTWp/MLfYIw
++RPkY2Yo8f8gEiqXQd+0qTuMgumbgkPq3V8Lk1ocy62F5/qUhXxH+ifAXEoUQS6EG
++8DlgwdZlfUY+jeM6N56WzYmxD1syjNW7faPio+qXINfpYatROhqphaMQ5SA6TRj6
++jcnLa31TdDdWmWYDcYgZntAv6yGi3rh0MdYqeNS0FKlMKmaH81VHs7V1UUXwUQ==
++-----END CERTIFICATE-----
+diff --git a/components/esp_websocket_client/examples/target/main/certs/server_key.pem b/components/esp_websocket_client/examples/target/main/certs/server_key.pem
+new file mode 100644
+index 0000000000..cf2fdadb7a
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/certs/server_key.pem
+@@ -0,0 +1,28 @@
++-----BEGIN PRIVATE KEY-----
++MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC8WWbDxnLzTSfu
++QaO+kQnnzbwjhUHWn58s+BIEaO8MGG6bX+8r/SH9XjMfFS36qAN3qxgRun3YoRTa
++Hc2QByiGjf5IL4EAPDnLN+NzUIL57Gi2QPQP/GksAsOGKWk/nMRPk1vcMptkFVIW
++Sp474SQ0A92Z9z0dUIqBpjRa34krHsAIcT59/EG7YBBadMk0fQIxQVLh3Vosky85
++q+0waFihe47Ef5U2UftexoUx4Vcz6EtP60Wx+4qN+FLsr+n2B7Oz2ITqfwgqLzjN
++LZwm9bMjcLZ0fWm1A/W1C989MXwIw6DAPEZv7pbgp8r9phyrNieSDuuRaCvFsaXh
++6troAjLxAgMBAAECggEACNVCggTxCCMCr+RJKxs/NS1LWPkbZNbYjrHVmnpXV6Bf
++s460t0HoUasUx6zlGp+9heOyvcYat8maIj6KkOodBu5q0fTUXm/0n+ivlI1ejxz8
++ritupr9GKWe5xrVzd6XA+SBmivWenvt2/Y+jSxica4oQ3vMe3RyVWk4yn15jXu+9
++7B9lNyNeZtOBr6OozHGLYw4dwWcBNv2S6wevRKfHPwn/Ch5yTH1uAskgoMxUuyK2
++ynNVHWUhyS4pFU7Tex5ENDel15VYdbxV/2lQ2W6fHMLtC5GWKJXXbigCX7pfOpzC
++BFJEfZl7ze/qptE9AR7DkLFYyMtrS7OlebYbLDOM9wKBgQD+rTdwULZibpKwlI3a
++9Y22d4N/EDFvuu8LnuEiVQnXgwg9M+tlaa2liP18j1a7y/FCfoXf5sjUWCsdYR6d
++C0TuiOGI59hYGI94NvVLAmOutR+vJ/3jhbv5wyqEQLhJ42Yz9kWBrDCI+V3q3TdO
++H7wcH6suUIZpeLEJF4qHzY/1dwKBgQC9U/Pvswiww8sfysmd5shUNo4ofAZnTM1A
++ak6pWE3lSyiOkSm+3B2GqxYWLRoo1v+pTyhhXDtRRmxGtMNrKCsmlHef/o3c6kkG
++cuC2h/DiSmoITHy3BYKJoDeE54E8ubXUUKqHo41LYUs+D7M/IGxeiO13MUoIrEtF
++AwzVWPBU1wKBgH8barD2x6Bm+XWCHy6qIZlxGsMfDN1r2gTdvhWJhcj3D/Sj5heO
++X+lfbsxtKee+yOHcDesK3y8D9jjKkSHmTvgSfyX6OML3NxvTqidOwPugUHj2J8QX
++qhLk8mJhftj50reacWRf0TV76ADhecnXEuaic6hA7mTTpOAZzL0svm3PAoGBALWF
++r6VLX3KzVqZVtLb7FWmAoQ35093pCgXPpznAW3cTd4Axd/fxbTG4CUYb2i/760X2
++ij3Gw2yqe5fTKmYsLisgQA2bb4K28msHa6I2dmNQe5cXVp/X3Y98mJ6JpCSH3ekB
++qm7ABfGXCCApx28n9B8zY5JbJKNqJgS15vELA+ojAoGAAkaV2w46+3iQ6gJtQepr
++zGNybiYBx/Wo5fDdTS5u0xN+ZdC9fl2Zs0n7sMmUT8bWdDLcMnntHHO+oDIKyRHs
++TQh1n68vQ4JoegQv3Z9Z/TLEKqr9gyJC1Ao6M4bZpPhUWQwupfHColtsr2TskcnJ
++Nf2FpJZ7z6fQEShGlK1yTXM=
++-----END PRIVATE KEY-----
+diff --git a/components/esp_websocket_client/examples/target/main/idf_component.yml b/components/esp_websocket_client/examples/target/main/idf_component.yml
+new file mode 100644
+index 0000000000..0cc1eea4d0
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/idf_component.yml
+@@ -0,0 +1,8 @@
++dependencies:
++  ## Required IDF version
++  idf: ">=5.0"
++  espressif/esp_websocket_client:
++    version: "^1.0.0"
++    override_path: "../../../"
++  protocol_examples_common:
++    path: ${IDF_PATH}/examples/common_components/protocol_examples_common
+diff --git a/components/esp_websocket_client/examples/target/main/websocket_example.c b/components/esp_websocket_client/examples/target/main/websocket_example.c
+new file mode 100644
+index 0000000000..4024264535
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/main/websocket_example.c
+@@ -0,0 +1,221 @@
++/*
++ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
++ *
++ * SPDX-License-Identifier: Unlicense OR CC0-1.0
++ */
++/* ESP HTTP Client Example
++
++   This example code is in the Public Domain (or CC0 licensed, at your option.)
++
++   Unless required by applicable law or agreed to in writing, this
++   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
++   CONDITIONS OF ANY KIND, either express or implied.
++*/
++
++
++#include <stdio.h>
++#include "esp_wifi.h"
++#include "esp_system.h"
++#include "nvs_flash.h"
++#include "esp_event.h"
++#include "protocol_examples_common.h"
++
++#include "freertos/FreeRTOS.h"
++#include "freertos/task.h"
++#include "freertos/semphr.h"
++#include "freertos/event_groups.h"
++
++#include "esp_log.h"
++#include "esp_websocket_client.h"
++#include "esp_event.h"
++#include <cJSON.h>
++
++#define NO_DATA_TIMEOUT_SEC 5
++
++static const char *TAG = "websocket";
++
++static TimerHandle_t shutdown_signal_timer;
++static SemaphoreHandle_t shutdown_sema;
++
++static void log_error_if_nonzero(const char *message, int error_code)
++{
++    if (error_code != 0) {
++        ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
++    }
++}
++
++static void shutdown_signaler(TimerHandle_t xTimer)
++{
++    ESP_LOGI(TAG, "No data received for %d seconds, signaling shutdown", NO_DATA_TIMEOUT_SEC);
++    xSemaphoreGive(shutdown_sema);
++}
++
++#if CONFIG_WEBSOCKET_URI_FROM_STDIN
++static void get_string(char *line, size_t size)
++{
++    int count = 0;
++    while (count < size) {
++        int c = fgetc(stdin);
++        if (c == '\n') {
++            line[count] = '\0';
++            break;
++        } else if (c > 0 && c < 127) {
++            line[count] = c;
++            ++count;
++        }
++        vTaskDelay(10 / portTICK_PERIOD_MS);
++    }
++}
++
++#endif /* CONFIG_WEBSOCKET_URI_FROM_STDIN */
++
++static void websocket_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
++{
++    esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)event_data;
++    switch (event_id) {
++    case WEBSOCKET_EVENT_CONNECTED:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_CONNECTED");
++        break;
++    case WEBSOCKET_EVENT_DISCONNECTED:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_DISCONNECTED");
++        log_error_if_nonzero("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
++        if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
++            log_error_if_nonzero("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
++            log_error_if_nonzero("reported from tls stack", data->error_handle.esp_tls_stack_err);
++            log_error_if_nonzero("captured as transport's socket errno",  data->error_handle.esp_transport_sock_errno);
++        }
++        break;
++    case WEBSOCKET_EVENT_DATA:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_DATA");
++        ESP_LOGI(TAG, "Received opcode=%d", data->op_code);
++        if (data->op_code == 0x08 && data->data_len == 2) {
++            ESP_LOGW(TAG, "Received closed message with code=%d", 256 * data->data_ptr[0] + data->data_ptr[1]);
++        } else {
++            ESP_LOGW(TAG, "Received=%.*s\n\n", data->data_len, (char *)data->data_ptr);
++        }
++
++        // If received data contains json structure it succeed to parse
++        cJSON *root = cJSON_Parse(data->data_ptr);
++        if (root) {
++            for (int i = 0 ; i < cJSON_GetArraySize(root) ; i++) {
++                cJSON *elem = cJSON_GetArrayItem(root, i);
++                cJSON *id = cJSON_GetObjectItem(elem, "id");
++                cJSON *name = cJSON_GetObjectItem(elem, "name");
++                ESP_LOGW(TAG, "Json={'id': '%s', 'name': '%s'}", id->valuestring, name->valuestring);
++            }
++            cJSON_Delete(root);
++        }
++
++        ESP_LOGW(TAG, "Total payload length=%d, data_len=%d, current payload offset=%d\r\n", data->payload_len, data->data_len, data->payload_offset);
++
++        xTimerReset(shutdown_signal_timer, portMAX_DELAY);
++        break;
++    case WEBSOCKET_EVENT_ERROR:
++        ESP_LOGI(TAG, "WEBSOCKET_EVENT_ERROR");
++        log_error_if_nonzero("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
++        if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
++            log_error_if_nonzero("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
++            log_error_if_nonzero("reported from tls stack", data->error_handle.esp_tls_stack_err);
++            log_error_if_nonzero("captured as transport's socket errno",  data->error_handle.esp_transport_sock_errno);
++        }
++        break;
++    }
++}
++
++static void websocket_app_start(void)
++{
++    esp_websocket_client_config_t websocket_cfg = {};
++
++    shutdown_signal_timer = xTimerCreate("Websocket shutdown timer", NO_DATA_TIMEOUT_SEC * 1000 / portTICK_PERIOD_MS,
++                                         pdFALSE, NULL, shutdown_signaler);
++    shutdown_sema = xSemaphoreCreateBinary();
++
++#if CONFIG_WEBSOCKET_URI_FROM_STDIN
++    char line[128];
++
++    ESP_LOGI(TAG, "Please enter uri of websocket endpoint");
++    get_string(line, sizeof(line));
++
++    websocket_cfg.uri = line;
++    ESP_LOGI(TAG, "Endpoint uri: %s\n", line);
++
++#else
++    websocket_cfg.uri = CONFIG_WEBSOCKET_URI;
++#endif /* CONFIG_WEBSOCKET_URI_FROM_STDIN */
++
++#if CONFIG_WS_OVER_TLS_MUTUAL_AUTH
++    /* Configuring client certificates for mutual authentification */
++    extern const char cacert_start[] asm("_binary_ca_cert_pem_start"); // CA certificate
++    extern const char cert_start[] asm("_binary_client_cert_pem_start"); // Client certificate
++    extern const char cert_end[]   asm("_binary_client_cert_pem_end");
++    extern const char key_start[] asm("_binary_client_key_pem_start"); // Client private key
++    extern const char key_end[]   asm("_binary_client_key_pem_end");
++
++    websocket_cfg.cert_pem = cacert_start;
++    websocket_cfg.client_cert = cert_start;
++    websocket_cfg.client_cert_len = cert_end - cert_start;
++    websocket_cfg.client_key = key_start;
++    websocket_cfg.client_key_len = key_end - key_start;
++#elif CONFIG_WS_OVER_TLS_SERVER_AUTH
++    extern const char cacert_start[] asm("_binary_ca_certificate_public_domain_pem_start"); // CA cert of wss://echo.websocket.event, modify it if using another server
++    websocket_cfg.cert_pem = cacert_start;
++#endif
++
++#if CONFIG_WS_OVER_TLS_SKIP_COMMON_NAME_CHECK
++    websocket_cfg.skip_cert_common_name_check = true;
++#endif
++
++    ESP_LOGI(TAG, "Connecting to %s...", websocket_cfg.uri);
++
++    esp_websocket_client_handle_t client = esp_websocket_client_init(&websocket_cfg);
++    esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocket_event_handler, (void *)client);
++
++    esp_websocket_client_start(client);
++    xTimerStart(shutdown_signal_timer, portMAX_DELAY);
++    char data[32];
++    int i = 0;
++    while (i < 5) {
++        if (esp_websocket_client_is_connected(client)) {
++            int len = sprintf(data, "hello %04d", i++);
++            ESP_LOGI(TAG, "Sending %s", data);
++            esp_websocket_client_send_text(client, data, len, portMAX_DELAY);
++        }
++        vTaskDelay(1000 / portTICK_PERIOD_MS);
++    }
++
++    ESP_LOGI(TAG, "Sending fragmented message");
++    vTaskDelay(1000 / portTICK_PERIOD_MS);
++    memset(data, 'a', sizeof(data));
++    esp_websocket_client_send_text_partial(client, data, sizeof(data), portMAX_DELAY);
++    memset(data, 'b', sizeof(data));
++    esp_websocket_client_send_cont_msg(client, data, sizeof(data), portMAX_DELAY);
++    esp_websocket_client_send_fin(client, portMAX_DELAY);
++
++    xSemaphoreTake(shutdown_sema, portMAX_DELAY);
++    esp_websocket_client_close(client, portMAX_DELAY);
++    ESP_LOGI(TAG, "Websocket Stopped");
++    esp_websocket_client_destroy(client);
++}
++
++void app_main(void)
++{
++    ESP_LOGI(TAG, "[APP] Startup..");
++    ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
++    ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
++    esp_log_level_set("*", ESP_LOG_INFO);
++    esp_log_level_set("websocket_client", ESP_LOG_DEBUG);
++    esp_log_level_set("transport_ws", ESP_LOG_DEBUG);
++    esp_log_level_set("trans_tcp", ESP_LOG_DEBUG);
++
++    ESP_ERROR_CHECK(nvs_flash_init());
++    ESP_ERROR_CHECK(esp_netif_init());
++    ESP_ERROR_CHECK(esp_event_loop_create_default());
++
++    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
++     * Read "Establishing Wi-Fi or Ethernet Connection" section in
++     * examples/protocols/README.md for more information about this function.
++     */
++    ESP_ERROR_CHECK(example_connect());
++
++    websocket_app_start();
++}
+diff --git a/components/esp_websocket_client/examples/target/pytest_websocket.py b/components/esp_websocket_client/examples/target/pytest_websocket.py
+new file mode 100644
+index 0000000000..8f7cff79ce
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/pytest_websocket.py
+@@ -0,0 +1,194 @@
++# SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
++# SPDX-License-Identifier: Unlicense OR CC0-1.0
++import json
++import random
++import re
++import socket
++import ssl
++import string
++import sys
++from threading import Event, Thread
++
++from SimpleWebSocketServer import (SimpleSSLWebSocketServer,
++                                   SimpleWebSocketServer, WebSocket)
++
++
++def get_my_ip():
++    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
++    try:
++        # doesn't even have to be reachable
++        s.connect(('8.8.8.8', 1))
++        IP = s.getsockname()[0]
++    except Exception:
++        IP = '127.0.0.1'
++    finally:
++        s.close()
++    return IP
++
++
++class WebsocketTestEcho(WebSocket):
++
++    def handleMessage(self):
++        self.sendMessage(self.data)
++        print('\n Server sent: {}\n'.format(self.data))
++
++    def handleConnected(self):
++        print('Connection from: {}'.format(self.address))
++
++    def handleClose(self):
++        print('{} closed the connection'.format(self.address))
++
++
++# Simple Websocket server for testing purposes
++class Websocket(object):
++
++    def send_data(self, data):
++        for nr, conn in self.server.connections.items():
++            conn.sendMessage(data)
++
++    def run(self):
++        if self.use_tls is True:
++            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
++            ssl_context.load_cert_chain(certfile='main/certs/server_cert.pem', keyfile='main/certs/server_key.pem')
++            if self.client_verify is True:
++                ssl_context.load_verify_locations(cafile='main/certs/ca_cert.pem')
++                ssl_context.verify = ssl.CERT_REQUIRED
++            ssl_context.check_hostname = False
++            self.server = SimpleSSLWebSocketServer('', self.port, WebsocketTestEcho, ssl_context=ssl_context)
++        else:
++            self.server = SimpleWebSocketServer('', self.port, WebsocketTestEcho)
++        while not self.exit_event.is_set():
++            self.server.serveonce()
++
++    def __init__(self, port, use_tls, verify):
++        self.port = port
++        self.use_tls = use_tls
++        self.client_verify = verify
++        self.exit_event = Event()
++        self.thread = Thread(target=self.run)
++        self.thread.start()
++
++    def __enter__(self):
++        return self
++
++    def __exit__(self, exc_type, exc_value, traceback):
++        self.exit_event.set()
++        self.thread.join(10)
++        if self.thread.is_alive():
++            print('Thread cannot be joined', 'orange')
++
++
++def test_examples_protocol_websocket(dut):
++    """
++    steps:
++      1. obtain IP address
++      2. connect to uri specified in the config
++      3. send and receive data
++    """
++
++    def test_echo(dut):
++        dut.expect('WEBSOCKET_EVENT_CONNECTED')
++        for i in range(0, 5):
++            dut.expect(re.compile(b'Received=hello (\\d)'))
++        print('All echos received')
++        sys.stdout.flush()
++
++    def test_close(dut):
++        code = dut.expect(
++            re.compile(
++                b'websocket: Received closed message with code=(\\d*)'))[0]
++        print('Received close frame with code {}'.format(code))
++
++    def test_json(dut, websocket):
++        json_string = """
++            [
++               {
++                  "id":"1",
++                  "name":"user1"
++               },
++               {
++                  "id":"2",
++                  "name":"user2"
++               }
++            ]
++        """
++        websocket.send_data(json_string)
++        data = json.loads(json_string)
++
++        match = dut.expect(
++            re.compile(b'Json=({[a-zA-Z0-9]*).*}')).group(0).decode()[5:]
++        if match == str(data[0]):
++            print('Sent message and received message are equal \n')
++            sys.stdout.flush()
++        else:
++            raise ValueError(
++                'DUT received string do not match sent string, \nexpected: {}\nwith length {}\
++                                 \nreceived: {}\nwith length {}'.format(
++                    data[0], len(data[0]), match, len(match)))
++
++    def test_recv_long_msg(dut, websocket, msg_len, repeats):
++
++        send_msg = ''.join(
++            random.choice(string.ascii_uppercase + string.ascii_lowercase +
++                          string.digits) for _ in range(msg_len))
++
++        for _ in range(repeats):
++            websocket.send_data(send_msg)
++
++            recv_msg = ''
++            while len(recv_msg) < msg_len:
++                match = dut.expect(re.compile(
++                    b'Received=([a-zA-Z0-9]*).*\n')).group(1).decode()
++                recv_msg += match
++
++            if recv_msg == send_msg:
++                print('Sent message and received message are equal \n')
++                sys.stdout.flush()
++            else:
++                raise ValueError(
++                    'DUT received string do not match sent string, \nexpected: {}\nwith length {}\
++                                \nreceived: {}\nwith length {}'.format(
++                        send_msg, len(send_msg), recv_msg, len(recv_msg)))
++
++    def test_fragmented_msg(dut):
++        dut.expect('Received=' + 32 * 'a' + 32 * 'b')
++        print('Fragmented data received')
++
++    # Starting of the test
++    try:
++        if dut.app.sdkconfig.get('WEBSOCKET_URI_FROM_STDIN') is True:
++            uri_from_stdin = True
++        else:
++            uri = dut.app.sdkconfig['WEBSOCKET_URI']
++            uri_from_stdin = False
++
++        if dut.app.sdkconfig.get('WS_OVER_TLS_MUTUAL_AUTH') is True:
++            use_tls = True
++            client_verify = True
++        else:
++            use_tls = False
++            client_verify = False
++
++    except Exception:
++        print('ENV_TEST_FAILURE: Cannot find uri settings in sdkconfig')
++        raise
++
++    if uri_from_stdin:
++        server_port = 8080
++        with Websocket(server_port, use_tls, client_verify) as ws:
++            if use_tls is True:
++                uri = 'wss://{}:{}'.format(get_my_ip(), server_port)
++            else:
++                uri = 'ws://{}:{}'.format(get_my_ip(), server_port)
++            print('DUT connecting to {}'.format(uri))
++            dut.expect('Please enter uri of websocket endpoint', timeout=30)
++            dut.write(uri)
++            test_echo(dut)
++            # Message length should exceed DUT's buffer size to test fragmentation, default is 1024 byte
++            test_recv_long_msg(dut, ws, 2000, 3)
++            test_json(dut, ws)
++            test_fragmented_msg(dut)
++            test_close(dut)
++    else:
++        print('DUT connecting to {}'.format(uri))
++        test_echo(dut)
+diff --git a/components/esp_websocket_client/examples/target/sdkconfig.ci b/components/esp_websocket_client/examples/target/sdkconfig.ci
+new file mode 100644
+index 0000000000..5ceaa8a5b1
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/sdkconfig.ci
+@@ -0,0 +1,13 @@
++CONFIG_IDF_TARGET="esp32"
++CONFIG_IDF_TARGET_LINUX=n
++CONFIG_WEBSOCKET_URI_FROM_STDIN=n
++CONFIG_WEBSOCKET_URI_FROM_STRING=y
++CONFIG_EXAMPLE_CONNECT_ETHERNET=y
++CONFIG_EXAMPLE_CONNECT_WIFI=n
++CONFIG_EXAMPLE_USE_INTERNAL_ETHERNET=y
++CONFIG_EXAMPLE_ETH_PHY_IP101=y
++CONFIG_EXAMPLE_ETH_MDC_GPIO=23
++CONFIG_EXAMPLE_ETH_MDIO_GPIO=18
++CONFIG_EXAMPLE_ETH_PHY_RST_GPIO=5
++CONFIG_EXAMPLE_ETH_PHY_ADDR=1
++CONFIG_EXAMPLE_CONNECT_IPV6=y
+diff --git a/components/esp_websocket_client/examples/target/sdkconfig.ci.mutual_auth b/components/esp_websocket_client/examples/target/sdkconfig.ci.mutual_auth
+new file mode 100644
+index 0000000000..7c4957c2fd
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/sdkconfig.ci.mutual_auth
+@@ -0,0 +1,15 @@
++CONFIG_IDF_TARGET="esp32"
++CONFIG_IDF_TARGET_LINUX=n
++CONFIG_WEBSOCKET_URI_FROM_STDIN=y
++CONFIG_WEBSOCKET_URI_FROM_STRING=n
++CONFIG_EXAMPLE_CONNECT_ETHERNET=y
++CONFIG_EXAMPLE_CONNECT_WIFI=n
++CONFIG_EXAMPLE_USE_INTERNAL_ETHERNET=y
++CONFIG_EXAMPLE_ETH_PHY_IP101=y
++CONFIG_EXAMPLE_ETH_MDC_GPIO=23
++CONFIG_EXAMPLE_ETH_MDIO_GPIO=18
++CONFIG_EXAMPLE_ETH_PHY_RST_GPIO=5
++CONFIG_EXAMPLE_ETH_PHY_ADDR=1
++CONFIG_EXAMPLE_CONNECT_IPV6=y
++CONFIG_WS_OVER_TLS_MUTUAL_AUTH=y
++CONFIG_WS_OVER_TLS_SKIP_COMMON_NAME_CHECK=y
+diff --git a/components/esp_websocket_client/examples/target/sdkconfig.ci.plain_tcp b/components/esp_websocket_client/examples/target/sdkconfig.ci.plain_tcp
+new file mode 100644
+index 0000000000..6efc580133
+--- /dev/null
++++ b/components/esp_websocket_client/examples/target/sdkconfig.ci.plain_tcp
+@@ -0,0 +1,15 @@
++CONFIG_IDF_TARGET="esp32"
++CONFIG_IDF_TARGET_LINUX=n
++CONFIG_WEBSOCKET_URI_FROM_STDIN=y
++CONFIG_WEBSOCKET_URI_FROM_STRING=n
++CONFIG_EXAMPLE_CONNECT_ETHERNET=y
++CONFIG_EXAMPLE_CONNECT_WIFI=n
++CONFIG_EXAMPLE_USE_INTERNAL_ETHERNET=y
++CONFIG_EXAMPLE_ETH_PHY_IP101=y
++CONFIG_EXAMPLE_ETH_MDC_GPIO=23
++CONFIG_EXAMPLE_ETH_MDIO_GPIO=18
++CONFIG_EXAMPLE_ETH_PHY_RST_GPIO=5
++CONFIG_EXAMPLE_ETH_PHY_ADDR=1
++CONFIG_EXAMPLE_CONNECT_IPV6=y
++CONFIG_WS_OVER_TLS_MUTUAL_AUTH=n
++CONFIG_WS_OVER_TLS_SERVER_AUTH=n
+diff --git a/components/esp_websocket_client/idf_component.yml b/components/esp_websocket_client/idf_component.yml
+new file mode 100644
+index 0000000000..4ab549a95e
+--- /dev/null
++++ b/components/esp_websocket_client/idf_component.yml
+@@ -0,0 +1,10 @@
++dependencies:
++  idf:
++    version: '>=5.0'
++description: WebSocket protocol client for ESP-IDF
++repository: git://github.com/espressif/esp-protocols.git
++repository_info:
++  commit_sha: 1750a3fda9c99a9545379f89c6bb49a86615cfaa
++  path: components/esp_websocket_client
++url: https://github.com/espressif/esp-protocols/tree/master/components/esp_websocket_client
++version: 1.2.3
+diff --git a/components/esp_websocket_client/include/esp_websocket_client.h b/components/esp_websocket_client/include/esp_websocket_client.h
+new file mode 100644
+index 0000000000..db7e8cdb8a
+--- /dev/null
++++ b/components/esp_websocket_client/include/esp_websocket_client.h
+@@ -0,0 +1,437 @@
++/*
++ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#ifndef _ESP_WEBSOCKET_CLIENT_H_
++#define _ESP_WEBSOCKET_CLIENT_H_
++
++
++#include <stdint.h>
++#include <stdbool.h>
++#include <string.h>
++#include "freertos/FreeRTOS.h"
++#include "esp_err.h"
++#include "esp_event.h"
++#include <sys/socket.h>
++#include "esp_transport_ws.h"
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++typedef struct esp_websocket_client *esp_websocket_client_handle_t;
++
++ESP_EVENT_DECLARE_BASE(WEBSOCKET_EVENTS);         // declaration of the task events family
++
++/**
++ * @brief Websocket Client events id
++ */
++typedef enum {
++    WEBSOCKET_EVENT_ANY = -1,
++    WEBSOCKET_EVENT_ERROR = 0,      /*!< This event occurs when there are any errors during execution */
++    WEBSOCKET_EVENT_CONNECTED,      /*!< Once the Websocket has been connected to the server, no data exchange has been performed */
++    WEBSOCKET_EVENT_DISCONNECTED,   /*!< The connection has been disconnected */
++    WEBSOCKET_EVENT_DATA,           /*!< When receiving data from the server, possibly multiple portions of the packet */
++    WEBSOCKET_EVENT_CLOSED,         /*!< The connection has been closed cleanly */
++    WEBSOCKET_EVENT_BEFORE_CONNECT, /*!< The event occurs before connecting */
++    WEBSOCKET_EVENT_MAX
++} esp_websocket_event_id_t;
++
++/**
++ * @brief Websocket connection error codes propagated via ERROR event
++ */
++typedef enum {
++    WEBSOCKET_ERROR_TYPE_NONE = 0,
++    WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT,
++    WEBSOCKET_ERROR_TYPE_PONG_TIMEOUT,
++    WEBSOCKET_ERROR_TYPE_HANDSHAKE
++} esp_websocket_error_type_t;
++
++/**
++ * @brief Websocket error code structure to be passed as a contextual information into ERROR event
++ */
++typedef struct {
++    /* compatible portion of the struct corresponding to struct esp_tls_last_error */
++    esp_err_t esp_tls_last_esp_err;             /*!< last esp_err code reported from esp-tls component */
++    int       esp_tls_stack_err;                /*!< tls specific error code reported from underlying tls stack */
++    int       esp_tls_cert_verify_flags;        /*!< tls flags reported from underlying tls stack during certificate verification */
++    /* esp-websocket specific structure extension */
++    esp_websocket_error_type_t error_type;
++    int esp_ws_handshake_status_code;           /*!< http status code of the websocket upgrade handshake */
++    /* tcp_transport extension */
++    int       esp_transport_sock_errno;         /*!< errno from the underlying socket */
++} esp_websocket_error_codes_t;
++
++/**
++ * @brief Websocket event data
++ */
++typedef struct {
++    const char *data_ptr;                   /*!< Data pointer */
++    int data_len;                           /*!< Data length */
++    bool fin;                               /*!< Fin flag */
++    uint8_t op_code;                        /*!< Received opcode */
++    esp_websocket_client_handle_t client;   /*!< esp_websocket_client_handle_t context */
++    void *user_context;                     /*!< user_data context, from esp_websocket_client_config_t user_data */
++    int payload_len;                        /*!< Total payload length, payloads exceeding buffer will be posted through multiple events */
++    int payload_offset;                     /*!< Actual offset for the data associated with this event */
++    esp_websocket_error_codes_t error_handle; /*!< esp-websocket error handle including esp-tls errors as well as internal websocket errors */
++} esp_websocket_event_data_t;
++
++/**
++ * @brief Websocket Client transport
++ */
++typedef enum {
++    WEBSOCKET_TRANSPORT_UNKNOWN = 0x0,  /*!< Transport unknown */
++    WEBSOCKET_TRANSPORT_OVER_TCP,       /*!< Transport over tcp */
++    WEBSOCKET_TRANSPORT_OVER_SSL,       /*!< Transport over ssl */
++} esp_websocket_transport_t;
++
++/**
++ * @brief Websocket client setup configuration
++ */
++typedef struct {
++    const char                  *uri;                       /*!< Websocket URI, the information on the URI can be overrides the other fields below, if any */
++    const char                  *host;                      /*!< Domain or IP as string */
++    int                         port;                       /*!< Port to connect, default depend on esp_websocket_transport_t (80 or 443) */
++    const char                  *username;                  /*!< Using for Http authentication, only support basic auth now */
++    const char                  *password;                  /*!< Using for Http authentication */
++    const char                  *path;                      /*!< HTTP Path, if not set, default is `/` */
++    bool                        disable_auto_reconnect;     /*!< Disable the automatic reconnect function when disconnected */
++    void                        *user_context;              /*!< HTTP user data context */
++    int                         task_prio;                  /*!< Websocket task priority */
++    const char                 *task_name;                  /*!< Websocket task name */
++    int                         task_stack;                 /*!< Websocket task stack */
++    int                         buffer_size;                /*!< Websocket buffer size */
++    const char                  *cert_pem;                  /*!< Pointer to certificate data in PEM or DER format for server verify (with SSL), default is NULL, not required to verify the server. PEM-format must have a terminating NULL-character. DER-format requires the length to be passed in cert_len. */
++    size_t                      cert_len;                   /*!< Length of the buffer pointed to by cert_pem. May be 0 for null-terminated pem */
++    const char                  *client_cert;               /*!< Pointer to certificate data in PEM or DER format for SSL mutual authentication, default is NULL, not required if mutual authentication is not needed. If it is not NULL, also `client_key` has to be provided. PEM-format must have a terminating NULL-character. DER-format requires the length to be passed in client_cert_len. */
++    size_t                      client_cert_len;            /*!< Length of the buffer pointed to by client_cert. May be 0 for null-terminated pem */
++    const char                  *client_key;                /*!< Pointer to private key data in PEM or DER format for SSL mutual authentication, default is NULL, not required if mutual authentication is not needed. If it is not NULL, also `client_cert` has to be provided. PEM-format must have a terminating NULL-character. DER-format requires the length to be passed in client_key_len */
++    size_t                      client_key_len;             /*!< Length of the buffer pointed to by client_key_pem. May be 0 for null-terminated pem */
++    esp_websocket_transport_t   transport;                  /*!< Websocket transport type, see `esp_websocket_transport_t */
++    const char                  *subprotocol;               /*!< Websocket subprotocol */
++    const char                  *user_agent;                /*!< Websocket user-agent */
++    const char                  *headers;                   /*!< Websocket additional headers */
++    int                         pingpong_timeout_sec;       /*!< Period before connection is aborted due to no PONGs received */
++    bool                        disable_pingpong_discon;    /*!< Disable auto-disconnect due to no PONG received within pingpong_timeout_sec */
++    bool                        use_global_ca_store;        /*!< Use a global ca_store for all the connections in which this bool is set. */
++    esp_err_t (*crt_bundle_attach)(void *conf);             /*!< Function pointer to esp_crt_bundle_attach. Enables the use of certification bundle for server verification, MBEDTLS_CERTIFICATE_BUNDLE must be enabled in menuconfig. Include esp_crt_bundle.h, and use `esp_crt_bundle_attach` here to include bundled CA certificates. */
++    bool                        skip_cert_common_name_check;/*!< Skip any validation of server certificate CN field */
++    bool                        keep_alive_enable;          /*!< Enable keep-alive timeout */
++    int                         keep_alive_idle;            /*!< Keep-alive idle time. Default is 5 (second) */
++    int                         keep_alive_interval;        /*!< Keep-alive interval time. Default is 5 (second) */
++    int                         keep_alive_count;           /*!< Keep-alive packet retry send count. Default is 3 counts */
++    int                         reconnect_timeout_ms;       /*!< Reconnect after this value in miliseconds if disable_auto_reconnect is not enabled (defaults to 10s) */
++    int                         network_timeout_ms;         /*!< Abort network operation if it is not completed after this value, in milliseconds (defaults to 10s) */
++    size_t                      ping_interval_sec;          /*!< Websocket ping interval, defaults to 10 seconds if not set */
++    struct ifreq                *if_name;                   /*!< The name of interface for data to go through. Use the default interface without setting */
++} esp_websocket_client_config_t;
++
++/**
++ * @brief      Start a Websocket session
++ *             This function must be the first function to call,
++ *             and it returns a esp_websocket_client_handle_t that you must use as input to other functions in the interface.
++ *             This call MUST have a corresponding call to esp_websocket_client_destroy when the operation is complete.
++ *
++ * @param[in]  config  The configuration
++ *
++ * @return
++ *     - `esp_websocket_client_handle_t`
++ *     - NULL if any errors
++ */
++esp_websocket_client_handle_t esp_websocket_client_init(const esp_websocket_client_config_t *config);
++
++/**
++ * @brief      Set URL for client, when performing this behavior, the options in the URL will replace the old ones
++ *             Must stop the WebSocket client before set URI if the client has been connected
++ *
++ * @param[in]  client  The client
++ * @param[in]  uri     The uri
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_set_uri(esp_websocket_client_handle_t client, const char *uri);
++
++/**
++ * @brief      Set additional websocket headers for the client, when performing this behavior, the headers will replace the old ones
++ * @pre        Must stop the WebSocket client before set headers if the client has been connected
++ *
++ *    - This API should be used after the WebSocket client connection has succeeded (i.e., once the transport layer is initialized).
++ *    - If you wish to set or append headers before the WebSocket client connection is established(before handshake), consider the following options:
++ *       1. Input headers directly into the config options, terminating each item with [CR][LF]. This approach will replace any previous headers.
++ *          Example: websocket_cfg.headers = "Sec-WebSocket-Key: my_key\r\nPassword: my_pass\r\n";
++ *       2. Use the `esp_websocket_client_append_header` API to append a single header to the current set.
++ *
++ * @param[in]  client  The WebSocket client handle
++ * @param[in]  headers Additional header strings each terminated with [CR][LF]
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_set_headers(esp_websocket_client_handle_t client, const char *headers);
++
++/**
++ * @brief      Appends a new key-value pair to the headers of a WebSocket client.
++ * @pre        Ensure that this function is called before starting the WebSocket client.
++ *
++ * @param[in]  client  The WebSocket client handle
++ * @param[in]  key     The header key to append
++ * @param[in]  value   The associated value for the given key
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_append_header(esp_websocket_client_handle_t client, const char *key, const char *value);
++
++/**
++ * @brief      Open the WebSocket connection
++ *
++ * @param[in]  client  The client
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_start(esp_websocket_client_handle_t client);
++
++/**
++ * @brief      Stops the WebSocket connection without websocket closing handshake
++ *
++ * This API stops ws client and closes TCP connection directly without sending
++ * close frames. It is a good practice to close the connection in a clean way
++ * using esp_websocket_client_close().
++ *
++ *  Notes:
++ *  - Cannot be called from the websocket event handler
++ *
++ * @param[in]  client  The client
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_stop(esp_websocket_client_handle_t client);
++
++/**
++ * @brief      Destroy the WebSocket connection and free all resources.
++ *             This function must be the last function to call for an session.
++ *             It is the opposite of the esp_websocket_client_init function and must be called with the same handle as input that a esp_websocket_client_init call returned.
++ *             This might close all connections this handle has used.
++ *
++ *  Notes:
++ *  - Cannot be called from the websocket event handler
++ *
++ * @param[in]  client  The client
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_destroy(esp_websocket_client_handle_t client);
++
++/**
++ * @brief      If this API called, WebSocket client will destroy and free all resources at the end of event loop.
++ *
++ *  Notes:
++ *  - After event loop finished, client handle would be dangling and should never be used
++ *
++ * @param[in]  client      The client
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_destroy_on_exit(esp_websocket_client_handle_t client);
++
++/**
++ * @brief      Write binary data to the WebSocket connection (data send with WS OPCODE=02, i.e. binary)
++ *
++ * @param[in]  client  The client
++ * @param[in]  data    The data
++ * @param[in]  len     The length
++ * @param[in]  timeout Write data timeout in RTOS ticks
++ *
++ * @return
++ *     - Number of data was sent
++ *     - (-1) if any errors
++ */
++int esp_websocket_client_send_bin(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout);
++
++/**
++ * @brief      Write binary data to the WebSocket connection and sends it without setting the FIN flag(data send with WS OPCODE=02, i.e. binary)
++ *
++ *  Notes:
++ *   - To send continuation frame, you should use 'esp_websocket_client_send_cont_msg(...)' API.
++ *   - To mark the end of fragmented data, you should use the 'esp_websocket_client_send_fin(...)' API. This sends a FIN frame.
++ *
++ * @param[in]  client  The client
++ * @param[in]  data    The data
++ * @param[in]  len     The length
++ * @param[in]  timeout Write data timeout in RTOS ticks
++ *
++ * @return
++ *     - Number of data was sent
++ *     - (-1) if any errors
++ */
++int esp_websocket_client_send_bin_partial(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout);
++
++/**
++ * @brief      Write textual data to the WebSocket connection (data send with WS OPCODE=01, i.e. text)
++ *
++ * @param[in]  client  The client
++ * @param[in]  data    The data
++ * @param[in]  len     The length
++ * @param[in]  timeout Write data timeout in RTOS ticks
++ *
++ * @return
++ *     - Number of data was sent
++ *     - (-1) if any errors
++ */
++int esp_websocket_client_send_text(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout);
++
++/**
++ * @brief      Write textual data to the WebSocket connection and sends it without setting the FIN flag(data send with WS OPCODE=01, i.e. text)
++ *
++ *  Notes:
++ *   - To send continuation frame, you should use 'esp_websocket_client_send_cont_mgs(...)' API.
++ *   - To mark the end of fragmented data, you should use the 'esp_websocket_client_send_fin(...)' API. This sends a FIN frame.
++ *
++ * @param[in]  client  The client
++ * @param[in]  data    The data
++ * @param[in]  len     The length
++ * @param[in]  timeout Write data timeout in RTOS ticks
++ *
++ * @return
++ *     - Number of data was sent
++ *     - (-1) if any errors
++ */
++int esp_websocket_client_send_text_partial(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout);
++
++/**
++ * @brief      Write textual data to the WebSocket connection and sends it as continuation frame (OPCODE=0x0)
++ *
++ *  Notes:
++ *   - Continuation frames have an opcode of 0x0 and do not explicitly signify whether they are continuing a text or a binary message.
++ *   - You determine the type of message (text or binary) being continued by looking at the opcode of the initial frame in the sequence of fragmented frames.
++ *   - To mark the end of fragmented data, you should use the 'esp_websocket_client_send_fin(...)' API. This sends a FIN frame.
++ *
++ * @param[in]  client  The client
++ * @param[in]  data    The data
++ * @param[in]  len     The length
++ * @param[in]  timeout Write data timeout in RTOS ticks
++ *
++ * @return
++ *     - Number of data was sent
++ *     - (-1) if any errors
++ */
++int esp_websocket_client_send_cont_msg(esp_websocket_client_handle_t client, const char *data, int len, TickType_t timeout);
++
++/**
++ * @brief      Sends FIN frame
++ *
++ * @param[in]  client  The client
++ * @param[in]  timeout Write data timeout in RTOS ticks
++ *
++ * @return
++ *     - Number of data was sent
++ *     - (-1) if any errors
++ */
++int esp_websocket_client_send_fin(esp_websocket_client_handle_t client, TickType_t timeout);
++
++/**
++ * @brief      Write opcode data to the WebSocket connection
++ *
++ * @param[in]  client  The client
++ * @param[in]  opcode  The opcode
++ * @param[in]  data    The data
++ * @param[in]  len     The length
++ * @param[in]  timeout Write data timeout in RTOS ticks
++ *
++ *  Notes:
++ *  - In order to send a zero payload, data and len should be set to NULL/0
++ *  - This API sets the FIN bit on the last fragment of message
++ *
++ *
++ * @return
++ *     - Number of data was sent
++ *     - (-1) if any errors
++ */
++int esp_websocket_client_send_with_opcode(esp_websocket_client_handle_t client, ws_transport_opcodes_t opcode, const uint8_t *data, int len, TickType_t timeout);
++
++/**
++ * @brief      Close the WebSocket connection in a clean way
++ *
++ * Sequence of clean close initiated by client:
++ * * Client sends CLOSE frame
++ * * Client waits until server echos the CLOSE frame
++ * * Client waits until server closes the connection
++ * * Client is stopped the same way as by the `esp_websocket_client_stop()`
++ *
++ *  Notes:
++ *  - Cannot be called from the websocket event handler
++ *
++ * @param[in]  client  The client
++ * @param[in]  timeout Timeout in RTOS ticks for waiting
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_close(esp_websocket_client_handle_t client, TickType_t timeout);
++
++/**
++ * @brief      Close the WebSocket connection in a clean way with custom code/data
++ *             Closing sequence is the same as for esp_websocket_client_close()
++ *
++ *  Notes:
++ *  - Cannot be called from the websocket event handler
++ *
++ * @param[in]  client  The client
++ * @param[in]  code    Close status code as defined in RFC6455 section-7.4
++ * @param[in]  data    Additional data to closing message
++ * @param[in]  len     The length of the additional data
++ * @param[in]  timeout Timeout in RTOS ticks for waiting
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_close_with_code(esp_websocket_client_handle_t client, int code, const char *data, int len, TickType_t timeout);
++
++/**
++ * @brief      Check the WebSocket client connection state
++ *
++ * @param[in]  client  The client handle
++ *
++ * @return
++ *     - true
++ *     - false
++ */
++bool esp_websocket_client_is_connected(esp_websocket_client_handle_t client);
++
++/**
++ * @brief      Get the ping interval sec for client.
++ *
++ * @param[in]  client             The client
++ *
++ * @return     The ping interval in sec
++ */
++size_t esp_websocket_client_get_ping_interval_sec(esp_websocket_client_handle_t client);
++
++/**
++ * @brief      Set new ping interval sec for client.
++ *
++ * @param[in]  client             The client
++ * @param[in]  ping_interval_sec  The new interval
++ *
++ * @return     esp_err_t
++ */
++esp_err_t esp_websocket_client_set_ping_interval_sec(esp_websocket_client_handle_t client, size_t ping_interval_sec);
++
++/**
++ * @brief Register the Websocket Events
++ *
++ * @param client            The client handle
++ * @param event             The event id
++ * @param event_handler     The callback function
++ * @param event_handler_arg User context
++ * @return esp_err_t
++ */
++esp_err_t esp_websocket_register_events(esp_websocket_client_handle_t client,
++                                        esp_websocket_event_id_t event,
++                                        esp_event_handler_t event_handler,
++                                        void *event_handler_arg);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff --git a/components/esp_websocket_client/test/CMakeLists.txt b/components/esp_websocket_client/test/CMakeLists.txt
+new file mode 100644
+index 0000000000..9acd84302a
+--- /dev/null
++++ b/components/esp_websocket_client/test/CMakeLists.txt
+@@ -0,0 +1,8 @@
++# This is the project CMakeLists.txt file for the test subproject
++cmake_minimum_required(VERSION 3.16)
++
++set(EXTRA_COMPONENT_DIRS    ../../esp_websocket_client
++                            "$ENV{IDF_PATH}/tools/unit-test-app/components")
++
++include($ENV{IDF_PATH}/tools/cmake/project.cmake)
++project(websocket_unit_test)
+diff --git a/components/esp_websocket_client/test/main/CMakeLists.txt b/components/esp_websocket_client/test/main/CMakeLists.txt
+new file mode 100644
+index 0000000000..c73c640ff5
+--- /dev/null
++++ b/components/esp_websocket_client/test/main/CMakeLists.txt
+@@ -0,0 +1,4 @@
++idf_component_register(SRCS "test_websocket_client.c"
++                       REQUIRES test_utils
++                       INCLUDE_DIRS "."
++                       PRIV_REQUIRES unity esp_websocket_client esp_event)
+diff --git a/components/esp_websocket_client/test/main/test_websocket_client.c b/components/esp_websocket_client/test/main/test_websocket_client.c
+new file mode 100644
+index 0000000000..ae75a693d6
+--- /dev/null
++++ b/components/esp_websocket_client/test/main/test_websocket_client.c
+@@ -0,0 +1,83 @@
++/*
++ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
++ *
++ * SPDX-License-Identifier: Unlicense OR CC0-1.0
++ *
++ * This test code is in the Public Domain (or CC0 licensed, at your option.)
++ *
++ * Unless required by applicable law or agreed to in writing, this
++ * software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
++ * CONDITIONS OF ANY KIND, either express or implied.
++ */
++
++#include <stdlib.h>
++#include <stdbool.h>
++#include <esp_websocket_client.h>
++#include "esp_event.h"
++#include "unity.h"
++#include "test_utils.h"
++
++#include "unity_fixture.h"
++#include "memory_checks.h"
++
++TEST_GROUP(websocket);
++
++TEST_SETUP(websocket)
++{
++#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 0)
++    /* IDF v5.0 runs some lazy inits within printf()
++     * This test sets the leak threshold to 0, so we need to call printf()
++     * before recording the heap size in test_utils_record_free_mem()
++     */
++    printf("TEST_SETUP: websocket\n");
++#endif
++    test_utils_record_free_mem();
++    TEST_ESP_OK(test_utils_set_leak_level(0, ESP_LEAK_TYPE_CRITICAL, ESP_COMP_LEAK_GENERAL));
++}
++
++TEST_TEAR_DOWN(websocket)
++{
++    test_utils_finish_and_evaluate_leaks(0, 0);
++}
++
++
++TEST(websocket, websocket_init_deinit)
++{
++    const esp_websocket_client_config_t websocket_cfg = {
++        // no connection takes place, but the uri has to be valid for init() to succeed
++        .uri = "ws://echo.websocket.org",
++    };
++    esp_websocket_client_handle_t client = esp_websocket_client_init(&websocket_cfg);
++    TEST_ASSERT_NOT_EQUAL(NULL, client);
++    esp_websocket_client_destroy(client);
++}
++
++TEST(websocket, websocket_init_invalid_url)
++{
++    const esp_websocket_client_config_t websocket_cfg = {
++        .uri = "INVALID",
++    };
++    esp_websocket_client_handle_t client = esp_websocket_client_init(&websocket_cfg);
++    TEST_ASSERT_NULL(client);
++}
++
++TEST(websocket, websocket_set_invalid_url)
++{
++    const esp_websocket_client_config_t websocket_cfg = {};
++    esp_websocket_client_handle_t client = esp_websocket_client_init(&websocket_cfg);
++    TEST_ASSERT_NOT_EQUAL(NULL, client);
++    TEST_ASSERT_NOT_EQUAL(ESP_OK, esp_websocket_client_set_uri(client, "INVALID"));
++    esp_websocket_client_destroy(client);
++}
++
++TEST_GROUP_RUNNER(websocket)
++{
++    RUN_TEST_CASE(websocket, websocket_init_deinit)
++    RUN_TEST_CASE(websocket, websocket_init_invalid_url)
++    RUN_TEST_CASE(websocket, websocket_set_invalid_url)
++}
++
++void app_main(void)
++{
++    UNITY_MAIN(websocket);
++}
+diff --git a/components/esp_websocket_client/test/pytest_websocket.py b/components/esp_websocket_client/test/pytest_websocket.py
+new file mode 100644
+index 0000000000..3d5f64a1c9
+--- /dev/null
++++ b/components/esp_websocket_client/test/pytest_websocket.py
+@@ -0,0 +1,8 @@
++# SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
++# SPDX-License-Identifier: Apache-2.0
++
++from pytest_embedded import Dut
++
++
++def test_websocket(dut: Dut) -> None:
++    dut.expect_unity_test_output()
+diff --git a/components/esp_websocket_client/test/sdkconfig.ci b/components/esp_websocket_client/test/sdkconfig.ci
+new file mode 100644
+index 0000000000..9660719189
+--- /dev/null
++++ b/components/esp_websocket_client/test/sdkconfig.ci
+@@ -0,0 +1,3 @@
++CONFIG_IDF_TARGET="esp32"
++CONFIG_UNITY_ENABLE_FIXTURE=y
++CONFIG_UNITY_ENABLE_IDF_TEST_RUNNER=n
+diff --git a/components/esp_websocket_client/test/sdkconfig.defaults b/components/esp_websocket_client/test/sdkconfig.defaults
+new file mode 100644
+index 0000000000..168e08d4cd
+--- /dev/null
++++ b/components/esp_websocket_client/test/sdkconfig.defaults
+@@ -0,0 +1,2 @@
++CONFIG_UNITY_ENABLE_FIXTURE=y
++CONFIG_UNITY_ENABLE_IDF_TEST_RUNNER=n

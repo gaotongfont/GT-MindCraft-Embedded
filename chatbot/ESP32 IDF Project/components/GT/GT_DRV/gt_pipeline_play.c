@@ -1,28 +1,16 @@
 #include "gt_pipeline_play.h"
 #include "audio_mem.h"
-
+#include "gt_wakenet.h"
 
 #define RINGBUFF 2048
 
 static const char *TAG = "GT_PIPELINE_PLAY";
 
 
-typedef struct gt_pipeline{
-    audio_pipeline_handle_t pipeline;
-    audio_element_handle_t http_stream_reader;
-    audio_element_handle_t i2s_stream_writer;
-    audio_element_handle_t mp3_decoder;
-    audio_event_iface_msg_t* msg;
-    audio_event_iface_handle_t evt;
-    ringbuf_handle_t ringbuf;
-    esp_audio_handle_t player;
-    bool isStartListen;
-};
-
 extern audio_board_handle_t gt_board_handle;
-static GTPIPELINE* gt_pipeline_obj = NULL;
+static gt_pipeline_st* gt_pipeline_obj = NULL;
 
-void gt_pipeline_init(GTPIPELINE* gt_pipeline_obj)
+void gt_pipeline_init(gt_pipeline_st* gt_pipeline_obj)
 {
     esp_audio_cfg_t cfg = DEFAULT_ESP_AUDIO_CONFIG();
     cfg.vol_handle = gt_board_handle->audio_hal;
@@ -31,7 +19,7 @@ void gt_pipeline_init(GTPIPELINE* gt_pipeline_obj)
     cfg.resample_rate = 16000;//48000;
     cfg.prefer_type = ESP_AUDIO_PREFER_MEM;
     gt_pipeline_obj->player = esp_audio_create(&cfg);
-    
+
     // audio_pipeline_handle_t pipeline;
     // audio_element_handle_t http_stream_reader, i2s_stream_writer, mp3_decoder;
 
@@ -54,7 +42,7 @@ void gt_pipeline_init(GTPIPELINE* gt_pipeline_obj)
     ESP_LOGI(TAG, "[2.2] Create i2s stream to write data to codec chip");
     i2s_stream_cfg_t i2s_cfg = I2S_STREAM_CFG_DEFAULT_WITH_PARA(0, 16000, 16, 2);//I2S_STREAM_CFG_DEFAULT();
     i2s_cfg.type = AUDIO_STREAM_WRITER;
-    i2s_cfg.std_cfg.slot_cfg.slot_mode = I2S_SLOT_MODE_MONO; 
+    i2s_cfg.std_cfg.slot_cfg.slot_mode = I2S_SLOT_MODE_MONO;
     i2s_cfg.std_cfg.slot_cfg.slot_mask = I2S_STD_SLOT_LEFT;
     i2s_cfg.use_alc = true;
     i2s_cfg.uninstall_drv = false;
@@ -91,7 +79,7 @@ void gt_pipeline_init(GTPIPELINE* gt_pipeline_obj)
 
     // ESP_LOGI(TAG, "[2.6] Set up  uri (http as http_stream, mp3 as mp3 decoder, and default output is i2s)");
     // audio_element_set_uri(http_stream_reader, "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp3");
-    
+
     // Example of using an audio event -- START
     ESP_LOGI(TAG, "[ 4 ] Set up  event listener");
     audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();
@@ -141,15 +129,15 @@ void gt_pipeline_init(GTPIPELINE* gt_pipeline_obj)
     AUDIO_MEM_SHOW(TAG);
 }
 
-static GTPIPELINE* gt_create_audio_pipeline()
+static gt_pipeline_st* gt_create_audio_pipeline()
 {
-    GTPIPELINE* gt_pipeline_obj = (GTPIPELINE*)audio_malloc(sizeof(GTPIPELINE));
+    gt_pipeline_st* gt_pipeline_obj = (gt_pipeline_st*)audio_malloc(sizeof(gt_pipeline_st));
     gt_pipeline_obj->msg = (audio_event_iface_msg_t*)audio_malloc(sizeof(audio_event_iface_msg_t));
     gt_pipeline_obj->isStartListen = false;
     return gt_pipeline_obj;
 }
 
-GTPIPELINE* gt_pipeline_single()
+gt_pipeline_st* gt_pipeline_single()
 {
     if(gt_pipeline_obj == NULL)
     {
@@ -158,7 +146,7 @@ GTPIPELINE* gt_pipeline_single()
     return gt_pipeline_obj;
 }
 
-int gt_audio_pipeline_run(GTPIPELINE* gt_pipeline_obj, const char* uri)
+int gt_audio_pipeline_run(gt_pipeline_st* gt_pipeline_obj, const char* uri)
 {
     if(!gt_pipeline_obj)
     {
@@ -172,12 +160,15 @@ int gt_audio_pipeline_run(GTPIPELINE* gt_pipeline_obj, const char* uri)
     // audio_pipeline_reset_ringbuffer(gt_pipeline_obj->pipeline);
 
     audio_element_set_uri(gt_pipeline_obj->http_stream_reader, uri);
-    
+
     audio_pipeline_run(gt_pipeline_obj->pipeline);
+#if GT_USE_WAKENET
+    gt_wakenet_suspend();
+#endif
     return ESP_OK;
 }
 
-audio_event_iface_msg_t* get_iface_msg(GTPIPELINE* gt_pipeline_obj)
+audio_event_iface_msg_t* get_iface_msg(gt_pipeline_st* gt_pipeline_obj)
 {
     if(!gt_pipeline_obj)
     {
@@ -186,27 +177,27 @@ audio_event_iface_msg_t* get_iface_msg(GTPIPELINE* gt_pipeline_obj)
     return gt_pipeline_obj->msg;
 }
 
-audio_event_iface_handle_t get_evt(GTPIPELINE* gt_pipeline_obj)
+audio_event_iface_handle_t get_evt(gt_pipeline_st* gt_pipeline_obj)
 {
     return gt_pipeline_obj->evt;
 }
 
-audio_element_handle_t get_mp3_decoder(GTPIPELINE* gt_pipeline_obj)
+audio_element_handle_t get_mp3_decoder(gt_pipeline_st* gt_pipeline_obj)
 {
     return gt_pipeline_obj->mp3_decoder;
 }
 
-audio_element_handle_t get_i2s_stream_writer(GTPIPELINE* gt_pipeline_obj)
+audio_element_handle_t get_i2s_stream_writer(gt_pipeline_st* gt_pipeline_obj)
 {
     return gt_pipeline_obj->i2s_stream_writer;
 }
 
-audio_element_handle_t get_http_stream_reader(GTPIPELINE* gt_pipeline_obj)
+audio_element_handle_t get_http_stream_reader(gt_pipeline_st* gt_pipeline_obj)
 {
     return gt_pipeline_obj->http_stream_reader;
 }
 
-int gt_audio_pipeline_stop(GTPIPELINE* gt_pipeline_obj)
+int gt_audio_pipeline_stop(gt_pipeline_st* gt_pipeline_obj)
 {
     if(!gt_pipeline_obj)
     {
@@ -217,7 +208,7 @@ int gt_audio_pipeline_stop(GTPIPELINE* gt_pipeline_obj)
 
     // 丢弃所有未处理的事件
     audio_event_iface_discard(gt_pipeline_obj->evt);
-    
+
     audio_element_reset_input_ringbuf(gt_pipeline_obj->http_stream_reader);
     audio_element_reset_input_ringbuf(gt_pipeline_obj->mp3_decoder);
     audio_element_reset_input_ringbuf(gt_pipeline_obj->i2s_stream_writer);
@@ -231,11 +222,14 @@ int gt_audio_pipeline_stop(GTPIPELINE* gt_pipeline_obj)
     audio_element_reset_state(gt_pipeline_obj->i2s_stream_writer);
 
     // audio_event_iface_discard(gt_pipeline_obj->evt);
+#if GT_USE_WAKENET
+    gt_wakenet_resume();
+#endif
     return ESP_OK;
 }
 
 
-int gt_audio_pipeline_resume(GTPIPELINE* gt_pipeline_obj)
+int gt_audio_pipeline_resume(gt_pipeline_st* gt_pipeline_obj)
 {
     if(!gt_pipeline_obj)
     {
@@ -245,7 +239,7 @@ int gt_audio_pipeline_resume(GTPIPELINE* gt_pipeline_obj)
     return ESP_OK;
 }
 
-int gt_audio_pipeline_reset_items_state(GTPIPELINE* gt_pipeline_obj)
+int gt_audio_pipeline_reset_items_state(gt_pipeline_st* gt_pipeline_obj)
 {
     if(!gt_pipeline_obj)
     {
@@ -253,11 +247,11 @@ int gt_audio_pipeline_reset_items_state(GTPIPELINE* gt_pipeline_obj)
     }
     audio_pipeline_reset_elements(gt_pipeline_obj->pipeline);
     // audio_pipeline_reset_items_state(gt_pipeline_obj->pipeline);
-    
+
     return ESP_OK;
 }
 
-int gt_audio_event_iface_discard (GTPIPELINE* gt_pipeline_obj)
+int gt_audio_event_iface_discard (gt_pipeline_st* gt_pipeline_obj)
 {
     if(!gt_pipeline_obj)
     {
@@ -268,7 +262,7 @@ int gt_audio_event_iface_discard (GTPIPELINE* gt_pipeline_obj)
 }
 
 
-void set_startListen(GTPIPELINE* gt_pipeline_obj, bool value)
+void set_startListen(gt_pipeline_st* gt_pipeline_obj, bool value)
 {
     if(!gt_pipeline_obj)
     {

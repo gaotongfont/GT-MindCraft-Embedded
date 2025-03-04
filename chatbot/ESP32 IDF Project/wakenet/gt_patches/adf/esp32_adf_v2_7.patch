@@ -1,0 +1,512 @@
+diff --git a/components/clouds/dueros/lightduer/include/lightduer_dipb_data_handler.h b/components/clouds/dueros/lightduer/include/lightduer_dipb_data_handler.h
+index 3411664e..c5d9a394 100644
+--- a/components/clouds/dueros/lightduer/include/lightduer_dipb_data_handler.h
++++ b/components/clouds/dueros/lightduer/include/lightduer_dipb_data_handler.h
+@@ -61,7 +61,7 @@ typedef struct {
+ } duer_ap_t;
+ 
+ typedef struct {
+-    int (*ble_send_data)(uint8_t *data, size_t data_len, uint16_t handle);
++    int (*ble_send_data)(uint8_t *data, uint32_t data_len, uint16_t handle);
+ 
+     duer_ap_t* (*scan_wifi)(int *list_num);
+ 
+diff --git a/components/coredump_upload_service/coredump_upload_service.c b/components/coredump_upload_service/coredump_upload_service.c
+index 16604bad..c7298640 100644
+--- a/components/coredump_upload_service/coredump_upload_service.c
++++ b/components/coredump_upload_service/coredump_upload_service.c
+@@ -81,7 +81,7 @@ static bool coredump_read(uint8_t **des, size_t *len)
+     }
+     *des = audio_calloc(1, *len);
+     AUDIO_MEM_CHECK(TAG, *des, return false);
+-    if (SPI_READ(addr, *des, *len) != ESP_OK) {
++    if (SPI_READ(addr, (void *)*des, *len) != ESP_OK) {
+         ESP_LOGE(TAG, "Core dump read ERROR");
+         free(*des);
+         *des = NULL;
+diff --git a/components/dueros_service/dueros_esp_flash.c b/components/dueros_service/dueros_esp_flash.c
+index 1a82f420..8655480c 100644
+--- a/components/dueros_service/dueros_esp_flash.c
++++ b/components/dueros_service/dueros_esp_flash.c
+@@ -80,7 +80,7 @@ duer_flash_string_context_t *duer_flash_string_init(duer_flash_module module)
+     rt->ctx.len = ((esp_partition_t *)(rt->ctx.handle))->size;
+ 
+     if (!rt->ele_list) {
+-        rt->ele_list = (uint32_t *)audio_malloc(sizeof(uint32_t) * rt->max_ele_count);
++        rt->ele_list = (unsigned int *)audio_malloc(sizeof(unsigned int) * rt->max_ele_count);
+         for (i = 0; i < rt->max_ele_count; ++i) {
+             rt->ele_list[i] = FLASH_INVALID_ADDR;
+         }
+diff --git a/components/esp_peripherals/CMakeLists.txt b/components/esp_peripherals/CMakeLists.txt
+index ab27f35d..3b134302 100644
+--- a/components/esp_peripherals/CMakeLists.txt
++++ b/components/esp_peripherals/CMakeLists.txt
+@@ -8,6 +8,7 @@ list(APPEND COMPONENT_ADD_INCLUDEDIRS ./include
+                 ./lib/IS31FL3216
+                 ./lib/aw2013
+                 ./lib/tca9554
++                ./lib/xl9555
+                 ./driver/i2c_bus)
+ 
+ list(APPEND COMPONENT_SRCS ./esp_peripherals.c
+@@ -28,6 +29,7 @@ list(APPEND COMPONENT_SRCS ./esp_peripherals.c
+                 ./lib/adc_button/adc_button.c
+                 ./lib/IS31FL3216/IS31FL3216.c
+                 ./lib/tca9554/tca9554.c
++                ./lib/xl9555/xl9555.c
+                 ./lib/gpio_isr/gpio_isr.c)
+ 
+ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.3")
+diff --git a/components/esp_peripherals/lib/xl9555/xl9555.c b/components/esp_peripherals/lib/xl9555/xl9555.c
+new file mode 100644
+index 00000000..5e5081c0
+--- /dev/null
++++ b/components/esp_peripherals/lib/xl9555/xl9555.c
+@@ -0,0 +1,230 @@
++/*
++ * ESPRESSIF MIT License
++ *
++ * Copyright (c) 2021 <ESPRESSIF SYSTEMS (SHANGHAI) CO., LTD>
++ *
++ * Permission is hereby granted for use on all ESPRESSIF SYSTEMS products, in which case,
++ * it is free of charge, to any person obtaining a copy of this software and associated
++ * documentation files (the "Software"), to deal in the Software without restriction, including
++ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
++ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished
++ * to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all copies or
++ * substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
++ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
++ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
++ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ */
++
++#include <string.h>
++#include "i2c_bus.h"
++#include "board.h"
++#include "esp_log.h"
++#include "xl9555.h"
++
++static char *TAG = "XL9555";
++static i2c_bus_handle_t i2c_handle;
++
++#define SET_BITS(_m, _s, _v)  ((_v) ? (_m)|((_s)) : (_m)&~((_s)))
++#define GET_BITS(_m, _s)      (((_m) & (_s)) ? true : false)
++
++typedef struct {
++    uint8_t addr;
++    char *name;
++} xl9555_dev_t;
++
++static xl9555_dev_t dev_list[] = {
++    { XL9555_ADDR, "XL9555"},
++};
++
++static uint8_t xl9555_addr;
++
++static esp_err_t expander_dev_prob()
++{
++    for (size_t i = 0; i < sizeof(dev_list) / sizeof(dev_list[0]); i++) {
++        if (ESP_OK == i2c_bus_probe_addr(i2c_handle, dev_list[i].addr)) {
++            ESP_LOGI(TAG, "Detected IO expander device at 0x%02X, name is: %s",
++                     dev_list[i].addr, dev_list[i].name);
++            xl9555_addr = dev_list[i].addr;
++            return ESP_OK;
++        }
++    }
++    xl9555_addr = 0;
++    ESP_LOGE(TAG, "IO expander device has not detected");
++    return ESP_ERR_NOT_FOUND;
++}
++
++static esp_err_t xl9555_write_reg(uint8_t reg_addr, uint8_t *data, size_t len)
++{
++    return i2c_bus_write_bytes(i2c_handle, xl9555_addr, &reg_addr, sizeof(reg_addr), data, len);
++}
++
++static char xl9555_read_reg(uint8_t reg_addr, uint8_t *data, size_t len)
++{
++    return i2c_bus_read_bytes(i2c_handle, xl9555_addr, &reg_addr, sizeof(reg_addr), data, len);
++}
++
++static int i2c_init(gpio_num_t clk, gpio_num_t sda)
++{
++    int res = 0;
++    i2c_config_t es_i2c_cfg = {
++        .mode = I2C_MODE_MASTER,
++        .sda_pullup_en = GPIO_PULLUP_ENABLE,
++        .scl_pullup_en = GPIO_PULLUP_ENABLE,
++        .master.clk_speed = 100000,
++        .scl_io_num = clk,
++        .sda_io_num = sda,
++    };
++    i2c_handle = i2c_bus_create(I2C_NUM_0, &es_i2c_cfg);
++    return res;
++}
++
++
++esp_xl9555_io_level_t xl9555_get_input_state(esp_xl9555_gpio_num_t gpio_num)
++{
++    uint16_t ret;
++    uint8_t data[2];
++
++    if (gpio_num < XL9555_GPIO_NUM_MAX) {
++        xl9555_read_reg(XL9555_INPUT_PORT0_REG, data, 2);
++    } else {
++        ESP_LOGE(TAG, "gpio num is error, current gpio: %d", gpio_num);
++        return XL9555_LEVEL_ERROR;
++    }
++
++    ret = data[1] << 8 | data[0];
++     ESP_LOGI(TAG, "ret value: 0x%X", ret);
++    return GET_BITS(ret, gpio_num);
++}
++
++
++esp_xl9555_io_level_t xl9555_get_output_state(esp_xl9555_gpio_num_t gpio_num)
++{
++    uint16_t ret;
++    uint8_t data[2];
++    if (gpio_num < XL9555_GPIO_NUM_MAX) {
++        xl9555_read_reg(XL9555_OUTPUT_PORT0_REG, data, 2);
++    } else {
++        ESP_LOGE(TAG, "gpio num is error, current gpio: %d", gpio_num);
++        return XL9555_LEVEL_ERROR;
++    }
++
++    ret = data[1] << 8 | data[0];
++     ESP_LOGI(TAG, "ret value: 0x%X", ret);
++
++    return GET_BITS(ret, gpio_num);
++}
++
++esp_err_t xl9555_set_output_state(esp_xl9555_gpio_num_t gpio_num, esp_xl9555_io_level_t level)
++{
++    uint8_t data[2];
++    esp_err_t res = ESP_FAIL;
++    if (gpio_num < XL9555_GPIO_NUM_MAX) {
++        xl9555_read_reg(XL9555_OUTPUT_PORT0_REG, data, 2);
++        if (gpio_num <= GBC_KEY_IO)
++        {
++            data[0] = SET_BITS(data[0], (uint8_t)(0xFF & gpio_num), level);
++        }
++        else
++        {
++            data[1] = SET_BITS(data[1], (uint8_t)(0xFF & (gpio_num >> 8)), level);
++        }
++
++        res = xl9555_write_reg(XL9555_OUTPUT_PORT0_REG, data, 2);
++    } else {
++        ESP_LOGE(TAG, "gpio num is error, current gpio: %d", gpio_num);
++    }
++    return res;
++}
++
++
++esp_err_t xl9555_set_polarity_inversion(esp_xl9555_gpio_num_t gpio_num, esp_xl9555_io_polarity_t polarity)
++{
++    uint8_t data[2];
++    esp_err_t res = ESP_FAIL;
++    if (gpio_num < XL9555_GPIO_NUM_MAX) {
++        xl9555_read_reg(XL9555_INVERSION_PORT0_REG, data, 2);
++        if (gpio_num <= GBC_KEY_IO)
++        {
++            data[0] = SET_BITS(data[0], (uint8_t)(0xFF & gpio_num), polarity);
++        }
++        else
++        {
++            data[1] = SET_BITS(data[1], (uint8_t)(0xFF & (gpio_num >> 8)), polarity);
++        }
++        res = xl9555_write_reg(XL9555_INVERSION_PORT0_REG, data, 2);
++    } else {
++        ESP_LOGE(TAG, "gpio num is error, current gpio: %d", gpio_num);
++    }
++    return res;
++}
++
++
++esp_xl9555_io_config_t xl9555_get_io_config(esp_xl9555_gpio_num_t gpio_num)
++{
++    uint16_t ret;
++    uint8_t data[2];
++    if (gpio_num < XL9555_GPIO_NUM_MAX) {
++        xl9555_read_reg(XL9555_CONFIG_PORT0_REG, data, 2);
++    } else {
++        ESP_LOGE(TAG, "gpio num is error, current gpio: %d", gpio_num);
++        return XL9555_LEVEL_ERROR;
++    }
++
++    ret = data[1] << 8 | data[0];
++    return GET_BITS(ret, gpio_num);
++}
++
++
++esp_err_t xl9555_set_io_config(esp_xl9555_gpio_num_t gpio_num, esp_xl9555_io_config_t io_config)
++{
++    uint8_t data[2];
++    esp_err_t res = ESP_FAIL;
++    if (gpio_num < XL9555_GPIO_NUM_MAX) {
++        xl9555_read_reg(XL9555_CONFIG_PORT0_REG, data, 2);
++        if (gpio_num <= GBC_KEY_IO)
++        {
++            data[0] = SET_BITS(data[0], (uint8_t)(0xFF & gpio_num), io_config);
++        }
++        else
++        {
++            data[1] = SET_BITS(data[1], (uint8_t)(0xFF & (gpio_num >> 8)), io_config);
++        }
++        res = xl9555_write_reg(XL9555_CONFIG_PORT0_REG, data, 2);
++    } else {
++        ESP_LOGE(TAG, "gpio num is error, current gpio: %d", gpio_num);
++    }
++    return res;
++}
++
++
++void xl9555_read_all()
++{
++    uint8_t data[2];
++    for (int i = 0; i < 0x08; i++) {
++        uint8_t reg = xl9555_read_reg(i, data, 2);
++        ESP_LOGI(TAG, "REG:%02x, %02x", i, reg);
++    }
++}
++
++esp_err_t xl9555_init(esp_xl9555_config_t *cfg)
++{
++    esp_err_t ret = ESP_OK;
++    i2c_init(cfg->i2c_scl, cfg->i2c_sda);
++
++    expander_dev_prob();
++
++    return ret;
++}
++
++esp_err_t xl9555_deinit()
++{
++    i2c_bus_delete(i2c_handle);
++    return ESP_OK;
++}
+diff --git a/components/esp_peripherals/lib/xl9555/xl9555.h b/components/esp_peripherals/lib/xl9555/xl9555.h
+new file mode 100644
+index 00000000..22840613
+--- /dev/null
++++ b/components/esp_peripherals/lib/xl9555/xl9555.h
+@@ -0,0 +1,189 @@
++/*
++ * ESPRESSIF MIT License
++ *
++ * Copyright (c) 2021 <ESPRESSIF SYSTEMS (SHANGHAI) CO., LTD>
++ *
++ * Permission is hereby granted for use on all ESPRESSIF SYSTEMS products, in which case,
++ * it is free of charge, to any person obtaining a copy of this software and associated
++ * documentation files (the "Software"), to deal in the Software without restriction, including
++ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
++ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished
++ * to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all copies or
++ * substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
++ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
++ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
++ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ */
++
++#ifndef _XL9555_H
++#define _XL9555_H
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include "driver/gpio.h"
++
++/* 引脚与相关参数定义 */
++// #define XL9555_INT_IO               GPIO_NUM_40                     /* XL9555_INT引脚 */
++// #define XL9555_INT                  gpio_get_level(XL9555_INT_IO)   /* 读取XL9555_INT的电平 */
++
++/* XL9555命令宏 */
++#define XL9555_INPUT_PORT0_REG      0                               /* 输入寄存器0地址 */
++#define XL9555_INPUT_PORT1_REG      1                               /* 输入寄存器1地址 */
++#define XL9555_OUTPUT_PORT0_REG     2                               /* 输出寄存器0地址 */
++#define XL9555_OUTPUT_PORT1_REG     3                               /* 输出寄存器1地址 */
++#define XL9555_INVERSION_PORT0_REG  4                               /* 极性反转寄存器0地址 */
++#define XL9555_INVERSION_PORT1_REG  5                               /* 极性反转寄存器1地址 */
++#define XL9555_CONFIG_PORT0_REG     6                               /* 方向配置寄存器0地址 */
++#define XL9555_CONFIG_PORT1_REG     7                               /* 方向配置寄存器1地址 */
++
++#define XL9555_ADDR                 0x40 // 0X20                            /* XL9555地址(左移了一位)-->请看手册（9.1. Device Address） */
++
++typedef enum {
++    AP_INT_IO    = BIT(0),
++    QMA_INT_IO   = BIT(1),
++    SPK_EN_IO    = BIT(2),
++    BEEP_IO      = BIT(3),
++    OV_PWDN_IO   = BIT(4),
++    OV_RESET_IO  = BIT(5),
++    GBC_LED_IO   = BIT(6),
++    GBC_KEY_IO   = BIT(7),
++    LCD_BL_IO    = BIT(8),
++    CT_RST_IO    = BIT(9),
++    SLCD_RST_IO  = BIT(10),
++    SLCD_PWR_IO  = BIT(11),
++    KEY3_IO      = BIT(12),
++    KEY2_IO      = BIT(13),
++    KEY1_IO      = BIT(14),
++    KEY0_IO      = BIT(15),
++    XL9555_GPIO_NUM_MAX
++} esp_xl9555_gpio_num_t;
++
++
++typedef enum {
++    XL9555_IO_LOW,
++    XL9555_IO_HIGH,
++    XL9555_LEVEL_ERROR
++} esp_xl9555_io_level_t;
++
++typedef enum {
++    XL9555_IO_RETAINED,
++    XL9555_IO_INVERTED
++} esp_xl9555_io_polarity_t;
++
++typedef enum {
++    XL9555_IO_OUTPUT,
++    XL9555_IO_INPUT
++} esp_xl9555_io_config_t;
++
++typedef struct {
++    gpio_num_t i2c_sda;
++    gpio_num_t i2c_scl;
++    gpio_num_t interrupt_output;
++} esp_xl9555_config_t;
++
++/*
++ * @brief Initialize XL9555 chip
++ *
++ * @param codec_cfg  configuration of XL9555
++ *
++ * @return
++ *      - ESP_OK
++ *      - ESP_FAIL
++ */
++esp_err_t xl9555_init(esp_xl9555_config_t *cfg);
++
++/**
++ * @brief Deinitialize XL9555 chip
++ *
++ * @return
++ *     - ESP_OK
++ *     - ESP_FAIL
++ */
++esp_err_t xl9555_deinit(void);
++
++/*
++ * @brief Get XL9555 input level
++ *
++ * @param gpio_num  GPIO of XL9555
++ *
++ * @return
++ *      - esp_xl9555_io_level_t
++ */
++esp_xl9555_io_level_t xl9555_get_input_state(esp_xl9555_gpio_num_t gpio_num);
++
++/*
++ * @brief Get PCA95xian39 output level
++ *
++ * @param gpio_num  GPIO of XL9555
++ *
++ * @return
++ *      - esp_xl9555_io_level_t
++ */
++esp_xl9555_io_level_t xl9555_get_output_state(esp_xl9555_gpio_num_t gpio_num);
++
++/*
++ * @brief Get XL9555 output state
++ *
++ * @param gpio_num  GPIO of XL9555
++ *
++ * @return
++ *      - esp_xl9555_io_level_t
++ */
++esp_err_t xl9555_set_output_state(esp_xl9555_gpio_num_t gpio_num, esp_xl9555_io_level_t level);
++
++/*
++ * @brief Set XL9555 polarity
++ *
++ * @param gpio_num  GPIO of XL9555
++ *        polarity  polarity
++ *
++ * @return
++ *      - ESP_OK
++ *      - ESP_FAIL
++ */
++esp_err_t xl9555_set_polarity_inversion(esp_xl9555_gpio_num_t gpio_num, esp_xl9555_io_polarity_t polarity);
++
++/*
++ * @brief Get XL9555 output level
++ *
++ * @param gpio_num  GPIO of XL9555
++ *
++ * @return
++ *      - esp_xl9555_io_level_t
++ */
++esp_xl9555_io_config_t xl9555_get_io_config(esp_xl9555_gpio_num_t gpio_num);
++
++/*
++ * @brief Set XL9555 io config
++ *
++ * @param gpio_num  GPIO of XL9555
++ *        io_config  io config
++ *
++ * @return
++ *      - ESP_OK
++ *      - ESP_FAIL
++ */
++esp_err_t xl9555_set_io_config(esp_xl9555_gpio_num_t gpio_num, esp_xl9555_io_config_t io_config);
++
++/**
++ * @brief Print all XL9555 registers
++ *
++ * @return
++ *     - void
++ */
++void xl9555_read_all();
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff --git a/components/esp_peripherals/periph_lcd.c b/components/esp_peripherals/periph_lcd.c
+index a3f11069..6c7bc8f8 100644
+--- a/components/esp_peripherals/periph_lcd.c
++++ b/components/esp_peripherals/periph_lcd.c
+@@ -98,8 +98,8 @@ esp_err_t _lcd_rest_default(esp_periph_handle_t self, void *ctx)
+ esp_err_t _setup_lcd(esp_periph_handle_t self)
+ {
+     periph_lcd_t *periph_lcd = esp_periph_get_data(self);
+-    // Attach the LCD to the specific bus
+-    ESP_ERROR_CHECK(periph_lcd->new_panel_io((esp_lcd_spi_bus_handle_t)periph_lcd->io_bus,
++    // Attach the LCD to the specific bus (esp_lcd_spi_bus_handle_t)
++    ESP_ERROR_CHECK(periph_lcd->new_panel_io(periph_lcd->io_bus,
+                     &periph_lcd->lcd_io_cfg, &periph_lcd->lcd_io_handle));
+     // Initialize the LCD configuration
+     ESP_ERROR_CHECK(periph_lcd->new_lcd_panel(periph_lcd->lcd_io_handle, &periph_lcd->lcd_dev_cfg, &periph_lcd->lcd_panel_handle));
+diff --git a/esp-adf b/esp-adf
+new file mode 160000
+index 00000000..60054d26
+--- /dev/null
++++ b/esp-adf
+@@ -0,0 +1 @@
++Subproject commit 60054d26e02b358de2ac3db0d2b631a46ae240b8

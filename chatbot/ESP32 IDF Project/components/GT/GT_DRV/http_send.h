@@ -36,7 +36,7 @@ typedef struct{
     int  user_age;
 
     char bot_name[10];
-    char bot_description[250];
+    char bot_description[350];
     char voice_id[80];
     char *bot_personality[4];
     char bot_tone[200];
@@ -56,7 +56,10 @@ typedef struct{
     char *llm_response;
     char *emotion_value;
     char *tts_audio;
+    char *session_token;
     float audio_seconds;
+    int socket_status;
+    bool is_web_first_response;
 #if USE_HTTP_STREAM
     bool is_first_response;
 #endif //!USE_HTTP_STREAM

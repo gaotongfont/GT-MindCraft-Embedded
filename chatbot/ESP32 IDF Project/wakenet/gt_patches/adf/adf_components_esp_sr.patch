@@ -1,0 +1,45 @@
+diff --git a/src/model_path.c b/src/model_path.c
+index c6233d2..c5cad2f 100644
+--- a/src/model_path.c
++++ b/src/model_path.c
+@@ -417,7 +417,7 @@ srmodel_list_t *srmodel_mmap_init(const esp_partition_t *partition)
+     models->mmap_handle = (spi_flash_mmap_handle_t*)malloc(sizeof(spi_flash_mmap_handle_t));
+     ESP_ERROR_CHECK(esp_partition_mmap(partition, 0, partition->size, SPI_FLASH_MMAP_DATA, &root, models->mmap_handle));
+ #endif
+-    
++
+ 
+     models->partition = (esp_partition_t *)partition;
+     srmodel_load(root);
+@@ -432,7 +432,7 @@ void srmodel_mmap_deinit(srmodel_list_t *models)
+             esp_partition_munmap(*(esp_partition_mmap_handle_t *)models->mmap_handle); // support esp-idf v5
+ #else
+             spi_flash_munmap(*(spi_flash_mmap_handle_t *)models->mmap_handle);  // support esp-idf v4
+-#endif 
++#endif
+         }
+ 
+ 
+@@ -601,7 +601,7 @@ srmodel_list_t *esp_srmodel_init(const char *partition_label)
+ #else
+ 
+ #ifdef CONFIG_MODEL_IN_SDCARD
+-    // Read model data from SD card 
++    // Read model data from SD card
+     return srmodel_sdcard_init(partition_label);
+ #else
+     // Read model data from flash partition
+@@ -632,9 +632,13 @@ void esp_srmodel_deinit(srmodel_list_t *models)
+ 
+ #ifdef CONFIG_IDF_TARGET_ESP32
+     return srmodel_config_deinit(models);
++#else
++#ifdef CONFIG_MODEL_IN_SDCARD
++    return srmodel_sdcard_deinit(models);
+ #else
+     return srmodel_mmap_deinit(models);
+ #endif
++#endif
+ 
+ #else
+     return srmodel_sdcard_deinit(models);

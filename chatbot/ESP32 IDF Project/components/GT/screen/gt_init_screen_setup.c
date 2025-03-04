@@ -74,6 +74,22 @@ static void go_back_to_previous_page(gt_event_st * e) {
         set_emote_data_to_ram(AI_EMOTE_CAIJI_SURPRISE);
         set_emote_data_to_ram(AI_EMOTE_CAIJI_ANGER);
         set_emote_data_to_ram(AI_EMOTE_CAIJI_HAPPY);
+    } else if (strcmp(cb_data.settings->bot_name, "小鲸鱼") == 0)
+    {
+        set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_DISGUST);
+        set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_FEAR);
+        // set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_SADNESS);
+        set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_SURPRISE);
+        set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_ANGER);
+        set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_HAPPY);
+    } else if (strcmp(cb_data.settings->bot_name, "哪吒") == 0)
+    {
+        set_emote_data_to_ram(AI_EMOTE_NEZHA_DISGUST);
+        set_emote_data_to_ram(AI_EMOTE_NEZHA_FEAR);
+        // set_emote_data_to_ram(AI_EMOTE_NEZHA_SADNESS);
+        set_emote_data_to_ram(AI_EMOTE_NEZHA_SURPRISE);
+        set_emote_data_to_ram(AI_EMOTE_NEZHA_ANGER);
+        set_emote_data_to_ram(AI_EMOTE_NEZHA_HAPPY);
     }
 }
 /**
@@ -140,7 +156,8 @@ static void list_item_cb(gt_event_st * e) {
             gt_textarea_set_text(txt1, cb_data.settings->bot_description);
 
 			sprintf(cb_data.settings->voice_id, "%s", ai_bot_role_info.voice_id);
-			gt_btn_set_text(btn4, " %s", gt_timber_string_get(cb_data.settings->voice_id));
+			// gt_btn_set_text(btn4, " %s", gt_timber_string_get(cb_data.settings->voice_id));
+			gt_btn_set_text(btn4, " %s", cb_data.settings->bot_name);
 
             sprintf(cb_data.settings->bot_tone, "%s", ai_bot_role_info.tone);
             gt_textarea_set_text(txt_tone, cb_data.settings->bot_tone);
@@ -155,6 +172,14 @@ static void list_item_cb(gt_event_st * e) {
             {
                 set_emote_data_to_ram(AI_EMOTE_CAIJI_NEUTRAL);
                 set_emote_data_to_ram(AI_EMOTE_CAIJI_SADNESS);
+            } else if (strcmp(cb_data.settings->bot_name, "小鲸鱼") == 0)
+            {
+                set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_NEUTRAL);
+                set_emote_data_to_ram(AI_EMOTE_XIAOJINGYU_SADNESS);
+            } else if (strcmp(cb_data.settings->bot_name, "哪吒") == 0)
+            {
+                set_emote_data_to_ram(AI_EMOTE_NEZHA_NEUTRAL);
+                set_emote_data_to_ram(AI_EMOTE_NEZHA_SADNESS);
             }
 
 			break;
@@ -386,7 +411,8 @@ gt_obj_st * gt_init_screen_setup(void)
 	gt_btn_set_font_family(btn4, gray_black_16);
 	gt_btn_set_font_cjk(btn4, 0);
 	gt_btn_set_font_align(btn4, GT_ALIGN_LEFT_MID);
-    gt_btn_set_text(btn4, " %s", gt_timber_string_get(cb_data.settings->voice_id));
+    // gt_btn_set_text(btn4, " %s", gt_timber_string_get(cb_data.settings->voice_id));
+	gt_btn_set_text(btn4, " %s", cb_data.settings->bot_name);
 	gt_btn_set_color_background(btn4, gt_color_hex(0x181b22));
 	gt_btn_set_color_pressed(btn4, gt_color_hex(0x00a8ff));
 	gt_btn_set_font_color_pressed(btn4, gt_color_hex(0x000000));

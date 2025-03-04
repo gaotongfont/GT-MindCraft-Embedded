@@ -14,34 +14,47 @@ static gt_obj_st * k_num_symbol = NULL;
 static gt_obj_st * input1 = NULL;
 static gt_obj_st * keyboard1 = NULL;
 
-
-static void screen_home_0_cb(gt_event_st * e) {
+//返回wifi list 
+static void screen_home_0_cb(gt_event_st * e) 
+{
 	gt_disp_stack_go_back(1);
 }
 
-static void k_ok_0_cb(gt_event_st * e) {
-    gt_disp_stack_go_back(1);
-	change_wifi_connect_tip(0x04);
-    reset_current_wifi_isConnected();
-    redraw_wifi_list();
-    ESP_LOGE(TAG, "---------------selected_idx: %u\n", selected_idx);
-    ESP_LOGE(TAG, "---------------scan_wifi_list[selected_idx].name: %s\n", scan_wifi_list[selected_idx].name);
-    char *passwd = (char *)gt_input_get_value(input1);
-    ESP_LOGE(TAG, "---------------passwd: %s\n", passwd);
+static void k_ok_0_cb(gt_event_st * e) 
+{
+	gt_disp_stack_go_back(1); //返回上个界面
+	GT_PROTOCOL* gt_pro_2 = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	gt_pro_2->head_type = SCAN_LIST;
+	WIFI_ITEM_INFO_S* wifi_temp = (WIFI_ITEM_INFO_S*)audio_malloc(sizeof(WIFI_ITEM_INFO_S));
+	memset(wifi_temp, 0, sizeof(WIFI_ITEM_INFO_S));
+	wifi_temp->wifi_tip = 0x04;
+	gt_pro_2->data = wifi_temp;
+	xQueueSend(gui_task_queue, &gt_pro_2, portMAX_DELAY);
 
-    if (scan_wifi_list[selected_idx].password != NULL) {
-        audio_free(scan_wifi_list[selected_idx].password);
-    }
-    scan_wifi_list[selected_idx].password = (char *)audio_malloc(strlen(passwd) + 1);
-    if (scan_wifi_list[selected_idx].password == NULL) {
-        ESP_LOGE(TAG, "Failed to allocate memory for password");
-        return;
-    }
 
-    strcpy(scan_wifi_list[selected_idx].password, (const char *)passwd);
-    ESP_LOGE(TAG, "---------------scan_wifi_list[%d].password: %s\n", selected_idx, scan_wifi_list[selected_idx].password);
-    //连接wifi代码
-    wifi_sta_connect(scan_wifi_list[selected_idx].name, scan_wifi_list[selected_idx].password);
+	char *passwd = (char *)gt_input_get_value(input1);
+	GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	gt_pro->head_type = WIFI_CONNECT_EVENT;
+	GT_WIFI_PROTOCOL* wifi_data = (GT_WIFI_PROTOCOL*)audio_malloc(sizeof(GT_WIFI_PROTOCOL));
+	memset(wifi_data, 0, sizeof(GT_WIFI_PROTOCOL));
+	wifi_data->send_obj = GT_KEY_BOARD;
+	wifi_data->list_item_index = selected_idx;
+	if(passwd != NULL)
+	{
+		printf("wifi_data->password");
+		wifi_data->password = (char*)audio_malloc(strlen(passwd) + 1);
+		memset(wifi_data->password, 0, strlen(passwd) + 1);
+		strcpy(wifi_data->password, passwd);
+	}
+	else
+	{
+		printf("wifi_data->password 2222");
+		wifi_data->password = "";
+	}
+	printf("wifi_data->password = %s\r\n", wifi_data->password);
+	gt_pro->data = wifi_data;
+	xQueueSend(wifi_task_queue, &gt_pro, portMAX_DELAY);
+	ESP_LOGE(TAG, "k_ok_0_cb");
 }
 
 static void k_delete_0_cb(gt_event_st * e) {

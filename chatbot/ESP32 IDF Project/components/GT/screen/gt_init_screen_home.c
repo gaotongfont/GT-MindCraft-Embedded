@@ -22,11 +22,12 @@ static gt_obj_st * Cancel = NULL;
 static gt_obj_st * Sure = NULL;
 static gt_obj_st * img_emote = NULL;
 static gt_obj_st * rect_b = NULL;
+static gt_obj_st * img_return = NULL;
 
 
 static void add_event_cb_for_imgbtn();
 
-void set_role_emote(gt_obj_st * player, gt_obj_st * img, gt_ai_emojis_et zhijiang_emojis, gt_ai_emojis_et xiaozhi_emojis, gt_ai_emojis_et caiji_emojis) {
+void set_role_emote(gt_obj_st * player, gt_obj_st * img, gt_ai_emojis_et zhijiang_emojis, gt_ai_emojis_et xiaozhi_emojis, gt_ai_emojis_et caiji_emojis, gt_ai_emojis_et xiaojingyu_emojis, gt_ai_emojis_et nezha_emojis) {
     if (strcmp(cb_data.settings->bot_name, "智酱") == 0)
     {
         gt_player_play(player);
@@ -34,7 +35,6 @@ void set_role_emote(gt_obj_st * player, gt_obj_st * img, gt_ai_emojis_et zhijian
         // set_emojis_in_player(player, AI_EMOJIS_RECORDING);
         set_emojis_in_player(player, zhijiang_emojis);
         gt_obj_set_visible(player, GT_VISIBLE);
-        printf("11111111111111111111\n");
     } else if (strcmp(cb_data.settings->bot_name, "小智") == 0) {
         gt_player_stop(player);
         gt_obj_set_visible(player, GT_INVISIBLE);
@@ -48,6 +48,20 @@ void set_role_emote(gt_obj_st * player, gt_obj_st * img, gt_ai_emojis_et zhijian
         gt_obj_set_visible(img, GT_VISIBLE);
         // set_emote_in_img(img, AI_EMOTE_CAIJI_NEUTRAL);
         set_emote_in_img(img, caiji_emojis);
+    } else if (strcmp(cb_data.settings->bot_name, "小鲸鱼") == 0)
+    {
+        gt_player_stop(player);
+        gt_obj_set_visible(player, GT_INVISIBLE);
+        gt_obj_set_visible(img, GT_VISIBLE);
+        // set_emote_in_img(img, AI_EMOTE_XIAOJINGYU_NEUTRAL);
+        set_emote_in_img(img, xiaojingyu_emojis);
+    } else if (strcmp(cb_data.settings->bot_name, "哪吒") == 0)
+    {
+        gt_player_stop(player);
+        gt_obj_set_visible(player, GT_INVISIBLE);
+        gt_obj_set_visible(img, GT_VISIBLE);
+        // set_emote_in_img(img, AI_EMOTE_NEZHA_NEUTRAL);
+        set_emote_in_img(img, nezha_emojis);
     }
 }
 /**
@@ -60,7 +74,7 @@ void waiting_rec_ui() {
     gt_obj_set_visible(rect_b, GT_INVISIBLE);
     gt_obj_set_visible(player_audio, GT_INVISIBLE);
     gt_player_stop(player_audio);
-    set_role_emote(player_emojis, img_emote, AI_EMOJIS_WAITING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
+    set_role_emote(player_emojis, img_emote, AI_EMOJIS_WAITING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL, AI_EMOTE_XIAOJINGYU_NEUTRAL, AI_EMOTE_NEZHA_NEUTRAL);
 
     add_event_cb_for_imgbtn();
     gt_disp_invalid_area(screen_home);
@@ -81,7 +95,7 @@ static void recording_ui() {
     set_emojis_in_player(player_audio, AI_ANIM_AUDIO);
     gt_obj_set_visible(player_audio, GT_VISIBLE);
     gt_player_play(player_audio);
-    set_role_emote(player_emojis, img_emote, AI_EMOJIS_RECORDING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
+    set_role_emote(player_emojis, img_emote, AI_EMOJIS_RECORDING, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL, AI_EMOTE_XIAOJINGYU_NEUTRAL, AI_EMOTE_NEZHA_NEUTRAL);
 }
 
 /**
@@ -95,7 +109,7 @@ static void waiting_answer_ui() {
 	gt_label_set_font_color(lab2, gt_color_hex(0x5b8ad9));
 	gt_obj_set_pos(player_audio, 90, 264);
     set_emojis_in_player(player_audio, AI_ANIM_SMILE);
-    set_role_emote(player_emojis, img_emote, AI_EMOJIS_HAPPY, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL);
+    set_role_emote(player_emojis, img_emote, AI_EMOJIS_HAPPY, AI_EMOTE_XIAOZHI_NEUTRAL, AI_EMOTE_CAIJI_NEUTRAL, AI_EMOTE_XIAOJINGYU_NEUTRAL, AI_EMOTE_NEZHA_NEUTRAL);
 
     gt_obj_remove_all_event_cb(imgbtn1);
 }
@@ -111,7 +125,7 @@ void identification_failed_ui() {
     gt_label_set_font_color(lab2, gt_color_hex(0xFF7859));
     gt_obj_set_visible(player_audio, GT_INVISIBLE);
     gt_player_stop(player_audio);
-    set_role_emote(player_emojis, img_emote, AI_EMOJIS_SYMPATHY, AI_EMOTE_XIAOZHI_SADNESS, AI_EMOTE_CAIJI_SADNESS);
+    set_role_emote(player_emojis, img_emote, AI_EMOJIS_SYMPATHY, AI_EMOTE_XIAOZHI_SADNESS, AI_EMOTE_CAIJI_SADNESS, AI_EMOTE_XIAOJINGYU_SADNESS, AI_EMOTE_NEZHA_SADNESS);
 
     add_event_cb_for_imgbtn();
 }
@@ -161,9 +175,6 @@ static void img1_0_cb(gt_event_st * e) {
 }
 
 void recording_exe_func(void) {
-    // 停止播放器
-    // gt_audio_player_stop();
-
     //step2:开始录音
 #if (WEBSOCKET_HTTP_SWITCH == 0)//USE_HTTP_STREAM
     printf("get_pipe_send_api_key\r\n");
@@ -177,17 +188,13 @@ void recording_exe_func(void) {
     {
         set_startListen(gt_pipeline_single(), false);
         free_chatbot_audio_uri();
-        // gt_audio_pipeline_stop(gt_pipeline_single());
-        ESP_LOGI(TAG, "gt_audio_player_stop !!!!!!!!!!!!!!!!!");
         gt_websocket_client_stop_receive_data();
     }
     gt_audio_pipeline_stop(gt_pipeline_single());
 
     set_isFirstAudiouri(true);
     gt_websocket_client_create_task();
-    gt_audio_storage_start();
-    // get_pcm_data(void);
-    xTaskCreate(get_pcm_data, "get_pcm_data", 3*1024, NULL, 2, NULL);
+    gt_audio_storage_start(GT_RECORDING_STATE_UPLOAD_SERVER);
 #endif //!USE_HTTP_STREAM
 
     ESP_LOGI(TAG, "-----------------------按下执行结束\n");
@@ -263,7 +270,7 @@ static void screen_home_0_cb(gt_event_st * e) {
         dialog1 = NULL;
     }
 	gt_disp_stack_go_back(1);
-    update_wifi_icon();
+    // update_wifi_icon();
 }
 
 static void Sure_0_cb(gt_event_st * e) {
@@ -280,7 +287,7 @@ static void Sure_0_cb(gt_event_st * e) {
         dialog1 = NULL;
     }
 
-    wifi_scan();
+    // wifi_scan();
 	gt_disp_stack_load_scr_anim(GT_ID_WIFI_LIST, GT_SCR_ANIM_TYPE_NONE, 0, 0, true);
 
     wifi_ap_record_t ap_info;
@@ -293,7 +300,7 @@ static void Sure_0_cb(gt_event_st * e) {
             if (check_cur_wifi_is_in_wifi_list((char *)last_wifi_config.sta.ssid, (char *)last_wifi_config.sta.password))
             {
                 set_current_wifi_isConnected();
-                redraw_wifi_list();
+                // redraw_wifi_list();
             }else {
                 //TODO:如果在扫描列表中没有找到这个已经自动连接的wifi，就把它加到列表的第一个。这个未实现
             }
@@ -352,6 +359,19 @@ gt_obj_st * gt_init_screen_home(void)
 	gt_imgbtn_set_src_press(emptybt, "f:img_empty2_18x18.png");
 	gt_obj_add_event_cb(emptybt, emptybt_0_cb, GT_EVENT_TYPE_INPUT_RELEASED, NULL);
 
+	/** rect2 */
+	gt_obj_st* rect2 = gt_rect_create(screen_home);
+	gt_obj_set_pos(rect2, 0, 0);
+	gt_obj_set_size(rect2, 35, 40);
+	gt_obj_set_opa(rect2, GT_OPA_TRANSP);
+	gt_obj_add_event_cb(rect2, screen_home_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
+	/** img_return */
+	img_return = gt_img_create(rect2);
+	gt_obj_set_pos(img_return, 13, 20);
+	gt_obj_set_size(img_return, 16, 16);
+	gt_img_set_src(img_return, "f:img_fh_16x16.png");
+	gt_obj_set_touch_parent(img_return, true);
+
     /** imgbtn1 */
     imgbtn1 = gt_imgbtn_create(screen_home);
     gt_obj_set_pos(imgbtn1, 38, 253);
@@ -401,6 +421,16 @@ gt_obj_st * gt_init_screen_home(void)
         gt_obj_set_visible(player_emojis, GT_INVISIBLE);
         gt_obj_set_visible(img_emote, GT_VISIBLE);
         set_emote_in_img(img_emote, AI_EMOTE_CAIJI_NEUTRAL);
+    } else if (strcmp(cb_data.settings->bot_name, "小鲸鱼") == 0)
+    {
+        gt_obj_set_visible(player_emojis, GT_INVISIBLE);
+        gt_obj_set_visible(img_emote, GT_VISIBLE);
+        set_emote_in_img(img_emote, AI_EMOTE_XIAOJINGYU_NEUTRAL);
+    } else if (strcmp(cb_data.settings->bot_name, "哪吒") == 0)
+    {
+        gt_obj_set_visible(player_emojis, GT_INVISIBLE);
+        gt_obj_set_visible(img_emote, GT_VISIBLE);
+        set_emote_in_img(img_emote, AI_EMOTE_NEZHA_NEUTRAL);
     }
 
     /** rect1 */
@@ -511,7 +541,6 @@ gt_obj_st * gt_init_screen_home(void)
         gt_dialog_show(dialog1);
 
         ESP_LOGI(TAG,"11-------------------dialog----------------%p\r\n",dialog);
-        ESP_LOGI(TAG,"11111111111111111111111\n");
     }
 
 

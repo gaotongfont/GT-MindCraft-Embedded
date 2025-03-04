@@ -12,15 +12,19 @@
 #include "gt_font_config.h"
 #include "audio_mem.h"
 #include "wifi.h"
+#include "gt_task_protocol.h"
+
 #include "gt_record_http.h"
 #include "gt_nvs_store.h"
 // #include "gt_i2s.h"
 #include "gt_pipeline_play.h"
 #include "gt_audio_storage.h"
 #include "gt_role_emote.h"
+#include "gt_websocket.h"
 
+extern SemaphoreHandle_t scr_id_sem;
 
-
+extern QueueHandle_t wifi_task_queue;
 extern QueueHandle_t mYxQueue;
 extern QueueHandle_t mYxQueue2;
 
@@ -30,7 +34,7 @@ extern gt_obj_st * screen_subtitle;
 extern gt_obj_st * main_interface;
 extern gt_obj_st * setting_list;
 extern gt_obj_st * volume_and_brightness;
-extern gt_obj_st * keyboard;
+extern gt_obj_st * screen_keyboard;
 extern gt_obj_st * forget_password;
 extern gt_obj_st * connection_failed;
 extern gt_obj_st * wifi_list;
@@ -99,6 +103,20 @@ typedef enum {
     AI_EMOTE_CAIJI_SURPRISE,
     AI_EMOTE_CAIJI_ANGER,
     AI_EMOTE_CAIJI_HAPPY,
+    AI_EMOTE_XIAOJINGYU_NEUTRAL,
+    AI_EMOTE_XIAOJINGYU_DISGUST,
+    AI_EMOTE_XIAOJINGYU_FEAR,
+    AI_EMOTE_XIAOJINGYU_SADNESS,
+    AI_EMOTE_XIAOJINGYU_SURPRISE,
+    AI_EMOTE_XIAOJINGYU_ANGER,
+    AI_EMOTE_XIAOJINGYU_HAPPY,
+    AI_EMOTE_NEZHA_NEUTRAL,
+    AI_EMOTE_NEZHA_DISGUST,
+    AI_EMOTE_NEZHA_FEAR,
+    AI_EMOTE_NEZHA_SADNESS,
+    AI_EMOTE_NEZHA_SURPRISE,
+    AI_EMOTE_NEZHA_ANGER,
+    AI_EMOTE_NEZHA_HAPPY,
     AI_EMOJIS_TOTAL,
 }gt_ai_emojis_et;
 
@@ -119,7 +137,7 @@ typedef enum {
 
 typedef struct {
     char name[10];
-    char character_desc[300];
+    char character_desc[350];
     char voice_id[60];
     char *personality[4];
     char tone[250];
@@ -129,6 +147,8 @@ typedef enum {
     GT_AI_BOT_ZHI_JIANG = 0,
     GT_AI_BOT_XIAO_ZHI,
     GT_AI_BOT_CAI_JI,
+    GT_AI_BOT_XIAO_JING_YU,
+    GT_AI_BOT_NE_ZHA,
     GT_AI_BOT_TOTAL,
 } gt_ai_bot_role_st_type;
 
@@ -140,7 +160,7 @@ typedef struct {
 
 void set_emote_data_to_ram(gt_ai_emojis_et emojis);
 void set_emote_in_img(gt_obj_st * obj, gt_ai_emojis_et emojis);
-void set_role_emote(gt_obj_st * player, gt_obj_st * img, gt_ai_emojis_et zhijiang_emojis, gt_ai_emojis_et xiaozhi_emojis, gt_ai_emojis_et caiji_emojis);
+void set_role_emote(gt_obj_st * player, gt_obj_st * img, gt_ai_emojis_et zhijiang_emojis, gt_ai_emojis_et xiaozhi_emojis, gt_ai_emojis_et caiji_emojis, gt_ai_emojis_et xiaojingyu_emojis, gt_ai_emojis_et nezha_emojis);
 void set_items_in_listview(gt_obj_st * listview, gt_ai_setting_et option);
 char* gt_vocie_id_string_get(char *timbre);
 char* gt_timber_string_get(char *voice_id);
@@ -160,20 +180,14 @@ void recording_exe_func(void);
 void send_information_exe_func(void);
 void identifying_failed_ui_in_subtitle(void);
 
-void redraw_wifi_list();
+void redraw_wifi_list(WIFI_ITEM_INFO* scan_wifi_list, int ap_count);
 void change_wifi_connect_tip(uint8_t flag);
 
 #if USE_HTTP_STREAM
 void update_subtitles(ReceivedAnswerData* receive_data);
 #endif //!USE_HTTP_STREAM
 
-typedef enum {
-    WIFI_NO_CONNECTED = 0,
-    WIFI_SIGNAL_1,
-    WIFI_SIGNAL_2,
-    WIFI_SIGNAL_3,
-    WIFI_SIGNAL_4,
-}gt_wifi_icon_status_et;
+
 
 void update_wifi_icon();
 

@@ -1,9 +1,9 @@
 #include "gt_ui.h"
 #include "gt_font_config.h"
-#include "wifi.h"
 
 static const char *TAG = "SCREEN_SETTING_LIST";
 
+extern SemaphoreHandle_t is_scanning_sem;
 /** setting_list */
 gt_obj_st * setting_list = NULL;
 static gt_obj_st * WiFiSettings = NULL;
@@ -11,40 +11,22 @@ static gt_obj_st * img1 = NULL;
 static gt_obj_st * Volumeandbrightness = NULL;
 static gt_obj_st * img2 = NULL;
 
-static void screen_home_0_cb(gt_event_st * e) {
+static void screen_home_0_cb(gt_event_st * e) 
+{
 	gt_disp_stack_go_back(1);
-    update_wifi_icon();
+    GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	memset(gt_pro, 0, sizeof(GT_PROTOCOL));
+	gt_pro->head_type = LOAD_MAIN_SCR;
+	xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
 }
 
-static void WiFiSettings_0_cb(gt_event_st * e) {
+static void WiFiSettings_0_cb(gt_event_st * e) 
+{
     ESP_LOGI(TAG,"--------is_auto_connected_end = %d\n", is_auto_connected_end);
-    if (!is_auto_connected_end)
-    {
-        ESP_LOGI(TAG,"wifi auto connection is not end\n");
-        return;
-    }
-
-    wifi_scan();
 	gt_disp_stack_load_scr_anim(GT_ID_WIFI_LIST, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
-
-    wifi_ap_record_t ap_info;
-    esp_err_t ret;
-    ret = esp_wifi_sta_get_ap_info(&ap_info);
-    if (ret == ESP_OK) {
-        // primary：AP的主要信道号，1.primary=0:未连接到 AP; 2.primary!=0:已连接到 AP，信道号有效。通过检查 primary 字段判断是否已连接
-        if (ap_info.primary != 0) {
-            wifi_config_t last_wifi_config = get_current_wifi_config();
-            if (check_cur_wifi_is_in_wifi_list((char *)last_wifi_config.sta.ssid, (char *)last_wifi_config.sta.password))
-            {
-                set_current_wifi_isConnected();
-                redraw_wifi_list();
-            }else {
-                //TODO:如果在扫描列表中没有找到这个已经自动连接的wifi，就把它加到列表的第一个。这个未实现
-            }
-
-        }
-    }
-
+	GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	gt_pro->head_type = WIFI_SCAN_EVENT;
+	xQueueSend(wifi_task_queue, &gt_pro, portMAX_DELAY);
 }
 
 static void Volumeandbrightness_0_cb(gt_event_st * e) {
@@ -56,9 +38,6 @@ gt_obj_st * gt_init_setting_list(void)
 	setting_list = gt_obj_create(NULL);
 	gt_obj_add_event_cb(setting_list, screen_home_0_cb, GT_EVENT_TYPE_INPUT_HOME_GESTURE_LEFT, NULL);
 	gt_screen_set_bgcolor(setting_list, gt_color_hex(0x000000));
-
-
-
 
 	/** WiFiSettings */
 	/** WiFi设置 */

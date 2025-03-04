@@ -18,23 +18,30 @@ static void Cancel_0_cb(gt_event_st * e) {
 }
 
 static void Sure_0_cb(gt_event_st * e) {
-    allow_reconnect = false;
+    // allow_reconnect = false;
+
     // //删掉上次记住的wifi名称和密码
     // esp_wifi_restore();
 	//断开网络
-    esp_err_t ret = esp_wifi_disconnect();
-    if (ret != ESP_OK) {
-        ESP_LOGE("TAG", "Failed to disconnect from AP: %s", esp_err_to_name(ret));
-    } else {
-        ESP_LOGI("TAG", ">>>>Disconnected from AP");
-    }
-    vTaskDelay(pdMS_TO_TICKS(100));
-
+    // esp_err_t ret = esp_wifi_disconnect();
+    // if (ret != ESP_OK) {
+    //     ESP_LOGE("TAG", "Failed to disconnect from AP: %s", esp_err_to_name(ret));
+    // } else {
+    //     ESP_LOGI("TAG", ">>>>Disconnected from AP");
+    // }
+    // vTaskDelay(pdMS_TO_TICKS(100));
+	
+	GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	gt_pro->head_type = WIFI_DISCONNECT_EVENT;
+	GT_WIFI_PROTOCOL* wifi_pro = (GT_WIFI_PROTOCOL*)audio_malloc(sizeof(GT_WIFI_PROTOCOL));
+	memset(wifi_pro, 0, sizeof(GT_WIFI_PROTOCOL));
+	gt_pro->data = wifi_pro;
+	xQueueSend(wifi_task_queue, &gt_pro, portMAX_DELAY);
     gt_disp_stack_go_back(1);
-    scan_wifi_list[selected_idx].isConnected = false;
-    redraw_wifi_list();
+    // scan_wifi_list[selected_idx].isConnected = false;
+    // redraw_wifi_list();
 
-    allow_reconnect = true;
+    // allow_reconnect = true;
 }
 
 gt_obj_st * gt_init_forget_password(void)

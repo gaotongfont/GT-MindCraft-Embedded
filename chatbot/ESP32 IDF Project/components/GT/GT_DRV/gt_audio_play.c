@@ -41,6 +41,7 @@
 #include "http_stream.h"
 #include "wav_encoder.h"
 #include "http_send.h"
+#include "gt_wakenet.h"
 
 /* private define -------------------------------------------------------*/
 
@@ -201,6 +202,9 @@ audio_err_t gt_audio_player_start(const char *uri)
         return ESP_ERR_AUDIO_FAIL;
     }
     // return esp_audio_sync_play(_gt_player, uri, 0);
+#if GT_USE_WAKENET
+    gt_wakenet_suspend();
+#endif
     return esp_audio_play(_gt_player, AUDIO_CODEC_TYPE_DECODER, uri, 0);
 }
 
@@ -211,6 +215,9 @@ audio_err_t gt_audio_player_stop(void)
         ESP_LOGW(TAG, "player is not init!");
         return ESP_ERR_AUDIO_FAIL;
     }
+#if GT_USE_WAKENET
+    gt_wakenet_resume();
+#endif
     return esp_audio_stop(_gt_player, AUDIO_CODEC_TYPE_DECODER);
 }
 
@@ -328,7 +335,8 @@ audio_err_t gt_audio_prefer_type_get(void)
         ESP_LOGW(TAG, "player is not init!");
         return ESP_ERR_AUDIO_FAIL;
     }
-    return esp_audio_prefer_type_get(_gt_player, ESP_AUDIO_PREFER_SPEED);
+    esp_audio_prefer_t type = ESP_AUDIO_PREFER_SPEED;
+    return esp_audio_prefer_type_get(_gt_player, &type);
 }
 
 audio_err_t gt_audio_player_start_sync(const char *uri)
@@ -338,7 +346,6 @@ audio_err_t gt_audio_player_start_sync(const char *uri)
         ESP_LOGW(TAG, "player is not init or uri is null!");
         return ESP_ERR_AUDIO_FAIL;
     }
-    // return esp_audio_sync_play(_gt_player, uri, 0);
     return esp_audio_sync_play(_gt_player, uri, 0);
 }
 

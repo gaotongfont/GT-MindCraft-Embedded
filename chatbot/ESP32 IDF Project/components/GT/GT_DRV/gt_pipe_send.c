@@ -183,6 +183,7 @@ void gt_pipe_send_start(void)
     audio_pipeline_terminate(pipeline);
 
     audio_element_set_uri(http_stream, "http://api.mindcraft.com.cn/v1/data/chunk_update_file/");
+
     audio_pipeline_run(pipeline);
 }
 
@@ -322,7 +323,7 @@ void get_pipe_send_api_key(void)
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(get_api_key, HTTP_METHOD_GET);//设置 HTTP 请求的方法
     esp_http_client_set_header(get_api_key, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(get_api_key, "Authorization", "API keys");//设置请求头的时候要加上API keys
+    esp_http_client_set_header(get_api_key, "Authorization", "");//设置请求头的时候要加上API keys
     size_t end_boundary_len = strlen(boundary) + 6;
 
 
@@ -546,7 +547,6 @@ void gt_pipe_send_start(void)
     audio_pipeline_terminate(pipeline);
 
     audio_element_set_uri(http_stream, "http://api.mindcraft.com.cn/v1/mode_chunk/update/");
-
     audio_pipeline_run(pipeline);
 }
 
@@ -657,7 +657,7 @@ static esp_err_t resolve_answer_json(char *jbuf)
 //     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
 //     esp_http_client_set_method(get_api_key, HTTP_METHOD_POST);//设置 HTTP 请求的方法
 //     esp_http_client_set_header(get_api_key, "Content-Type",content_type_header);//设置 HTTP 请求头
-//     esp_http_client_set_header(get_api_key, "Authorization", "API keys");//设置请求头的时候要加上API keys
+//     esp_http_client_set_header(get_api_key, "Authorization", "");//设置请求头的时候要加上API keys
 //     size_t end_boundary_len = strlen(boundary) + 6;
 
 
@@ -755,7 +755,7 @@ void get_pipe_send_api_key(void)
     snprintf(content_type_header, sizeof(content_type_header), "multipart/form-data; boundary=%s", boundary);
     esp_http_client_set_method(get_api_key, HTTP_METHOD_POST);//设置 HTTP 请求的方法
     esp_http_client_set_header(get_api_key, "Content-Type",content_type_header);//设置 HTTP 请求头
-    esp_http_client_set_header(get_api_key, "Authorization", "API keys");//设置请求头的时候要加上API keys
+    esp_http_client_set_header(get_api_key, "Authorization", "API_KEY");//设置请求头的时候要加上API keys
     size_t end_boundary_len = strlen(boundary) + 6;
 
 

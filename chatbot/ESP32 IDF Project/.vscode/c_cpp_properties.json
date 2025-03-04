@@ -20,7 +20,8 @@
                 ],
                 "limitSymbolsToIncludedHeaders": false
             },
-            "configurationProvider": "ms-vscode.cmake-tools"  /* 解决 browse.path 中未找到包含文件 */
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "compilerPath": "${config:idf.toolsPathWin}\\tools\\xtensa-esp32s3-elf\\esp-12.2.0_20230208\\xtensa-esp32s3-elf\\bin\\xtensa-esp32s3-elf-gcc.exe"
         }
     ],
     "version": 4

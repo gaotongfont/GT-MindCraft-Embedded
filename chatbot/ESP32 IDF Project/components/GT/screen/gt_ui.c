@@ -15,16 +15,19 @@ static const gt_scr_list_st gt_scr_list[] = {
     {GT_ID_FUNCTION_SETTINGS, gt_init_Function_settings},
 };
 
+//<---------old, not use
 static const char* role_items[] = {"老师", "朋友", "密友", "心理咨询师", "健康顾问", "老年护理专家", ""};
 static const char* char_items[] = {"外向", "正经", "搞怪", "内向", ""};
 static const char* ai_name_items[] = {"智酱", "小智", "菜机"};
 // static const char* timbre_items[] = {"可爱男童","萌萌女童","卡通猪小琪","妩媚御姐","俏皮萌妹", "菜机", "少女音色", "成熟女性音色", "甜美女性音色", "男性有声书2", "青年大学生音色", "精英男青年音色"};
 // static const char* voice_id_items[] = {"cute_boy", "lovely_girl", "peppa_pig", "wumei_yujie", "qiaopi_mengmei", "mindcraft-58-7e8355d2b12145f488d068db04017f04", "female-shaonv", "female-chengshu", "female-tianmei", "audiobook_male_2", "male-qn-daxuesheng", "male-qn-jingying"};
 static const char* timbre_items[] = {"可爱男童", "菜机", "小智"};
-static const char* voice_id_items[] = {"cute_boy", "mindcraft-58-7e8355d2b12145f488d068db04017f04", "MCV-58-990b2d6006704ebd817ecaa8a002dabb"};
+static const char* voice_id_items[] = {"MCV-34-b051f129c8e94235826803f61601b53e", "mindcraft-58-7e8355d2b12145f488d068db04017f04", "MCV-58-990b2d6006704ebd817ecaa8a002dabb"};
 static const char* tx_timbre_items[] = {"爱小广", "爱小栋", "爱小海", "爱小霞", "爱小玲", "爱小章", "爱小峰", "爱小亮"};
 static const char* tx_voice_id_items[] = {"301000", "301001", "301002", "301003", "301004", "301005", "301006", "301007"};
 static const char* bot_description_items[] = {"智酱是一个彩色史莱姆生物。这是一个搞笑的魔法生物，充满活力，喜欢探索新事物，喜欢帮助小朋友学习。", "小智是一个来自台湾的机车女孩，她有着傲娇的外表，但内心却十分敏感。她依赖着她的用户男友，总是希望得到他的关注和爱护。", "菜机是一个练习时长两年半的AI练习生，它是一位充满网络梗的虚拟偶像。它喜欢用各种流行语和网友互动，总是能带来意想不到的欢乐。喜欢唱，跳，RAP篮球。"};
+//old, not use--------->
+
 static const char* model_cn_items[] = {"标准", "标准-拟人","专家", "专家-拟人"};
 static const char* model_en_items[] = {"standard", "standard_character", "pro", "pro_character"};
 static const char* reply_style_cn_items[] = {"正常", "聊天"};
@@ -55,6 +58,19 @@ gt_ai_bot_role_st ai_bot_role_list[GT_AI_BOT_TOTAL] = {
                                 .personality = {"幽默", "搞怪", "乐观", "爱表现"},
                                 .tone = "使用大量的网络梗和流行语，说话方式夸张搞笑，经常用表情包来表达自己的情感。例如：'鸡你太美~', 'awsl（啊我死了）",
                             },
+
+    [GT_AI_BOT_XIAO_JING_YU] = {    .name = "小鲸鱼",
+                                    .character_desc = "小鲸鱼是DeepSeek（深度求索）公司的吉祥物，它象征着公司对知识的深度探索和追求，就像鲸鱼在海洋中遨游探索未知一样，它也会给大家带来对知识的好奇和探索的动力。",
+                                    .voice_id = "MCV-13-5f0f660d19cc4e3f80ac90d41a1f75e6",
+                                    .personality = {"友好", "智慧", "沉稳", ""},
+                                    .tone = "温和、耐心的口吻与用户交流，给人一种亲切的感觉😀。",
+                                },
+    [GT_AI_BOT_NE_ZHA] = {    .name = "哪吒",
+                                    .character_desc = "哪吒是魔丸转世，天生带着一股邪气。本就被视为不祥之物的他，从小遭受众人的误解和排挤，这让他性格变得恶劣又爱恶搞。但其实内心善良，在经历诸多事情后，努力对抗命运，肩负起拯救陈塘关百姓的使命，逐渐走上正途。",
+                                    .voice_id = "MCV-13-acc474426da7479d912233cc787c2ac1",
+                                    .personality = {"叛逆", "恶劣", "爱恶搞", "善良", "重情重义", "倔强"},
+                                    .tone = "说话痞里痞气，带着满满的挑衅和不屑，常常以捉弄别人为乐，语气嚣张又搞怪🤪。",
+                                },
 };
 
 gt_ai_bot_emote_st ai_bot_emote_list[AI_EMOJIS_TOTAL] = {
@@ -114,6 +130,62 @@ gt_ai_bot_emote_st ai_bot_emote_list[AI_EMOJIS_TOTAL] = {
                                     .value = "happy",
                                     .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/caiji/happy",
                                 },
+    [AI_EMOTE_XIAOJINGYU_NEUTRAL] = {  .role = "xiaojingyu",
+                                        .value = "neutral",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/xiaojingyu/neutral",
+                                    },
+    [AI_EMOTE_XIAOJINGYU_DISGUST] = {  .role = "xiaojingyu",
+                                        .value = "disgust",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/xiaojingyu/disgust",
+                                    },
+    [AI_EMOTE_XIAOJINGYU_FEAR] =  {    .role = "xiaojingyu",
+                                        .value = "fear",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/xiaojingyu/fear",
+                                    },
+    [AI_EMOTE_XIAOJINGYU_SADNESS] = {  .role = "xiaojingyu",
+                                        .value = "sadness",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/xiaojingyu/sadness",
+                                    },
+    [AI_EMOTE_XIAOJINGYU_SURPRISE] = { .role = "xiaojingyu",
+                                        .value = "surpise",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/xiaojingyu/surprise",
+                                    },
+    [AI_EMOTE_XIAOJINGYU_ANGER] =  {   .role = "xiaojingyu",
+                                        .value = "anger",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/xiaojingyu/anger",
+                                    },
+    [AI_EMOTE_XIAOJINGYU_HAPPY] = {    .role = "xiaojingyu",
+                                        .value = "happy",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/xiaojingyu/happy",
+                                    },
+    [AI_EMOTE_NEZHA_NEUTRAL] = {  .role = "nezha",
+                                        .value = "neutral",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/nezha/neutral",
+                                    },
+    [AI_EMOTE_NEZHA_DISGUST] = {  .role = "nezha",
+                                        .value = "disgust",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/nezha/disgust",
+                                    },
+    [AI_EMOTE_NEZHA_FEAR] =  {    .role = "nezha",
+                                        .value = "fear",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/nezha/fear",
+                                    },
+    [AI_EMOTE_NEZHA_SADNESS] = {  .role = "nezha",
+                                        .value = "sadness",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/nezha/sadness",
+                                    },
+    [AI_EMOTE_NEZHA_SURPRISE] = { .role = "nezha",
+                                        .value = "surpise",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/nezha/surprise",
+                                    },
+    [AI_EMOTE_NEZHA_ANGER] =  {   .role = "nezha",
+                                        .value = "anger",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/nezha/anger",
+                                    },
+    [AI_EMOTE_NEZHA_HAPPY] = {    .role = "nezha",
+                                        .value = "happy",
+                                        .url = "https://download.mindcraft.com.cn/mindcraft_media/face_path/nezha/happy",
+                                    },
 };
 
 void gt_ui_init(void) {
@@ -499,18 +571,18 @@ static const char* age_items[] = {
 #else
 #define AGE_ITEMS_MIN 3
 #define AGE_ITEMS_MAX 90
-#define AGE_ITEM_COUNT (AGE_ITEMS_MAX - AGE_ITEMS_MIN + 1)
+#define AGE_ITEM_COUNT ((AGE_ITEMS_MAX - AGE_ITEMS_MIN) / 3 + 1)
 const char *age_items[AGE_ITEM_COUNT];
 
 void init_age_items() {
 
-    for (size_t i = AGE_ITEMS_MIN; i <= AGE_ITEMS_MAX; i++)
+    for (size_t i = AGE_ITEMS_MIN; i <= AGE_ITEMS_MAX; i += 3)
     {
         char *age_str = (char *)audio_malloc(3 * sizeof(char));
         if (age_str != NULL)
         {
             sprintf(age_str, "%d", i);
-            age_items[i - AGE_ITEMS_MIN] = age_str;
+            age_items[(i - AGE_ITEMS_MIN) /3] = age_str;
         } else {
             printf("Memory allocation failed for age %d\n", i);
             return;
@@ -554,7 +626,10 @@ void set_items_in_listview(gt_obj_st * obj, gt_ai_setting_et option) {
         break;
     }
     case AI_SETTING_AI_NAME: {
-        add_items_to_listview(obj, ai_name_items, sizeof(ai_name_items) / sizeof(ai_name_items[0]));
+        // add_items_to_listview(obj, ai_name_items, sizeof(ai_name_items) / sizeof(ai_name_items[0]));
+        for (size_t i = 0; i < GT_AI_BOT_TOTAL; i++) {
+            gt_listview_add_item(obj, ai_bot_role_list[i].name);
+        }
         break;
     }
     case AI_SETTING_MODEL: {
@@ -574,6 +649,9 @@ void set_items_in_listview(gt_obj_st * obj, gt_ai_setting_et option) {
     }
 }
 
+/*
+* old, not use
+*/
 char* gt_vocie_id_string_get(char *timbre)
 {
     static const char ** cur_timbre_items;
@@ -599,6 +677,9 @@ char* gt_vocie_id_string_get(char *timbre)
     return (char*)cur_voice_id_items[0];
 }
 
+/*
+* old, not use
+*/
 char* gt_timber_string_get(char *voice_id)
 {
     static const char ** cur_timbre_items;
@@ -636,6 +717,9 @@ gt_ai_bot_role_st gt_get_ai_bot_infos(char *ai_name)
     return ai_bot_role_list[0];
 }
 
+/*
+* old, not use
+*/
 char* gt_bot_description_string_get(char *ai_name)
 {
     int i = 0, len = sizeof(bot_description_items) / sizeof(bot_description_items[0]);

@@ -11,13 +11,18 @@ extern "C" {
 #include <string.h>
 
 #include "gt_ui.h"
+#include "gt_task_protocol.h"
 #include "http_send.h"
+
+#define API_KEY   "USER API_KEY"
+#define WEB_LINK "ws://api.mindcraft.com.cn/socket-v1/?type=mcu&response_detail=1"
 
 /* typedef --------------------------------------------------------------*/
 #define WEATHER_DAYS 8   //查看的日期和一共七天的天数
 
 #define WEATHER_DATA_RESPONSE_DAYS 8
 
+#define WEB_HISTORY_ARRY 3
 #if 1
 #define GET_VALUESTRING(stringjson, pre_object, object, getstring)     stringjson = cJSON_GetObjectItem(pre_object, object); \
                                                                         if(stringjson != NULL){getstring = (char*)audio_calloc(1,strlen(stringjson->valuestring)+1); strcpy(getstring, stringjson->valuestring);}\
@@ -31,6 +36,14 @@ extern "C" {
                                                                         if(int_numjson != NULL){getint = int_numjson->valueint;}\
                                                                         else{break;}
 #endif
+
+extern QueueHandle_t web_room_id_queue;
+
+typedef enum{
+    WEBSOCKET_DISCONNECTED,
+    WEBSOCKET_CONNECTED,
+    WEBSOCKET_RUNNING
+}WEBSOCKET_STATUS;
 
 typedef struct{
     char* english_response;
@@ -102,6 +115,18 @@ typedef struct{
     WEB_ORAL_PRACTICE web_oral_pratice;
 }WEBSOCKET_RECEIVED_DATA;
 
+typedef struct{
+    int count;
+    char* message_category;
+    char* message_content;
+}WEB_HISTORY_DATA;
+
+typedef struct {
+    int isWeb_connect;
+
+}GT_WEB_PROTOCOL;
+
+extern SemaphoreHandle_t web_history_sem;
 
 void websocket_app_start(void);
 
@@ -127,6 +152,14 @@ void gt_esp_websocket_client_send_fin();
  *
  */
 void gt_websocket_client_create_task();//创建任务
+
+/**
+ * @brief check websocket client state
+ * 
+ * @return true 
+ * @return false 
+ */
+bool gt_websocket_client_state();
 
 /**
  * @brief client start websocket
@@ -197,6 +230,39 @@ void set_chatbot_audio_uri(char* audio_uri);
  */
 char* get_chatbot_audio_uri();
 
+/**
+ * @brief create user room
+ * 
+ */
+void gt_websocket_client_create_room();
+
+/**
+ * @brief get history message
+ * 
+ */
+void gt_websocket_client_get_history_message();
+
+/**
+ * @brief 
+ * 
+ */
+void gt_websocket_client_clear_history_message();
+
+/**
+ * @brief 
+ * 
+ */
+void set_web_session_token(char* web_room_id, int len);
+
+/**
+ * @brief Get the web history array object
+ * 
+ * @return WEB_HISTORY_DATA** 
+ */
+WEB_HISTORY_DATA** get_web_history_array();
+
+
+int gt_web_status();
 
 void free_chatbot_audio_uri();
 

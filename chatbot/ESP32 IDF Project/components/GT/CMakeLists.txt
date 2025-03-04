@@ -8,6 +8,7 @@ set(src_dirs
             LCD
             ESPTIM
             screen
+            audio_flash_tone
             CJSON
             GUI
             GUI/driver
@@ -34,6 +35,7 @@ set(include_dirs
             LCD
             ESPTIM
             screen
+            audio_flash_tone
             CJSON
             GUI
             GUI/driver

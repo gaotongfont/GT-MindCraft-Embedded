@@ -44,6 +44,39 @@ void update_response_data_in_chat_obj(HistoricalMessage** history_msg) {
     }
 }
 
+void update_response_web_data_in_chat_obj(WEB_HISTORY_DATA** history_msg) {
+    gt_chat_clean_all_msg(chat1);
+    if( history_msg[0]->count > 6)
+    history_msg[0]->count = 6;
+    for (size_t i = 0; i < history_msg[0]->count; i++)
+    {
+        if (history_msg[i]->message_content == NULL)
+        {
+            continue;
+        }
+        if (strcmp(history_msg[i]->message_content, "") == 0)
+        {
+            continue;
+        }
+
+        ESP_LOGI(TAG, "-----------------------history_msg[%d]->message_category = %s\n", i, history_msg[i]->message_category);
+        ESP_LOGI(TAG, "-----------------------history_msg[%d]->message_content = %s\n", i, history_msg[i]->message_content);
+
+        if (strcmp(history_msg[i]->message_category, "user") == 0)
+        {
+            gt_chat_add_send_text_msg(chat1, history_msg[i]->message_content);
+            audio_free(history_msg[i]->message_content);
+            history_msg[i]->message_content = NULL;
+        }
+        if (strcmp(history_msg[i]->message_category, "assistant") == 0)
+        {
+            gt_chat_add_received_text_msg(chat1, history_msg[i]->message_content);
+            audio_free(history_msg[i]->message_content);
+            history_msg[i]->message_content = NULL;
+        }
+    }
+}
+
 void set_history_in_chat() {
     gt_scr_id_t screen_id = gt_scr_stack_get_current_id();
     ESP_LOGI(TAG,">>---------------screen_id: %d\n",screen_id);
@@ -53,10 +86,19 @@ void set_history_in_chat() {
     }
     // gt_imgbtn_set_src(Historybt, "f:img_History2_22x19.png");
     // gt_imgbtn_set_src(emptybt, "f:img_empty_18x18.png");
-
+#if (WEBSOCKET_HTTP_SWITCH == 0)
     get_historical_message_http();
     HistoricalMessage** history_msg = get_historyData();
     update_response_data_in_chat_obj(history_msg);
+#elif (WEBSOCKET_HTTP_SWITCH == 2)
+	gt_websocket_client_get_history_message();
+ 	if(xSemaphoreTake(web_history_sem, 1000) == pdPASS) //暂时使用，后面要用线程
+    {
+        ESP_LOGW(TAG, "get_web_history_array");
+        WEB_HISTORY_DATA** web_history_data = get_web_history_array();
+        update_response_web_data_in_chat_obj(web_history_data);
+    } 
+#endif	
 }
 
 void clear_chat_history() {
@@ -69,16 +111,19 @@ void clear_chat_history() {
 
     // gt_imgbtn_set_src(Historybt, "f:img_History_22x19.png");
     // gt_imgbtn_set_src(emptybt, "f:img_empty2_18x18.png");
-#if 0
+#if (WEBSOCKET_HTTP_SWITCH == 0)
     clear_historical_message_http();
-#else
-    gt_websocket_client_clear_history_message();
-#endif
     if (screen_id == GT_ID_HISTORY_PAGE)
     {
         gt_chat_clean_all_msg(chat1);
     }
-
+#elif (WEBSOCKET_HTTP_SWITCH == 2)
+    gt_websocket_client_clear_history_message();
+    if (screen_id == GT_ID_HISTORY_PAGE)
+    {
+        gt_chat_clean_all_msg(chat1);
+    }
+#endif
 }
 
 static void clear_history_yes_cb(gt_event_st * e) {
@@ -170,6 +215,7 @@ static void screen_subtitle_0_cb(gt_event_st * e) {
 }
 
 static void imgbtn1_0_cb(gt_event_st * e) {
+    ESP_LOGE(TAG, "imgbtn1_0_cb");
 	gt_disp_stack_load_scr_anim(GT_ID_SCREEN_HOME, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
 }
 
@@ -200,8 +246,9 @@ gt_obj_st * gt_init_History_page(void)
 
 	/** imgbtn1 */
 	imgbtn1 = gt_imgbtn_create(History_page);
-	gt_obj_set_pos(imgbtn1, 13, 10);
+	gt_obj_set_pos(imgbtn1, 13, 18);
 	gt_obj_set_size(imgbtn1, 16, 16);
+    gt_obj_set_touch_expand_area(imgbtn1, 10, 10);
 	gt_imgbtn_set_src(imgbtn1, "f:img_fh_16x16.png");
 	gt_obj_add_event_cb(imgbtn1, imgbtn1_0_cb, GT_EVENT_TYPE_INPUT_PRESSED, NULL);
 
@@ -210,7 +257,7 @@ gt_obj_st * gt_init_History_page(void)
 	/** Historybt */
 	/** 历史记录 */
 	Historybt = gt_imgbtn_create(History_page);
-	gt_obj_set_pos(Historybt, 64, 8);
+	gt_obj_set_pos(Historybt, 64, 18);
 	gt_obj_set_size(Historybt, 22, 19);
     gt_imgbtn_set_src(Historybt, "f:img_History_22x19.png");
     gt_imgbtn_set_src_press(Historybt, "f:img_History2_22x19.png");
@@ -220,7 +267,7 @@ gt_obj_st * gt_init_History_page(void)
 	/** emptybt */
 	/** 清空 */
 	emptybt = gt_imgbtn_create(History_page);
-	gt_obj_set_pos(emptybt, 129, 9);
+	gt_obj_set_pos(emptybt, 129, 18);
 	gt_obj_set_size(emptybt, 18, 18);
 	gt_imgbtn_set_src(emptybt, "f:img_empty_18x18.png");
 	gt_imgbtn_set_src_press(emptybt, "f:img_empty2_18x18.png");
@@ -230,7 +277,7 @@ gt_obj_st * gt_init_History_page(void)
 	/** stupbt */
 	/** 设置 */
 	stupbt = gt_img_create(History_page);
-	gt_obj_set_pos(stupbt, 189, 7);
+	gt_obj_set_pos(stupbt, 189, 18);
 	gt_obj_set_size(stupbt, 24, 24);
 	gt_img_set_src(stupbt, "f:img_Set_up_24x24.png");
     gt_obj_set_touch_expand_area(stupbt, 20, 20);

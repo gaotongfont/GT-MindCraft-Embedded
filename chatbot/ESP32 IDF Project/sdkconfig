@@ -1138,6 +1138,12 @@ CONFIG_ESP_TIMER_IMPL_SYSTIMER=y
 # end of High resolution timer (esp_timer)
 
 #
+# ESP WebSocket client
+#
+# CONFIG_ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER is not set
+# end of ESP WebSocket client
+
+#
 # Wi-Fi
 #
 CONFIG_ESP_WIFI_ENABLED=y
