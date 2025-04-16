@@ -1,5 +1,6 @@
 #include "gt_ui.h"
 
+static gt_obj_st* wifi_scan_obj = NULL;
 static const gt_scr_list_st gt_scr_list[] = {
     {GT_ID_SCREEN_HOME, gt_init_screen_home},
     {GT_ID_SCREEN_SETUP, gt_init_screen_setup},
@@ -39,10 +40,10 @@ static const char* username_items[] = {"海扁王", "宇宙超级无敌螺旋升
 
 gt_ai_bot_role_st ai_bot_role_list[GT_AI_BOT_TOTAL] = {
     [GT_AI_BOT_ZHI_JIANG] = {   .name = "智酱",
-                                .character_desc = "智酱是一个彩色史莱姆生物。这是一个搞笑的魔法生物，充满活力，喜欢探索新事物，喜欢帮助小朋友学习。",
-                                .voice_id = "cute_boy",
+                                .character_desc = "智酱是一个彩色果酱生物，它是一个网红AI，拥有着丰富的知识和技能。它不仅能够帮助用户解决问题，还能提供有趣的信息和建议。",
+                                .voice_id = "MCV-34-b051f129c8e94235826803f61601b53e",
                                 .personality = {"活泼", "好奇", "乐观", "善良"},
-                                .tone = "用拟人和口语化的方式回答用户，说话习惯附带emoji表情。",
+                                .tone = "使用充满活力和幽默的口语化方式与用户互动，喜欢使用网络流行语和表情包，营造轻松愉快的氛围。习惯使用emoji表情。",
                             },
 
     [GT_AI_BOT_XIAO_ZHI] = {    .name = "小智",
@@ -835,17 +836,17 @@ gt_obj_st* serve_disconnect_dialog()
 	gt_dialog_set_border_color(dialog1, gt_color_hex(0xc7c7c7));
 	gt_dialog_set_border_width(dialog1, 0);
 	gt_dialog_set_border_radius(dialog1, 20);
-    gt_dialog_set_outside_auto_hide(dialog1, false);
+    gt_dialog_set_outside_auto_hide(dialog1, true);
 
 	/** lab6 */
 	lab6 = gt_label_create(dialog1);
 	gt_obj_set_pos(lab6, 25, 195);
-	gt_obj_set_size(lab6, 199, 33);
+	gt_obj_set_size(lab6, 199, 40);
 	gt_label_set_font_color(lab6, gt_color_hex(0xffffff));
 	gt_label_set_font_family(lab6, gray_black_20);
 	gt_label_set_font_cjk(lab6, 0);
 	gt_label_set_font_align(lab6, GT_ALIGN_CENTER_MID);
-	gt_label_set_text(lab6, "重连服务器");
+	gt_label_set_text(lab6, "服务器连接中,请稍等");
 
 	/** img1 */
 	img1 = gt_img_create(dialog1);
@@ -856,3 +857,50 @@ gt_obj_st* serve_disconnect_dialog()
     gt_dialog_show(dialog1);
     return dialog1;
 }
+
+
+gt_obj_st* wifi_scanning_dialog()
+{
+    gt_obj_st * dialog1 = NULL;
+	gt_obj_st * lab6 = NULL;
+	gt_obj_st * img1 = NULL;
+
+	/** dialog1 */
+	/** 清空历史记录 */
+	wifi_scan_obj = gt_dialog_create(false);
+	gt_obj_set_pos(wifi_scan_obj, 1, 86);
+	gt_obj_set_size(wifi_scan_obj, 234, 159);
+	gt_dialog_set_bgcolor(wifi_scan_obj, gt_color_hex(0x181B22));
+	gt_dialog_set_border_color(wifi_scan_obj, gt_color_hex(0xc7c7c7));
+	gt_dialog_set_border_width(wifi_scan_obj, 0);
+	gt_dialog_set_border_radius(wifi_scan_obj, 20);
+    gt_dialog_set_outside_auto_hide(wifi_scan_obj, true);
+
+	/** lab6 */
+	lab6 = gt_label_create(wifi_scan_obj);
+	gt_obj_set_pos(lab6, 25, 195);
+	gt_obj_set_size(lab6, 199, 40);
+	gt_label_set_font_color(lab6, gt_color_hex(0xffffff));
+	gt_label_set_font_family(lab6, gray_black_20);
+	gt_label_set_font_cjk(lab6, 0);
+	gt_label_set_font_align(lab6, GT_ALIGN_CENTER_MID);
+	gt_label_set_text(lab6, "wifi扫描中...");
+
+	/** img1 */
+	img1 = gt_img_create(wifi_scan_obj);
+	gt_obj_set_pos(img1, 69, 104);
+	gt_obj_set_size(img1, 109, 84);
+	gt_img_set_src(img1, "f:img_u11_109x84.jpg");
+
+    gt_dialog_show(wifi_scan_obj);
+    return wifi_scan_obj;
+}
+
+void close_wifi_scan_dialog()
+{
+    if(gt_dialog_get_active_obj() == wifi_scan_obj)
+    {
+        gt_dialog_close(wifi_scan_obj);
+    }
+}
+

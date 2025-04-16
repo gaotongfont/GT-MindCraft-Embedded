@@ -172,31 +172,26 @@ void wifi_connected_fail_ui() {
 
 static void img1_0_cb(gt_event_st * e) {
     gt_disp_stack_load_scr_anim(GT_ID_SCREEN_SETUP, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
+    xSemaphoreTake(audio_event_mutex, portMAX_DELAY);
+    web_receive_data_free();
+    static int stop = AUDIO_STOP;
+    xQueueSend(audio_event_queue, &stop, portMAX_DELAY);
+    xSemaphoreGive(audio_event_mutex);
 }
 
 void recording_exe_func(void) {
+    static int stop = AUDIO_STOP;
+    static int generating = AUDIO_GENERATING;
+    ESP_LOGI(TAG, "recording_exe_func");
     //step2:开始录音
-#if (WEBSOCKET_HTTP_SWITCH == 0)//USE_HTTP_STREAM
-    printf("get_pipe_send_api_key\r\n");
-    get_pipe_send_api_key();
-    gt_pipe_send_start();
-#elif (WEBSOCKET_HTTP_SWITCH == 1)//!USE_HTTP_STREAM
-    gt_recording_path_set("/sdcard/rec.wav");
-    gt_recording_start();
-#elif (WEBSOCKET_HTTP_SWITCH == 2)
-    if(get_startListen() == true)
-    {
-        set_startListen(gt_pipeline_single(), false);
-        free_chatbot_audio_uri();
-        gt_websocket_client_stop_receive_data();
-    }
-    gt_audio_pipeline_stop(gt_pipeline_single());
-
+    xSemaphoreTake(audio_event_mutex, portMAX_DELAY);
+    web_receive_data_free();
+    set_key_is_press(true);
     set_isFirstAudiouri(true);
-    gt_websocket_client_create_task();
-    gt_audio_storage_start(GT_RECORDING_STATE_UPLOAD_SERVER);
-#endif //!USE_HTTP_STREAM
+    xQueueSend(audio_event_queue, &stop, portMAX_DELAY);
 
+    xQueueSend(audio_event_queue, &generating, portMAX_DELAY);//这里可以优化  
+    xSemaphoreGive(audio_event_mutex);
     ESP_LOGI(TAG, "-----------------------按下执行结束\n");
 }
 
@@ -206,24 +201,13 @@ static void recording_cb(gt_event_st * e) {
     recording_ui();
     recording_exe_func();
 }
+
+
+
 void send_information_exe_func(void) {
     //step2:结束录音
-#if (WEBSOCKET_HTTP_SWITCH == 0)//USE_HTTP_STREAM
-    gt_pipe_send_stop();
-    set_ringbuf_done();
-#elif (WEBSOCKET_HTTP_SWITCH == 1)//!USE_HTTP_STREAM
-    gt_recording_stop();
-#elif (WEBSOCKET_HTTP_SWITCH == 2)
-    gt_websocket_client_stop_send_audio_data();
-    // gt_record_pcm_stop();
     gt_audio_storage_stop();
-#endif //!USE_HTTP_STREAM
-    //step3:获取设置界面的参数以及语音数据，并发送请求到服务器
-    //这里采用消息队列mYxQueue向http_test_task任务发送消息
-    int msg = 1; // 发送一个整数作为信号
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(mYxQueue, &msg, &xHigherPriorityTaskWoken);
-
+    gt_websocket_client_stop_send_audio_data();
     ESP_LOGI(TAG, "-----------------------抬起执行结束\n");
 }
 
@@ -239,20 +223,8 @@ static void send_information_cb(gt_event_st * e) {
 static void cancel_recording_cb(gt_event_st * e) {
     //step1:切换等待录音时的ui
     waiting_rec_ui();
-
-#if (WEBSOCKET_HTTP_SWITCH == 0)//USE_HTTP_STREAM
-    gt_pipe_send_stop();
-    set_ringbuf_done();
-#elif (WEBSOCKET_HTTP_SWITCH == 1)//!USE_HTTP_STREAM
-    //step2:结束录音，并删除SD卡中的录音文件
-    gt_recording_stop();
-    //删除SD卡中录音文件
-    f_unlink("0:rec.wav");
-#elif (WEBSOCKET_HTTP_SWITCH == 2)
     gt_websocket_client_stop_send_audio_data();
     gt_audio_storage_stop();
-#endif //!USE_HTTP_STREAM
-
     ESP_LOGI(TAG, "-----------------------焦点移开当前控件\n");
 
 }
@@ -269,8 +241,18 @@ static void screen_home_0_cb(gt_event_st * e) {
         gt_dialog_close(dialog1);
         dialog1 = NULL;
     }
+    xSemaphoreTake(scr_id_mutex, portMAX_DELAY);
 	gt_disp_stack_go_back(1);
-    // update_wifi_icon();
+    GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	memset(gt_pro, 0, sizeof(GT_PROTOCOL));
+	gt_pro->head_type = LOAD_MAIN_SCR;
+    gt_pro->data = NULL;
+	xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
+    xSemaphoreGive(scr_id_mutex);
+
+    web_receive_data_free();
+    static int stop = AUDIO_STOP;
+    xQueueSend(audio_event_queue, &stop, portMAX_DELAY);
 }
 
 static void Sure_0_cb(gt_event_st * e) {
@@ -467,7 +449,7 @@ gt_obj_st * gt_init_screen_home(void)
     gt_obj_st * dialog = NULL;
 
     level = get_current_rssi_level();
-    printf("wifi_scan_anytime level   ======== %d\r\n",level);
+
     if (level == WIFI_NO_CONNECTED && dialog == NULL) {
 
         /** dialog1 */
@@ -540,9 +522,12 @@ gt_obj_st * gt_init_screen_home(void)
 
         gt_dialog_show(dialog1);
 
-        ESP_LOGI(TAG,"11-------------------dialog----------------%p\r\n",dialog);
     }
 
+    gt_obj_set_visible(rect1,GT_INVISIBLE);
+    gt_obj_set_visible(stupbt,GT_INVISIBLE);
+    gt_obj_set_visible(Historybt,GT_INVISIBLE);
+    gt_obj_set_visible(emptybt,GT_INVISIBLE);
 
     return screen_home;
 }

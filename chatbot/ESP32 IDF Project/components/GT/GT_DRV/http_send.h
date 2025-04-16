@@ -52,7 +52,7 @@ typedef struct{
 }SendSettingsData;
 
 typedef struct{
-    char *socket_type;
+    // char *socket_type;
     char *llm_response;
     char *emotion_value;
     char *tts_audio;

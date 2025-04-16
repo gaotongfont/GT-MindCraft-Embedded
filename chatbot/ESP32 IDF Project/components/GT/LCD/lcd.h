@@ -140,4 +140,8 @@ void lcd_draw_pixel(uint16_t x, uint16_t y, uint16_t color);                    
 void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint8_t size, uint8_t mode, uint16_t color);                    /* 在指定位置显示一个字符 */
 
 void xl955_config(esp_xl9555_config_t *pca_cfg);
+
+void close_screen_show();
+void start_screen_show();
+
 #endif

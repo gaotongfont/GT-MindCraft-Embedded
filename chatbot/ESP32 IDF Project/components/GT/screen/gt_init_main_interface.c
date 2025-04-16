@@ -21,7 +21,6 @@ static int web_flag = 0;
 void set_wifi_status_icon(gt_wifi_icon_status_et status) {
     switch (status) {
         case WIFI_NO_CONNECTED:
-            ESP_LOGI(TAG, "set_wifi_status_icon 1111");
             gt_imgbtn_set_src(imgbtn1, "f:img_WIFIsignal5_16x12.png");
             break;
         case WIFI_SIGNAL_1:
@@ -50,8 +49,13 @@ void update_wifi_icon() {
 }
 
 static void AIRobots_0_cb(gt_event_st * e) {
+    static GT_PROTOCOL* gt_pro = NULL;
     if(gt_web_status() != 1)
     {
+        GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+        gt_pro->head_type = WEB_SERVER_DIALOG;
+	    gt_pro->data = NULL;
+        xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
         ESP_LOGW(TAG, "wifi or websocket disconnect");
         return;
     }

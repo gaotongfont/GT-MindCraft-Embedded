@@ -18,15 +18,17 @@
 #include "gt_nvs_store.h"
 // #include "gt_i2s.h"
 #include "gt_pipeline_play.h"
+#include "gt_audio_event.h"
 #include "gt_audio_storage.h"
 #include "gt_role_emote.h"
 #include "gt_websocket.h"
 
-extern SemaphoreHandle_t scr_id_sem;
+extern SemaphoreHandle_t key_mutex;
+extern SemaphoreHandle_t scr_id_mutex;
+extern SemaphoreHandle_t audio_event_mutex;
 
+extern QueueHandle_t audio_event_queue;
 extern QueueHandle_t wifi_task_queue;
-extern QueueHandle_t mYxQueue;
-extern QueueHandle_t mYxQueue2;
 
 extern gt_obj_st * screen_home;
 extern gt_obj_st * screen_setup;
@@ -196,6 +198,8 @@ void set_history_in_chat();
 void clear_chat_history();
 gt_obj_st * _Unstable_network_dialog1_init();
 gt_obj_st* serve_disconnect_dialog();
+gt_obj_st* wifi_scanning_dialog();
+void close_wifi_scan_dialog();
 void set_wifi_status_icon(gt_wifi_icon_status_et status);
 #endif
 

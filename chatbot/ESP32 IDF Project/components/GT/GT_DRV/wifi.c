@@ -2,7 +2,7 @@
 
 #if 01
 // 定义事件标志组和标志位
-EventGroupHandle_t wifi_event_group;
+static EventGroupHandle_t wifi_event_group;
 #define WIFI_SCAN_DONE_BIT  BIT0  // 扫描完成标志
 #define WIFI_CONNECTED_BIT  BIT1  // 连接成功标志
 #define WIFI_FAIL_BIT       BIT2  // 连接失败标志
@@ -256,6 +256,7 @@ void wifi_init(void) {
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    esp_wifi_set_bandwidth(WIFI_MODE_STA, WIFI_BW_HT40);
     ESP_ERROR_CHECK(esp_wifi_start());
 }
 
@@ -358,7 +359,7 @@ int wifi_sta_connect(char *name, char *password) {
     EventBits_t bits = xEventGroupWaitBits(
         wifi_event_group,
         WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
-        pdFALSE,
+        pdTRUE,
         pdFALSE,
         portMAX_DELAY);
     if (bits & WIFI_CONNECTED_BIT) 

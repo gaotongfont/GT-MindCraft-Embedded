@@ -62,6 +62,7 @@ void set_startListen(gt_pipeline_st* gt_pipeline_obj, bool value);
 
 bool get_startListen();
 
+void gt_set_vol(int vol_value);
 #ifdef __cplusplus
 }
 #endif

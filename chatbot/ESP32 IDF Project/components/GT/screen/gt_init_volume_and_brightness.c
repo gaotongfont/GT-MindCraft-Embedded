@@ -13,18 +13,36 @@ static gt_obj_st * Volume_Down = NULL;
 static gt_obj_st * Brightness_Plus = NULL;
 static gt_obj_st * Brightness_down = NULL;
 
+static uint16_t volume = 80;
+
 static void screen_home_0_cb(gt_event_st * e) {
 	gt_disp_stack_go_back(1);
 }
 
 static void Volume_Up_0_cb(gt_event_st * e) {
-	gt_obj_st * target = (gt_obj_st * )e->user_data;
-	gt_event_send(target, GT_EVENT_TYPE_INPUT_SCROLL_DOWN, NULL);
+	// gt_obj_st * target = (gt_obj_st * )e->user_data;
+	// gt_event_send(target, GT_EVENT_TYPE_INPUT_SCROLL_DOWN, NULL);
+
+	volume = gt_progress_bar_get_pos(Volume_progress_bar);
+	volume += (volume == 100)?0:10;
+	gt_progress_bar_set_pos(Volume_progress_bar, volume);
+	GT_PROTOCOL* gt_protocol_p = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	gt_protocol_p->head_type = SET_AUDIO_VOL;
+	gt_protocol_p->data = &volume;
+	xQueueSend(gui_task_queue, &gt_protocol_p, portMAX_DELAY);
 }
 
 static void Volume_Down_0_cb(gt_event_st * e) {
-	gt_obj_st * target = (gt_obj_st * )e->user_data;
-	gt_event_send(target, GT_EVENT_TYPE_INPUT_SCROLL_UP, NULL);
+	// gt_obj_st * target = (gt_obj_st * )e->user_data;
+	// gt_event_send(target, GT_EVENT_TYPE_INPUT_SCROLL_UP, NULL);
+	volume = gt_progress_bar_get_pos(Volume_progress_bar);
+	volume -= (volume == 0)?0:10;
+	gt_progress_bar_set_pos(Volume_progress_bar, volume);
+	GT_PROTOCOL* gt_protocol_p = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+	gt_protocol_p->head_type = SET_AUDIO_VOL;
+	gt_protocol_p->data = &volume;
+	xQueueSend(gui_task_queue, &gt_protocol_p, portMAX_DELAY);
+	
 }
 
 static void Brightness_Plus_0_cb(gt_event_st * e) {
@@ -65,7 +83,7 @@ gt_obj_st * gt_init_volume_and_brightness(void)
 	gt_obj_set_pos(Volume_progress_bar, 46, 88);
 	gt_obj_set_size(Volume_progress_bar, 35, 180);
 	gt_progress_bar_set_start_end(Volume_progress_bar, 0, 100);
-	gt_progress_bar_set_pos(Volume_progress_bar, 50);
+	gt_progress_bar_set_pos(Volume_progress_bar, volume);
 	gt_progress_bar_set_color_act(Volume_progress_bar, gt_color_hex(0x409eff));
 	gt_progress_bar_set_color_ina(Volume_progress_bar, gt_color_hex(0x181B22));
 	gt_progress_bar_set_dir(Volume_progress_bar, GT_BAR_DIR_VER_D2U);

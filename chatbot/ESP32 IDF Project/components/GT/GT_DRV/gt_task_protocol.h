@@ -12,7 +12,11 @@ typedef enum{
     REC_WEB_DATA,
     SCAN_LIST,
     LOAD_SCR,
-    LOAD_MAIN_SCR
+    LOAD_MAIN_SCR,
+    SET_AUDIO_VOL,
+    LOAD_WEB_ROOM_ID,
+    WEB_SERVER_DIALOG,
+    WIFI_SCAN_DIALOG
 }EXCU_EVENT_TYPE;
 
 typedef struct{

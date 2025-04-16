@@ -46,9 +46,9 @@ void update_response_data_in_chat_obj(HistoricalMessage** history_msg) {
 
 void update_response_web_data_in_chat_obj(WEB_HISTORY_DATA** history_msg) {
     gt_chat_clean_all_msg(chat1);
-    if( history_msg[0]->count > 6)
-    history_msg[0]->count = 6;
-    for (size_t i = 0; i < history_msg[0]->count; i++)
+    if( history_msg[0]->result_size > 6)
+    history_msg[0]->result_size = 6;
+    for (size_t i = 0; i < history_msg[0]->result_size; i++)
     {
         if (history_msg[i]->message_content == NULL)
         {

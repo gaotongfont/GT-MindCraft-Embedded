@@ -43,32 +43,23 @@ static SemaphoreHandle_t shutdown_sema;
 
 
 static esp_websocket_client_handle_t client = NULL;
-// static TimerHandle_t gt_timer;
-// static SemaphoreHandle_t checkroom_semaphore;
-// static SemaphoreHandle_t create_semaphore;
-static int sem_takecount = 0;
-static WEBSOCKET_RECEIVED_DATA* clock_buf = NULL;
 
+bool key_is_press = false; 
 static bool isFirstAudiouri = false;
 ReceivedAnswerData* chat_bot_receive = NULL;
 static GT_PROTOCOL* gt_pro = NULL;
 
-static char* chatbot_audio_uri = NULL;
-static int audio_uri_len = 0;
-
-static gt_obj_st* serve_dialog = NULL;
 static WEB_HISTORY_DATA* web_history_data[WEB_HISTORY_ARRY*2] = {NULL};
-
 extern ChatbotData cb_data;
-extern QueueHandle_t mYxQueue3;
 extern QueueHandle_t gui_task_queue;
-extern QueueHandle_t web_audio_queue;
-
-extern SemaphoreHandle_t tts_audio_sem;
-SemaphoreHandle_t web_history_sem = NULL;
-static GT_WEB_PROTOCOL* gt_web_protocol = NULL;
-
+extern SemaphoreHandle_t key_mutex;
+BaseType_t xTaskWoken_mutex = pdFALSE;
+BaseType_t xTaskWoken_queue = pdFALSE;
+extern SemaphoreHandle_t audio_event_mutex;
+SemaphoreHandle_t web_history_sem = NULL; //wait update
 static WEBSOCKET_STATUS websocket_status_flag = 0;
+
+
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -104,12 +95,12 @@ static void get_string(char *line, size_t size)
 
 static void websocket_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
+    static uint8_t event_type = 0;
     esp_websocket_event_data_t *data = (esp_websocket_event_data_t *)event_data;
     switch (event_id) {
     case WEBSOCKET_EVENT_CONNECTED:
         ESP_LOGI(TAG, "WEBSOCKET_EVENT_CONNECTED");
         websocket_status_flag = WEBSOCKET_CONNECTED;
-        gt_dialog_close(serve_dialog);
         gt_websocket_client_request();
         
         break;
@@ -130,86 +121,65 @@ static void websocket_event_handler(void *handler_args, esp_event_base_t base, i
             ESP_LOGW(TAG, "Received closed message with code=%d", 256 * data->data_ptr[0] + data->data_ptr[1]);
         }
 
+        key_is_press = false;
         char* jbuf = (char*)audio_malloc(data->data_len+1);
         memset(jbuf, 0, data->data_len+1);
         memcpy(jbuf, data->data_ptr, data->data_len);
-
-        // chat_bot_receive = (ReceivedAnswerData*)audio_malloc(sizeof(ReceivedAnswerData));
-        // memset(chat_bot_receive, 0, sizeof(ReceivedAnswerData));
-        int res = websocket_chatbot_json_parse(jbuf, chat_bot_receive);
-        if(res == 1)
+        int res = websocket_chatbot_json_parse(jbuf, chat_bot_receive);        
+        printf("res = %d\r\n", res);
+        switch (res)
         {
-            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-            #if 1 
+        case WEB_PARSE_SUCCESSED:
+            ESP_LOGI(TAG, "WEB_PARSE_SUCCESSED");
+            xSemaphoreTake(audio_event_mutex, portMAX_DELAY);
+            if(key_is_press == false)
+            {
                 gt_pro->head_type = REC_WEB_DATA;
                 gt_pro->data = chat_bot_receive;
                 xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
-            #else
-                xQueueSendFromISR(mYxQueue3, &chat_bot_receive, &xHigherPriorityTaskWoken);
-            #endif 
             
-            if(isFirstAudiouri == true)
-            {
-                if(chat_bot_receive->tts_audio != NULL)
-                {
-                    ESP_LOGE(TAG, "clock_buf->recover_data.tts_audio != NULL");
+                if(isFirstAudiouri == true)
+                {     
                     if(chat_bot_receive->tts_audio != NULL && strcmp(chat_bot_receive->tts_audio, "") != 0)
                     {
-                        ESP_LOGE(TAG, "clock_buf->recover_data.tts_audio = %s", chat_bot_receive->tts_audio);
-                        
-                        #if 0
-                            xQueueSend(web_audio_queue, &chat_bot_receive->tts_audio, portMAX_DELAY);
-                        #else
-                            set_chatbot_audio_uri(chat_bot_receive->tts_audio);
-                            if (xSemaphoreGive(tts_audio_sem) == pdPASS) 
-                            {
-                                ESP_LOGI(TAG, "Semaphore successfully given");
-                            }
-                            isFirstAudiouri = false;
-                        #endif
-                      
-                    }
+                        event_type  = AUDIO_RUNNING;
+                        xQueueSendFromISR(audio_event_queue, &event_type, &xTaskWoken_queue);
+                        isFirstAudiouri = false;
+                    }  
                 }
             }
-        }
-        else if(res == -2)
-        {
+            xSemaphoreGive(audio_event_mutex);
+            break;
+
+        case WEB_DATA_ERROR:
+            ESP_LOGW(TAG, "WEB_DATA_ERROR");
+            xSemaphoreTake(audio_event_mutex, portMAX_DELAY);
+            event_type  = AUDIO_GENERATE_ERROR;
+            xQueueSendFromISR(audio_event_queue, &event_type, &xTaskWoken_queue);
+            
             gt_pro->head_type = REC_WEB_DATA;
             gt_pro->data = chat_bot_receive;
             xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
-        }
-        else if(res == -3)
-        {
-            chat_bot_receive->is_web_first_response = true;
-        }    
-        else
-        {
-            // audio_free(chat_bot_receive);
-            // chat_bot_receive = NULL;
+            xSemaphoreGive(audio_event_mutex);
+            break;
+        
+        case WEB_AGENT_STOP: 
+            ESP_LOGW(TAG, "WEB_AGENT_STOP");
+            break;
+        case WEB_AGENT_STOP_FORCE:
+            ESP_LOGI(TAG, "WEB_AGENT_STOP_FORCE");
+            break;
+        default:
             ESP_LOGW(TAG, "chat_bot_receive = NULL");
+            break;
         }
         audio_free(jbuf);
         jbuf = NULL;
-
-        // If received data contains json structure it succeed to parse
-        // cJSON *root = cJSON_Parse(data->data_ptr);
-        // if (root) {
-        //     for (int i = 0 ; i < cJSON_GetArraySize(root) ; i++) {
-        //         cJSON *elem = cJSON_GetArrayItem(root, i);
-        //         cJSON *id = cJSON_GetObjectItem(elem, "id");
-        //         cJSON *name = cJSON_GetObjectItem(elem, "name");
-        //         ESP_LOGW(TAG, "Json={'id': '%s', 'name': '%s'}", id->valuestring, name->valuestring);
-        //     }
-        //     cJSON_Delete(root);
-        // }
-
         ESP_LOGW(TAG, "Total payload length=%d, data_len=%d, current payload offset=%d\r\n", data->payload_len, data->data_len, data->payload_offset);
-        // xTimerReset(shutdown_signal_timer, portMAX_DELAY);
-
         break;
+
     case WEBSOCKET_EVENT_ERROR:
         ESP_LOGI(TAG, "WEBSOCKET_EVENT_ERROR");
-        //serve_dialog_init();
         log_error_if_nonzero("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
         if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) {
             log_error_if_nonzero("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
@@ -275,27 +245,30 @@ void gt_websocket_client_clear_history_message()
 
 void gt_websocket_client_create_task()
 {
+    ESP_LOGE(TAG, "gt_websocket_client_create_task");
     int i = 0;
     char buf[30] = {0};
     char personality[20] = {0};
     bool emotion_output = true;
     char data_create_2[2500] = {0};
     emotion_output = strcmp(cb_data.settings->emotion_value, "打开") == 0 ? true : false;
+    emotion_output = true;
     sprintf(buf, "%s,%s,%s,%s", cb_data.settings->bot_personality[0], cb_data.settings->bot_personality[1], cb_data.settings->bot_personality[2], cb_data.settings->bot_personality[3]);
+#if 0
+    snprintf(data_create_2, sizeof(data_create_2), "{\"socket_type\": \"agent_event\",\"event_name\": \"agent_action\",\
+    \"event_params\": { \"agent_name\": \"chat_bot_bak\",\"upload_format\": \"pcm\",\
+    \"upload_sample_rate\": 16000,\"mode\": \"customize\",\
+    \"emotion_output\": %d,\"voice_id\": \"%s\",\
+    \"speed\": 1, \"user_name\": \"%s\",\"user_age\": %d,\"bot_name\": \"%s\",\
+    \"bot_character_description\": \"%s\",\
+    \"bot_character\": \"朋友\",\"bot_personality\": \"%s\",\
+    \"bot_tone\": \"%s\",\"llm_model\": \"abab6.5s-chat\",\
+    \"max_tokens\": 100,\"tts_model\": \"MM_TTSL_realtime_speech-01-turbo\",\
+    \"session_token\":\"%s\",\
+    \"language\": \"中文\"}}",\
+    emotion_output, cb_data.settings->voice_id,cb_data.settings->user_name, cb_data.settings->user_age, cb_data.settings->bot_name,\
+    cb_data.settings->bot_description, buf, cb_data.settings->bot_tone, "");
 
-    snprintf(data_create_2, 2500, "{\"socket_type\": \"agent_event\",\"event_name\": \"agent_action\",\
-                            \"event_params\": { \"agent_name\": \"chat_bot_v2\",\"upload_format\": \"pcm\",\
-                            \"upload_sample_rate\": 16000,\"mode\": \"customize\",\
-                            \"emotion_output\": %d,\"voice_id\": \"%s\",\
-                            \"speed\": 1, \"user_name\": \"%s\",\"user_age\": %d,\"bot_name\": \"%s\",\
-                            \"bot_character_description\": \"%s\",\
-                            \"bot_character\": \"朋友\",\"bot_personality\": \"%s\",\
-                            \"bot_tone\": \"%s\",\"llm_model\": \"abab6.5s-chat\",\
-                            \"max_tokens\": 100,\"tts_model\": \"MM_TTSL_realtime_speech-01-turbo\",\
-                            \"session_token\":\"%s\",\
-                            \"language\": \"中文\"}}",\
-                            emotion_output, cb_data.settings->voice_id,cb_data.settings->user_name, cb_data.settings->user_age, cb_data.settings->bot_name,\
-                            cb_data.settings->bot_description, buf, cb_data.settings->bot_tone, chat_bot_receive->session_token);
 
     char data_create[] = {"{\"socket_type\": \"agent_event\",\"event_name\": \"agent_action\", \
                             \"event_params\": { \"agent_name\": \"chat_bot_v2\",\"upload_format\": \"pcm\", \
@@ -307,16 +280,48 @@ void gt_websocket_client_create_task()
                             \"bot_response_style\": \"normal\",\"llm_model\": \"abab6.5s-chat\", \
                             \"max_tokens\": 100,\"tts_model\": \"MM_TTSL_realtime_speech-01-turbo\",\"asr_model\": \"BD_ASR_realtime\"}}"};
     esp_websocket_client_send_text(client, data_create_2, strlen(data_create_2), portMAX_DELAY);
+
+#elif 0
+    sprintf(buf, "%s,%s,%s,%s", "活泼", "好奇", "乐观", "善良");
+    snprintf(data_create_2, sizeof(data_create_2), "{\"socket_type\":\"agent_event\",\"event_name\":\"agent_action\",\
+    \"event_params\":{\"agent_name\":\"chat_bot_v2\",\
+    \"mode\":\"customize\",\"emotion_output\":%d,\"voice_id\":\"%s\",\
+    \"tts_model\":\"MM_TTSL_realtime_speech-01-turbo\",\"asr_model\":\"ALI_ASR_realtime_paraformer-realtime-v2\",\"upload_format\":\"pcm\",\
+    \"upload_language\":\"zh\",\"upload_sample_rate\":\"16000\",\"tts_language\":\"Chinese\",\"language\":\"中文(zh)\",\"user_name\":\"%s\",\
+    \"user_age\":%d,\"bot_name\":\"%s\",\"bot_character_description\":\"%s\",\
+    \"bot_personality\":\"%s\",\"bot_tone\":\"%s\",\
+    \"max_tokens\":100,\"session_token\":\"%s\"}}",\
+    false, "MCV-34-b051f129c8e94235826803f61601b53e", "海扁王", 10, "智酱", "智酱是一个彩色果酱生物，它是一个网红AI，拥有着丰富的知识和技能。它不仅能够帮助用户解决问题，还能提供有趣的信息和建议。", buf,\ 
+    "使用充满活力和幽默的口语化方式与用户互动，喜欢使用网络流行语和表情包，营造轻松愉快的氛围。习惯使用emoji表情。", "");
+
+#else
+    sprintf(buf, "%s,%s,%s,%s", "活泼", "好奇", "乐观", "善良");
+    snprintf(data_create_2, sizeof(data_create_2), "{\"socket_type\":\"agent_event\",\"event_name\":\"agent_action\",\
+    \"event_params\":{\"agent_name\":\"chat_bot_v2\",\
+    \"mode\":\"customize\",\"emotion_output\":%d,\"voice_id\":\"%s\",\
+    \"tts_model\":\"MM_TTSL_realtime_speech-01-turbo\",\"asr_model\":\"ALI_ASR_realtime_paraformer-realtime-v2\",\"upload_format\":\"pcm\",\
+    \"upload_language\":\"zh\",\"upload_sample_rate\":\"16000\",\"tts_language\":\"Chinese\",\"language\":\"中文(zh)\",\"user_name\":\"%s\",\
+    \"user_age\":%d,\"bot_name\":\"%s\",\"bot_character_description\":\"%s\",\
+    \"bot_personality\":\"%s\",\"bot_tone\":\"%s\",\
+    \"max_tokens\":100,\"session_token\":\"%s\"}}",\
+    false, "male-qn-jingying-jingpin", "海扁王", 10, "智酱", "智酱是一个精通语文和历史的语文老师，拥有丰富的知识，能解决用户提出的与历史和文学相关的问题，还能提供有趣的信息和建议。", buf,\ 
+    "使用充满活力和幽默的口语化方式与用户互动，喜欢使用网络流行语和表情包，营造轻松愉快的氛围。习惯使用emoji表情。", "");
+
+#endif
+    esp_websocket_client_send_text(client, data_create_2, strlen(data_create_2), portMAX_DELAY);
+    
 }
 
 void gt_websocket_client_stop_send_audio_data()
 {
+    ESP_LOGE(TAG, "gt_websocket_client_stop_send_audio_data");
     char data_create[] = {"{\"socket_type\": \"intervent_event\", \"event_name\":\"agent_action\"}"};
     esp_websocket_client_send_text(client, data_create, strlen(data_create), portMAX_DELAY);
 }
 
 void gt_websocket_client_stop_receive_data()
 {
+    ESP_LOGE(TAG, "gt_websocket_client_stop_receive_data");
     char data_create[] = {"{\"socket_type\": \"intervent_event\",\"event_name\": \"stream_output\"}"};
     esp_websocket_client_send_text(client, data_create, strlen(data_create), portMAX_DELAY);
 }
@@ -332,12 +337,8 @@ static void malloc_web_history_data()
 
 void gt_websocket_client_init()
 {
-    gt_web_protocol = (GT_WEB_PROTOCOL*)audio_malloc(sizeof(GT_WEB_PROTOCOL));
-    memset(gt_web_protocol, 0, sizeof(GT_WEB_PROTOCOL));
-
     esp_websocket_client_config_t websocket_cfg = {};
-    clock_buf = (WEBSOCKET_RECEIVED_DATA*)audio_malloc(sizeof(WEBSOCKET_RECEIVED_DATA));
-    memset(clock_buf, 0, sizeof(WEBSOCKET_RECEIVED_DATA));
+
     // shutdown_signal_timer = xTimerCreate("Websocket shutdown timer", NO_DATA_TIMEOUT_SEC * 1000 / portTICK_PERIOD_MS,
     //                                      pdFALSE, NULL, shutdown_signaler);
     // shutdown_sema = xSemaphoreCreateBinary();
@@ -349,7 +350,7 @@ void gt_websocket_client_init()
     websocket_cfg.pingpong_timeout_sec = 15;
     websocket_cfg.task_prio = 3;
     ESP_LOGI(TAG, "Connecting to %s...", websocket_cfg.uri);
-    clock_buf = (WEBSOCKET_RECEIVED_DATA*)audio_calloc(1, sizeof(WEBSOCKET_RECEIVED_DATA));
+
     client = esp_websocket_client_init(&websocket_cfg);
     esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocket_event_handler, (void *)client);
     // esp_websocket_client_start(client);
@@ -376,23 +377,39 @@ int gt_web_status()
 
 void gt_websocket_send_data(char* data)
 {
+    
+    ESP_LOGI(TAG, "gt_websocket_send_data =====================");
     if (false == esp_websocket_client_is_connected(client)) 
     {
         ESP_LOGE(TAG, "esp_websocket_client is not connected");
         return;
     }
-    esp_websocket_client_send_bin(client, data, 2048, portMAX_DELAY);
-    esp_websocket_client_send_bin(client, data + 2048, 2048, portMAX_DELAY);
+    // esp_websocket_client_send_bin_partial(client, data, 1024, portMAX_DELAY);
+    // esp_websocket_client_send_cont_msg(client, data+1024, 1024, portMAX_DELAY);
+    // esp_websocket_client_send_fin(client, portMAX_DELAY);
+    
+    esp_websocket_client_send_bin(client, data, 1024, portMAX_DELAY);
+    esp_websocket_client_send_bin(client, data + 1024, 1024, portMAX_DELAY);
+
+    // esp_websocket_client_send_bin_partial(client, data, 2048, portMAX_DELAY);
+    // esp_websocket_client_send_bin_partial(client, data + 2048, 2048, portMAX_DELAY);
     ESP_LOGI(TAG, "esp_websocket_client send successful !!!!!!!");
+}
+
+int gt_websocket_send_data_partial_fin()
+{
+    return esp_websocket_client_send_fin(client, portMAX_DELAY);
 }
 
 bool gt_websocket_client_state()
 {
+    ESP_LOGI(TAG, "gt_websocket_client_state");
     return esp_websocket_client_is_connected(client);
 }
 
 void gt_websocket_client_start()
 {
+    ESP_LOGI(TAG, "gt_websocket_client_start");
     int gt_res = 0;
     gt_res = esp_websocket_client_start(client);
  
@@ -408,6 +425,7 @@ void gt_websocket_client_start()
 
 void gt_websocket_client_close()
 {
+    ESP_LOGI(TAG, "gt_websocket_client_close");
     int gt_res = 0;
     gt_res = esp_websocket_client_close(client, portMAX_DELAY);
     websocket_status_flag = WEBSOCKET_DISCONNECTED;
@@ -427,58 +445,78 @@ void gt_websocket_client_destroy()
     }
 }
 
-
+   
 void set_isFirstAudiouri(bool value)
 {
     chat_bot_receive->is_web_first_response = value;
     isFirstAudiouri = value;
 }
 
-void set_chatbot_audio_uri(char* audio_uri)
+bool get_isFirstAudiouri()
 {
-    if(chatbot_audio_uri != NULL)
-    {
-        audio_free(chatbot_audio_uri);
-        chatbot_audio_uri = NULL;
-    }
-    chatbot_audio_uri = audio_uri;
+    return isFirstAudiouri;
 }
 
 char* get_chatbot_audio_uri()
 {
-    if(chatbot_audio_uri != NULL)
+    if(chat_bot_receive->tts_audio != NULL)
     {
-        ESP_LOGE(TAG, "chatbot_audio_uri is not NULL");
-        return chatbot_audio_uri;
+        ESP_LOGE(TAG, "tts_audio is not NULL");
+        return chat_bot_receive->tts_audio;
     }
     else
     {
-        ESP_LOGE(TAG, "chatbot_audio_uri is NULL");
+        ESP_LOGE(TAG, "chat_bot_receive->tts_audio is NULL");
         return NULL;
     }
 }
 
 void free_chatbot_audio_uri()
 {
-    if(chatbot_audio_uri != NULL)
+    if(chat_bot_receive->tts_audio != NULL)
     {
-        audio_free(chatbot_audio_uri);
-        chatbot_audio_uri = NULL;
+        audio_free(chat_bot_receive->tts_audio);
+        chat_bot_receive->tts_audio = NULL;
     }
     else
     {
-        ESP_LOGE(TAG, "chatbot_audio_uri is NULL");
+        ESP_LOGE(TAG, "tts_audio is NULL");
     }
 
 }
 
-void serve_dialog_init()
+static void free_data(void* ptr)
 {
-    gt_scr_id_t screen_id = gt_scr_stack_get_current_id();
-    if (screen_id == GT_ID_SCREEN_HOME || screen_id == GT_ID_SCREEN_SETUP || screen_id == GT_ID_FUNCTION_SETTINGS || screen_id == GT_ID_SCREEN_SUBTITLE)
+    ESP_LOGI(TAG, "free_data");
+    if(ptr != NULL)
     {
-        serve_dialog = serve_disconnect_dialog();
+        audio_free(ptr);
+        ptr = NULL;
     }
+}
+
+void web_receive_data_free()
+{
+    if(chat_bot_receive->llm_response != NULL)
+    {
+        audio_free(chat_bot_receive->llm_response);
+        chat_bot_receive->llm_response = NULL;
+    }
+    if(chat_bot_receive->emotion_value != NULL)
+    {
+        audio_free(chat_bot_receive->emotion_value);
+        chat_bot_receive->emotion_value = NULL;
+    }
+    if(chat_bot_receive->tts_audio != NULL)
+    {
+        audio_free(chat_bot_receive->tts_audio);
+        chat_bot_receive->tts_audio = NULL;
+    }
+}
+
+void set_key_is_press(bool value)
+{
+    key_is_press = value;
 }
 
 void set_web_session_token(char* web_room_id, int len)
@@ -519,12 +557,12 @@ int websocket_parse_socket_message(char *jbuf)
 int websocket_chatbot_json_parse(char *jbuf, ReceivedAnswerData* receive_buf)
 {
     // 解析 JSON 响应
-    int res = 0;
+    int res = WEB_OTHER;
     ESP_LOGI(TAG, "jbuf = %s", jbuf);
     cJSON *json = cJSON_Parse(jbuf);
     if (json == NULL) {
         ESP_LOGE(TAG, "Failed to parse JSON");
-        return -1;  // 返回失败
+        return WEB_PARSE_FAIL;  // 返回失败
     }
     else
     {
@@ -533,935 +571,81 @@ int websocket_chatbot_json_parse(char *jbuf, ReceivedAnswerData* receive_buf)
     char* socket_message_string = NULL;
     cJSON *socket_type = NULL, *interface_name = NULL, *socket_message = NULL;
     cJSON *agent_output = NULL, *socket_data = NULL, *event_name = NULL, *socket_status = NULL;
-    agent_output = cJSON_GetObjectItem(json, "agent_output");
-    socket_data = cJSON_GetObjectItem(json, "socket_data");
-    if(agent_output == NULL && socket_data == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to parse socket_data or agent_output");
-        return -1;
-    }
+
     do{
-        GET_VALUESTRING(socket_type, json, "socket_type", receive_buf->socket_type);
+        socket_type = cJSON_GetObjectItem(json, "socket_type");
         GET_VALUEINT(socket_status, json, "socket_status", receive_buf->socket_status);
         if(receive_buf->socket_status == 3001 || receive_buf->socket_status == 4006)
         {
-            return -2;
+            cJSON_Delete(json);
+            return WEB_DATA_ERROR;
         }
         GET_VALUESTRING(socket_message, json, "socket_message", socket_message_string);
         if(strcmp(socket_message_string, "agent_stop") == 0)
         {
             audio_free(socket_message_string);
-            return -3;
+            cJSON_Delete(json);
+            return WEB_AGENT_STOP;
+        }
+        else if(strcmp(socket_message_string, "agent_stop_force") == 0)
+        {
+            audio_free(socket_message_string);
+            cJSON_Delete(json);
+            return WEB_AGENT_STOP_FORCE;
         }
     }while(0);
+
+    agent_output = cJSON_GetObjectItem(json, "agent_output");
+    socket_data = cJSON_GetObjectItem(json, "socket_data");
+    if(agent_output == NULL && socket_data == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to parse socket_data and agent_output");
+        cJSON_Delete(json);
+        return WEB_PARSE_FAIL;
+    }
+
+    ESP_LOGI(TAG, "Successfull to parse socket_data and agent_output");
     if(strcmp(socket_type->valuestring, "agent_event") == 0) //机器人回复
     {
-        printf("clock_buf->socket_type = %s\r\n", receive_buf->socket_type);
         cJSON* recover_json = NULL;
         do{
             GET_VALUESTRING(recover_json, agent_output, "llm_response", receive_buf->llm_response);
             GET_VALUESTRING(recover_json, agent_output, "tts_audio", receive_buf->tts_audio);
             GET_VALUEDOUBLE(recover_json, agent_output, "to_sleep", receive_buf->audio_seconds);
             GET_VALUESTRING(recover_json, agent_output, "emotion_value", receive_buf->emotion_value);
-            // GET_VALUESTRING(recover_json, agent_output, "user_input", clock_buf->user_input);
-            res = 1;
+            res = WEB_PARSE_SUCCESSED;
         }while(0);
     }
     else if(strcmp(socket_type->valuestring, "interface_call") == 0)
     {
-        cJSON *recover_json = NULL, *data_array = NULL, *result = NULL, *count = NULL;
+        cJSON *recover_json = NULL, *data_array = NULL, *result = NULL, *result_size = NULL;
         int array_index = 0, history_count = 0;
         interface_name = cJSON_GetObjectItem(socket_data, "interface_name");
-        printf("interface_name = %s\r\n", interface_name->valuestring);
-
         if(strcmp(interface_name->valuestring, "message_list") == 0)
         {
             result = cJSON_GetObjectItem(socket_data, "result");
-            count = cJSON_GetObjectItem(socket_data, "count");
-            web_history_data[0]->count = count->valueint;
+            result_size = cJSON_GetObjectItem(socket_data, "result_size");
+            web_history_data[0]->result_size = result_size->valueint;
             do{
                 data_array = cJSON_GetArrayItem(result, array_index);
                 GET_VALUESTRING(recover_json, data_array, "message_content", web_history_data[array_index]->message_content);
                 GET_VALUESTRING(recover_json, data_array, "message_category", web_history_data[array_index]->message_category);
-                printf("web_history_data[%d]:%s\r\n", array_index, web_history_data[array_index]->message_content);
-                printf("web_history_data[%d]:%s\r\n", array_index, web_history_data[array_index]->message_category);
                 array_index++;
-            }while(array_index < web_history_data[0]->count);
+            }while(array_index < web_history_data[0]->result_size);
             xSemaphoreGive(web_history_sem);
         }
         else if(strcmp(interface_name->valuestring, "create_session") == 0)
         {
             do{
                 GET_VALUESTRING(recover_json, socket_data, "session_token", receive_buf->session_token);
-                printf("session_token = %s\r\n", receive_buf->session_token);
+                ESP_LOGI(TAG, "receive_buf->session_token = %s", receive_buf->session_token);
                 xQueueSend(web_room_id_queue, &receive_buf->session_token, portMAX_DELAY);
-                res = 2;
             }while(0);
         }
+        res = WEB_OTHER;
     }
 
     cJSON_Delete(json);
     return res;  // -1:解析失败 0:解析成功
 
-}
-
-
-
-
-
-/**
- * @brief 解析口语json数据
- *
- * @param json_obj
- * @param clock_buf
- */
-void web_oral_pratice_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    cJSON* oral_pratice_json = NULL;
-    cJSON* preferred_responses_for_next_round = NULL;
-    cJSON* round = NULL;
-    do{
-        GET_VALUESTRING(oral_pratice_json, json_obj, "english_response", clock_buf->web_oral_pratice.english_response);
-        GET_VALUESTRING(oral_pratice_json, json_obj, "query_translation", clock_buf->web_oral_pratice.query_translation);
-        GET_VALUESTRING(oral_pratice_json, json_obj, "response_translation", clock_buf->web_oral_pratice.response_translation);
-        GET_VALUESTRING(oral_pratice_json, json_obj, "tts_audio", clock_buf->web_oral_pratice.oral_pratice_tts_audio);
-
-
-        preferred_responses_for_next_round = cJSON_GetObjectItem(json_obj, "preferred_responses_for_next_round");
-        round = cJSON_GetArrayItem(preferred_responses_for_next_round, 0);
-        clock_buf->web_oral_pratice.preferred_responses_for_next_round[0] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-        strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[0], round->valuestring);
-        round = cJSON_GetArrayItem(preferred_responses_for_next_round, 1);
-        clock_buf->web_oral_pratice.preferred_responses_for_next_round[1] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-        strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[1], round->valuestring);
-        round = cJSON_GetArrayItem(preferred_responses_for_next_round, 2);
-        clock_buf->web_oral_pratice.preferred_responses_for_next_round[2] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-        strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[2], round->valuestring);
-    }while(0);
-}
-
-/**
- * @brief 解析实时天气
- *
- * @param json_obj
- * @param clock_buf
- */
-void web_weather_realtime_data_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    int weather_arry_item = 0, weather_days = 0;
-    cJSON* weather = NULL;
-    cJSON* weather_data = NULL;
-    cJSON* weathers = NULL;
-    cJSON* weather_arry = NULL;
-    cJSON* data_value = NULL;
-    cJSON* data_response_json = NULL;
-    do{
-        if(weather_days == 0)
-        {
-            data_value = cJSON_GetObjectItem(json_obj, "data_value");
-            GET_VALUEINT(data_response_json, data_value, "time_stamp", clock_buf->time_stamp);
-            weather = cJSON_GetObjectItem(data_value, "weather");
-            // GET_VALUESTRING(data_response_json, weather, "ip_address", clock_buf->clock_weather.ip_address);
-            weather_data = cJSON_GetObjectItem(weather, "weather_data");
-            weathers = cJSON_GetObjectItem(weather_data, "weathers");
-        }
-        weather_arry = cJSON_GetArrayItem(weathers, weather_arry_item);
-        if(weather_arry != NULL)
-        {
-            GET_VALUESTRING(data_response_json, weather_arry, "valid", clock_buf->weather_data[weather_days].valid);
-            GET_VALUESTRING(data_response_json, weather_arry, "cap", clock_buf->weather_data[weather_days].cap);
-            GET_VALUESTRING(data_response_json, weather_arry, "cap_type", clock_buf->weather_data[weather_days].cap_type);
-            GET_VALUEDOUBLE(data_response_json, weather_arry, "precip", clock_buf->weather_data[weather_days].precip);
-            GET_VALUEDOUBLE(data_response_json, weather_arry, "windMax", clock_buf->weather_data[weather_days].windMax);
-            GET_VALUEDOUBLE(data_response_json, weather_arry, "windMaxDir", clock_buf->weather_data[weather_days].windMaxDir);
-            GET_VALUEDOUBLE(data_response_json, weather_arry, "rhHi", clock_buf->weather_data[weather_days].rhHi);
-            GET_VALUEDOUBLE(data_response_json, weather_arry, "tempHi", clock_buf->weather_data[weather_days].tempHi);
-            GET_VALUEDOUBLE(data_response_json, weather_arry, "tempLo", clock_buf->weather_data[weather_days].tempLo);
-            weather_arry_item++;
-        }
-        weather_days++;
-    }while(weather_arry_item < WEATHER_DATA_RESPONSE_DAYS);
-
-}
-
-/**
- * @brief 解析机器人回复
- *
- * @param json_obj
- * @param clock_buf
- */
-void web_bot_recover_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    cJSON* recover_json = NULL;
-    do{
-        GET_VALUESTRING(recover_json, json_obj, "llm_response", clock_buf->recover_data.llm_response);
-        GET_VALUESTRING(recover_json, json_obj, "tts_audio", clock_buf->recover_data.tts_audio);
-        GET_VALUESTRING(recover_json, json_obj, "user_input", clock_buf->user_input);
-        // GET_VALUEDOUBLE(recover_json, agent_output, "audio_seconds", clock_buf->recover_data.audio_seconds);
-    }while(0);
-}
-
-
-/**
- * @brief 解析闹钟的数据
- *
- * @param json_obj
- * @param clock_buf
- */
-void web_set_alarm_data_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    cJSON* clock_json = NULL;
-    do{
-        GET_VALUESTRING(clock_json, json_obj, "instruct_type", clock_buf->clock_data.instruct_type);
-        if(strcmp(clock_buf->clock_data.instruct_type, "create_alarm") == 0)
-        {
-            GET_VALUESTRING(clock_json, json_obj, "alarm_date", clock_buf->clock_data.alarm_date);
-            GET_VALUESTRING(clock_json, json_obj, "alarm_time", clock_buf->clock_data.alarm_time);
-            GET_VALUESTRING(clock_json, json_obj, "period", clock_buf->clock_data.period);
-            GET_VALUESTRING(clock_json, json_obj, "alarm_purpose", clock_buf->clock_data.alarm_purpose);
-            GET_VALUESTRING(clock_json, json_obj, "alarm_repeat", clock_buf->clock_data.alarm_repeat);
-        }
-        else if(strcmp(clock_buf->clock_data.instruct_type, "check_alarm") == 0)
-        {
-            GET_VALUESTRING(clock_json, json_obj, "alarm_date", clock_buf->clock_data.alarm_date);
-        }
-        else if(strcmp(clock_buf->clock_data.instruct_type, "edit_alarm") == 0)
-        {
-            GET_VALUESTRING(clock_json, json_obj, "alarm_date", clock_buf->clock_data.alarm_date);
-            GET_VALUESTRING(clock_json, json_obj, "alarm_time", clock_buf->clock_data.alarm_time);
-            GET_VALUESTRING(clock_json, json_obj, "period", clock_buf->clock_data.period);
-            GET_VALUESTRING(clock_json, json_obj, "new_alarm_time", clock_buf->clock_data.new_alarm_time);
-            GET_VALUESTRING(clock_json, json_obj, "new_period", clock_buf->clock_data.new_period);
-        }
-        else if(strcmp(clock_buf->clock_data.instruct_type, "delete_alarm") == 0)
-        {
-            GET_VALUESTRING(clock_json, json_obj, "alarm_date", clock_buf->clock_data.alarm_date);
-            GET_VALUESTRING(clock_json, json_obj, "alarm_time", clock_buf->clock_data.alarm_time);
-            GET_VALUESTRING(clock_json, json_obj, "period", clock_buf->clock_data.period);
-        }
-    }while(0);
-}
-
-/**
- * @brief 解析查询天气的数据
- *
- * @param json_obj
- * @param clock_buf
- */
-void web_check_weather_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    int days =  0, array_item = 0;
-    cJSON* weathers = NULL;
-    cJSON* weathers_json = NULL, *future_w = NULL;
-    cJSON* reveal_data = NULL;
-    do{
-        if(days == 0)
-        {
-            GET_VALUESTRING(weathers_json, json_obj, "address", clock_buf->weather_data[days].address);
-            GET_VALUESTRING(weathers_json, json_obj, "tts_audio", clock_buf->weather_tts_audio);
-            reveal_data = cJSON_GetObjectItem(json_obj, "reveal_data");
-            if(reveal_data == NULL)
-            {break;}
-
-            GET_VALUESTRING(weathers_json, reveal_data, "valid", clock_buf->weather_data[days].valid)
-            GET_VALUESTRING(weathers_json, reveal_data, "cap", clock_buf->weather_data[days].cap);
-            GET_VALUESTRING(weathers_json, reveal_data, "cap_type", clock_buf->weather_data[days].cap_type);
-            GET_VALUEDOUBLE(weathers_json, reveal_data, "precip", clock_buf->weather_data[days].precip);
-            GET_VALUEDOUBLE(weathers_json, reveal_data, "windMax", clock_buf->weather_data[days].windMax);
-            GET_VALUEDOUBLE(weathers_json, reveal_data, "windMaxDir", clock_buf->weather_data[days].windMaxDir);
-            GET_VALUEDOUBLE(weathers_json, reveal_data, "rhHi", clock_buf->weather_data[days].rhHi);
-            GET_VALUEDOUBLE(weathers_json, reveal_data, "tempHi", clock_buf->weather_data[days].tempHi);
-            GET_VALUEDOUBLE(weathers_json, reveal_data, "tempLo", clock_buf->weather_data[days].tempLo);
-            weathers = cJSON_GetObjectItem(json_obj, "weathers");
-        }
-        else if(days > 0)
-        {
-            if(weathers != NULL)
-            {
-                future_w = cJSON_GetArrayItem(weathers, array_item);
-                if(future_w != NULL)
-                {
-                    GET_VALUESTRING(weathers_json, future_w, "valid", clock_buf->weather_data[days].valid);
-                    GET_VALUESTRING(weathers_json, future_w, "cap", clock_buf->weather_data[days].cap);
-                    GET_VALUESTRING(weathers_json, future_w, "cap_type", clock_buf->weather_data[days].cap_type);
-                    GET_VALUEDOUBLE(weathers_json, future_w, "precip", clock_buf->weather_data[days].precip);
-                    GET_VALUEDOUBLE(weathers_json, future_w, "windMax", clock_buf->weather_data[days].windMax);
-                    GET_VALUEDOUBLE(weathers_json, future_w, "windMaxDir", clock_buf->weather_data[days].windMaxDir);
-                    GET_VALUEDOUBLE(weathers_json, future_w, "rhHi", clock_buf->weather_data[days].rhHi);
-                    GET_VALUEDOUBLE(weathers_json, future_w, "tempHi", clock_buf->weather_data[days].tempHi);
-                    GET_VALUEDOUBLE(weathers_json, future_w, "tempLo", clock_buf->weather_data[days].tempLo);
-                }
-                array_item++;
-            }
-        }
-        days++;
-    }while(days < WEATHER_DAYS);
-}
-
-
-/**
- * @brief 解析倒计时数据
- *
- * @param json_obj
- * @param clock_buf
- */
-static void web_set_countdown_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    cJSON* countdown_json = NULL;
-    do{
-        GET_VALUESTRING(countdown_json, json_obj, "countdown", clock_buf->countdown);
-    }while(0);
-}
-
-/**
- * @brief 解析设备设置数据
- *
- * @param json_obj
- * @param clock_buf
- */
-static void web_device_config_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    cJSON* config_json = NULL;
-    do{
-        GET_VALUESTRING(config_json, json_obj, "config_name", clock_buf->web_sys_config.config_name);
-        GET_VALUESTRING(config_json, json_obj, "countdown", clock_buf->web_sys_config.config_value);
-    }while(0);
-}
-
-/**
- * @brief 解析口语练习数据
- *
- * @param json_obj
- * @param clock_buf
- */
-static void web_english_oral_practice_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    cJSON* oral_pratice_json = NULL;
-    cJSON* preferred_responses_for_next_round = NULL;
-    cJSON* round = NULL;
-    do{
-        GET_VALUESTRING(oral_pratice_json, json_obj, "english_response", clock_buf->web_oral_pratice.english_response);
-        GET_VALUESTRING(oral_pratice_json, json_obj, "query_translation", clock_buf->web_oral_pratice.query_translation);
-        GET_VALUESTRING(oral_pratice_json, json_obj, "response_translation", clock_buf->web_oral_pratice.response_translation);
-        GET_VALUESTRING(oral_pratice_json, json_obj, "tts_audio", clock_buf->web_oral_pratice.oral_pratice_tts_audio);
-
-        preferred_responses_for_next_round = cJSON_GetObjectItem(json_obj, "preferred_responses_for_next_round");
-        round = cJSON_GetArrayItem(preferred_responses_for_next_round, 0);
-        clock_buf->web_oral_pratice.preferred_responses_for_next_round[0] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-        strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[0], round->valuestring);
-
-        round = cJSON_GetArrayItem(preferred_responses_for_next_round, 1);
-        clock_buf->web_oral_pratice.preferred_responses_for_next_round[1] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-        strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[1], round->valuestring);
-
-        round = cJSON_GetArrayItem(preferred_responses_for_next_round, 2);
-        clock_buf->web_oral_pratice.preferred_responses_for_next_round[2] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-        strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[2], round->valuestring);
-    }while(0);
-
-}
-
-
-/**
- * @brief 解析创建房间数据
- *
- * @param json_obj
- * @param clock_buf
- */
-void web_create_session_json_parse(cJSON* json_obj, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    cJSON* interface_call_json = NULL;
-    do{
-         GET_VALUESTRING(interface_call_json, json_obj, "session_token", clock_buf->session_token);
-    }while(0);
-
-}
-
-#if 0
-int websocket_json_parse(char *jbuf, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    // 解析 JSON 响应
-
-    cJSON *json = cJSON_Parse(jbuf);
-    if (json == NULL) {
-        // GT_LOGE(TAG, "Failed to parse JSON");
-        return -1;  // 返回失败
-    }
-    cJSON *user_input = NULL;//解析json数据,获取回复用户的文字内容
-    cJSON *socket_type = NULL;//解析json数据，获取情绪值
-    cJSON *socket_data = cJSON_GetObjectItem(json, "socket_data");//解析json数据，获取音频链接
-    cJSON *data_name = NULL;
-    cJSON *data_value = NULL, *agent_type = NULL, *agent_output = NULL;
-
-    do{
-        GET_VALUESTRING(socket_type, json, "socket_type", clock_buf->socket_type);
-    }while(0);
-
-    if(strcmp(socket_type->valuestring, "data_response") == 0)///数据回复
-    {
-        cJSON* data_response_json = NULL;
-        do{
-            GET_VALUESTRING(data_response_json, socket_data, "data_name", clock_buf->data_name);
-        }while(0);
-        if(strcmp(clock_buf->data_name, "clock_weather") == 0)
-        {
-            int weather_arry_item = 0, weather_days = 0;
-            cJSON* weather = NULL;
-            cJSON* weather_data = NULL;
-            cJSON* weathers = NULL;
-            cJSON* weather_arry = NULL;
-            do{
-                if(weather_days == 0)
-                {
-                    data_value = cJSON_GetObjectItem(socket_data, "data_value");
-                    GET_VALUEINT(data_response_json, data_value, "time_stamp", clock_buf->clock_weather.time_stamp);
-                    weather = cJSON_GetObjectItem(data_value, "weather");
-                    GET_VALUESTRING(data_response_json, weather, "ip_address", clock_buf->clock_weather.ip_address);
-                    weather_data = cJSON_GetObjectItem(weather, "weather_data");
-                    weathers = cJSON_GetObjectItem(weather_data, "weathers");
-                }
-                weather_arry = cJSON_GetArrayItem(weathers, weather_arry_item);
-                if(weather_arry != NULL)
-                {
-                    GET_VALUESTRING(data_response_json, weather_arry, "valid", clock_buf->clock_weather.weather_data[weather_days].valid);
-                    GET_VALUESTRING(data_response_json, weather_arry, "cap", clock_buf->clock_weather.weather_data[weather_days].cap);
-                    GET_VALUESTRING(data_response_json, weather_arry, "cap_type", clock_buf->clock_weather.weather_data[weather_days].cap_type);
-                    GET_VALUEDOUBLE(data_response_json, weather_arry, "precip", clock_buf->clock_weather.weather_data[weather_days].precip);
-                    GET_VALUEDOUBLE(data_response_json, weather_arry, "windMax", clock_buf->clock_weather.weather_data[weather_days].windMax);
-                    GET_VALUEDOUBLE(data_response_json, weather_arry, "windMaxDir", clock_buf->clock_weather.weather_data[weather_days].windMaxDir);
-                    GET_VALUEDOUBLE(data_response_json, weather_arry, "rhHi", clock_buf->clock_weather.weather_data[weather_days].rhHi);
-                    GET_VALUEDOUBLE(data_response_json, weather_arry, "tempHi", clock_buf->clock_weather.weather_data[weather_days].tempHi);
-                    GET_VALUEDOUBLE(data_response_json, weather_arry, "tempLo", clock_buf->clock_weather.weather_data[weather_days].tempLo);
-                    weather_arry_item++;
-                }
-                weather_days++;
-            }while(weather_arry_item < WEATHER_DATA_RESPONSE_DAYS);
-        }
-        if(strcmp(clock_buf->data_name, "calendar") == 0)
-        {
-            data_value = cJSON_GetObjectItem(socket_data, "data_value");
-            // GET_VALUESTRING(data_response_json, data_value, "time_stamp", clock_buf->clock_weather.time_stamp);
-        }
-    }
-    else if(strcmp(socket_type->valuestring, "agent_response") == 0) //机器人回复
-    {
-        do{
-            GET_VALUESTRING(agent_type, json, "agent_type", clock_buf->agent_type);
-        }while(0);
-        agent_output = cJSON_GetObjectItem(json, "agent_output");
-        if(strcmp(agent_type->valuestring, "text") == 0)
-        {
-            web_bot_recover_json_parse(agent_output, clock_buf);
-        }
-        else if(strcmp(agent_type->valuestring, "set_alarm") == 0)
-        {
-            web_set_alarm_data_json_parse(agent_output, clock_buf);
-        }
-        else if(strcmp(agent_type->valuestring, "check_weather") == 0)
-        {
-            web_check_weather_json_parse(agent_output, clock_buf);
-        }
-        else if(strcmp(agent_type->valuestring, "set_countdown") == 0)
-        {
-            web_set_countdown_json_parse(agent_output, clock_buf);
-        }
-        else if(strcmp(agent_type->valuestring, "modify_device_config") == 0)
-        {
-            web_device_config_json_parse(agent_output, clock_buf);
-        }
-        else if(strcmp(agent_type->valuestring, "english_oral_practice") == 0)
-        {
-            web_english_oral_practice_json_parse(agent_output, clock_buf);
-        }
-    }
-    else if(strcmp(socket_type->valuestring, "response_event") == 0) //请求回复
-    {
-
-    }
-
-    cJSON_Delete(json);
-    return 0;  // -1:解析失败 0:解析成功
-
-}
-
-#elif 0
-int websocket_json_parse(char *jbuf, WEBSOCKET_RECEIVED_DATA* clock_buf)
-{
-    // 解析 JSON 响应
-    printf("jbuf = %s\r\n", jbuf);
-    ESP_LOGI(TAG, "jbuf = %s", jbuf);
-
-    cJSON *json = cJSON_Parse(jbuf);
-    if (json == NULL) {
-        ESP_LOGE(TAG, "Failed to parse JSON");
-        return -1;  // 返回失败
-    }
-    else
-    {
-        ESP_LOGI(TAG, "Successfull to parse JSON");
-    }
-    cJSON *user_input = NULL;//解析json数据,获取回复用户的文字内容
-    cJSON *socket_type = NULL;//解析json数据，获取情绪值
-
-    cJSON *data_name = NULL;
-    cJSON *data_value = NULL, *agent_type = NULL, *agent_output = NULL;
-    cJSON *socket_data = cJSON_GetObjectItem(json, "socket_data");//解析json数据，获取音频链接
-    agent_output = cJSON_GetObjectItem(json, "agent_output");
-    if(socket_data == NULL && agent_output == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to parse socket_data or agent_output");
-        return -1;
-    }
-    do{
-        GET_VALUESTRING(socket_type, json, "socket_type", clock_buf->socket_type);
-    }while(0);
-
-    if(strcmp(socket_type->valuestring, "data_response") == 0)///数据回复
-    {
-        cJSON* data_response_json = NULL;
-        do{
-            GET_VALUESTRING(data_response_json, socket_data, "data_name", clock_buf->data_name);
-        }while(0);
-        if(strcmp(clock_buf->data_name, "clock_weather") == 0)
-        {
-            int weather_arry_item = 0, weather_days = 0;
-            cJSON* weather = NULL;
-            cJSON* weather_data = NULL;
-            cJSON* weathers = NULL;
-            cJSON* weather_arry = NULL;
-            do{
-                if(weather_days == 0)
-                {
-                    data_value = cJSON_GetObjectItem(socket_data, "data_value");
-                    GET_VALUEINT(data_response_json, data_value, "time_stamp", clock_buf->time_stamp);
-                    weather = cJSON_GetObjectItem(data_value, "weather");
-                    weather_data = cJSON_GetObjectItem(weather, "weather_data");
-                    GET_VALUESTRING(data_response_json, weather_data, "address", clock_buf->weather_data[weather_days].address);
-                    weathers = cJSON_GetObjectItem(weather_data, "weathers");
-                }
-                if(weather_days > 0)
-                {
-                    weather_arry = cJSON_GetArrayItem(weathers, weather_arry_item);
-                    if(weather_arry != NULL)
-                    {
-                        GET_VALUESTRING(data_response_json, weather_arry, "valid", clock_buf->weather_data[weather_days].valid);
-                        GET_VALUESTRING(data_response_json, weather_arry, "cap", clock_buf->weather_data[weather_days].cap);
-                        GET_VALUESTRING(data_response_json, weather_arry, "cap_type", clock_buf->weather_data[weather_days].cap_type);
-                        GET_VALUEDOUBLE(data_response_json, weather_arry, "precip", clock_buf->weather_data[weather_days].precip);
-                        GET_VALUEDOUBLE(data_response_json, weather_arry, "windMax", clock_buf->weather_data[weather_days].windMax);
-                        GET_VALUEDOUBLE(data_response_json, weather_arry, "windMaxDir", clock_buf->weather_data[weather_days].windMaxDir);
-                        GET_VALUEDOUBLE(data_response_json, weather_arry, "rhHi", clock_buf->weather_data[weather_days].rhHi);
-                        GET_VALUEDOUBLE(data_response_json, weather_arry, "tempHi", clock_buf->weather_data[weather_days].tempHi);
-                        GET_VALUEDOUBLE(data_response_json, weather_arry, "tempLo", clock_buf->weather_data[weather_days].tempLo);
-                        weather_arry_item++;
-                    }
-                }
-                weather_days++;
-            }while(weather_days < WEATHER_DATA_RESPONSE_DAYS);
-        }
-        if(strcmp(clock_buf->data_name, "calendar") == 0)
-        {
-            data_value = cJSON_GetObjectItem(socket_data, "data_value");
-            // GET_VALUESTRING(data_response_json, data_value, "time_stamp", clock_buf->clock_weather.time_stamp);
-        }
-    }
-    else if(strcmp(socket_type->valuestring, "agent_response") == 0) //机器人回复
-    {
-        printf("clock_buf->socket_type = %s\r\n", clock_buf->socket_type);
-        cJSON* recover_json = NULL;
-        do{
-            GET_VALUESTRING(recover_json, agent_output, "llm_response", clock_buf->recover_data.llm_response);
-            GET_VALUESTRING(recover_json, agent_output, "tts_audio", clock_buf->recover_data.tts_audio);
-            // GET_VALUESTRING(recover_json, agent_output, "user_input", clock_buf->user_input);
-            // GET_VALUEDOUBLE(recover_json, agent_output, "audio_seconds", clock_buf->recover_data.audio_seconds);
-        }while(0);
-        do{
-            GET_VALUESTRING(agent_type, json, "agent_type", clock_buf->agent_type);
-        }while(0);
-        agent_output = cJSON_GetObjectItem(json, "agent_output");
-        if(strcmp(agent_type->valuestring, "text") == 0)
-        {
-            cJSON* recover_json = NULL;
-            do{
-                GET_VALUESTRING(recover_json, agent_output, "llm_response", clock_buf->recover_data.llm_response);
-                GET_VALUESTRING(recover_json, agent_output, "tts_audio", clock_buf->recover_data.tts_audio);
-                GET_VALUESTRING(recover_json, agent_output, "user_input", clock_buf->user_input);
-                // GET_VALUEDOUBLE(recover_json, agent_output, "audio_seconds", clock_buf->recover_data.audio_seconds);
-            }while(0);
-        }
-        else if(strcmp(agent_type->valuestring, "set_alarm") == 0)
-        {
-            cJSON* clock_json = NULL;
-            do{
-                GET_VALUESTRING(clock_json, agent_output, "instruct_type", clock_buf->clock_data.instruct_type);
-                if(strcmp(clock_buf->clock_data.instruct_type, "create_alarm") == 0)
-                {
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_time", clock_buf->clock_data.alarm_time);
-                    GET_VALUESTRING(clock_json, agent_output, "period", clock_buf->clock_data.period);
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_purpose", clock_buf->clock_data.alarm_purpose);
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_repeat", clock_buf->clock_data.alarm_repeat);
-                }
-                else if(strcmp(clock_buf->clock_data.instruct_type, "check_alarm") == 0)
-                {
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-                }
-                else if(strcmp(clock_buf->clock_data.instruct_type, "edit_alarm") == 0)
-                {
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_time", clock_buf->clock_data.alarm_time);
-                    GET_VALUESTRING(clock_json, agent_output, "period", clock_buf->clock_data.period);
-                    GET_VALUESTRING(clock_json, agent_output, "new_alarm_time", clock_buf->clock_data.new_alarm_time);
-                    GET_VALUESTRING(clock_json, agent_output, "new_period", clock_buf->clock_data.new_period);
-                }
-                else if(strcmp(clock_buf->clock_data.instruct_type, "delete_alarm") == 0)
-                {
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-                    GET_VALUESTRING(clock_json, agent_output, "alarm_time", clock_buf->clock_data.alarm_time);
-                    GET_VALUESTRING(clock_json, agent_output, "period", clock_buf->clock_data.period);
-                }
-            }while(0);
-        }
-        else if(strcmp(agent_type->valuestring, "check_weather") == 0)
-        {
-            int days =  0, array_item = 0;
-            cJSON* weathers = NULL;
-            cJSON* weathers_json = NULL, *future_w = NULL;
-            cJSON* reveal_data = NULL;
-            do{
-                if(days == 0)
-                {
-                    GET_VALUESTRING(weathers_json, agent_output, "address", clock_buf->weather_data[days].address);
-                    GET_VALUESTRING(weathers_json, agent_output, "tts_audio", clock_buf->weather_tts_audio);
-                    reveal_data = cJSON_GetObjectItem(agent_output, "reveal_data");
-                    if(reveal_data == NULL)
-                    {break;}
-
-                    GET_VALUESTRING(weathers_json, reveal_data, "valid", clock_buf->weather_data[days].valid);
-                    GET_VALUESTRING(weathers_json, reveal_data, "cap", clock_buf->weather_data[days].cap);
-                    GET_VALUESTRING(weathers_json, reveal_data, "cap_type", clock_buf->weather_data[days].cap_type);
-                    GET_VALUEDOUBLE(weathers_json, reveal_data, "precip", clock_buf->weather_data[days].precip);
-                    GET_VALUEDOUBLE(weathers_json, reveal_data, "windMax", clock_buf->weather_data[days].windMax);
-                    GET_VALUEDOUBLE(weathers_json, reveal_data, "windMaxDir", clock_buf->weather_data[days].windMaxDir);
-                    GET_VALUEDOUBLE(weathers_json, reveal_data, "rhHi", clock_buf->weather_data[days].rhHi);
-                    GET_VALUEDOUBLE(weathers_json, reveal_data, "tempHi", clock_buf->weather_data[days].tempHi);
-                    GET_VALUEDOUBLE(weathers_json, reveal_data, "tempLo", clock_buf->weather_data[days].tempLo);
-                    weathers = cJSON_GetObjectItem(agent_output, "weathers");
-                }
-                else if(days > 0)
-                {
-                    if(weathers != NULL)
-                    {
-                        future_w = cJSON_GetArrayItem(weathers, array_item);
-                        if(future_w != NULL)
-                        {
-                            GET_VALUESTRING(weathers_json, reveal_data, "valid", clock_buf->weather_data[days].valid)
-                            GET_VALUESTRING(weathers_json, reveal_data, "cap", clock_buf->weather_data[days].cap);
-                            GET_VALUESTRING(weathers_json, reveal_data, "cap_type", clock_buf->weather_data[days].cap_type);
-                            GET_VALUEDOUBLE(weathers_json, reveal_data, "precip", clock_buf->weather_data[days].precip);
-                            GET_VALUEDOUBLE(weathers_json, reveal_data, "windMax", clock_buf->weather_data[days].windMax);
-                            GET_VALUEDOUBLE(weathers_json, reveal_data, "windMaxDir", clock_buf->weather_data[days].windMaxDir);
-                            GET_VALUEDOUBLE(weathers_json, reveal_data, "rhHi", clock_buf->weather_data[days].rhHi);
-                            GET_VALUEDOUBLE(weathers_json, reveal_data, "tempHi", clock_buf->weather_data[days].tempHi);
-                            GET_VALUEDOUBLE(weathers_json, reveal_data, "tempLo", clock_buf->weather_data[days].tempLo);
-                        }
-                        array_item++;
-                    }
-                }
-                days++;
-            }while(days < WEATHER_DAYS);
-        }
-        else if(strcmp(agent_type->valuestring, "set_countdown") == 0)
-        {
-            do{
-                cJSON* countdown_json = NULL;
-                GET_VALUESTRING(countdown_json, agent_output, "countdown", clock_buf->countdown);
-            }while(0);
-        }
-        else if(strcmp(agent_type->valuestring, "modify_device_config") == 0)
-        {
-            cJSON* config_json = NULL;
-            do{
-                GET_VALUESTRING(config_json, agent_output, "config_name", clock_buf->web_sys_config.config_name);
-                GET_VALUESTRING(config_json, agent_output, "countdown", clock_buf->web_sys_config.config_value);
-
-            }while(0);
-        }
-        else if(strcmp(agent_type->valuestring, "english_oral_practice") == 0)
-        {
-            cJSON* oral_pratice_json = NULL;
-            cJSON* preferred_responses_for_next_round = NULL;
-            cJSON* round = NULL;
-            do{
-                GET_VALUESTRING(oral_pratice_json, agent_output, "english_response", clock_buf->web_oral_pratice.english_response);
-                GET_VALUESTRING(oral_pratice_json, agent_output, "query_translation", clock_buf->web_oral_pratice.query_translation);
-                GET_VALUESTRING(oral_pratice_json, agent_output, "response_translation", clock_buf->web_oral_pratice.response_translation);
-                GET_VALUESTRING(oral_pratice_json, agent_output, "tts_audio", clock_buf->web_oral_pratice.oral_pratice_tts_audio);
-
-                preferred_responses_for_next_round = cJSON_GetObjectItem(agent_output, "preferred_responses_for_next_round");
-                round = cJSON_GetArrayItem(preferred_responses_for_next_round, 0);
-                clock_buf->web_oral_pratice.preferred_responses_for_next_round[0] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-                strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[0], round->valuestring);
-
-                round = cJSON_GetArrayItem(preferred_responses_for_next_round, 1);
-                clock_buf->web_oral_pratice.preferred_responses_for_next_round[1] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-                strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[1], round->valuestring);
-
-                round = cJSON_GetArrayItem(preferred_responses_for_next_round, 2);
-                clock_buf->web_oral_pratice.preferred_responses_for_next_round[2] = (char*)audio_calloc(1, strlen(round->valuestring) + 1);
-                strcpy(clock_buf->web_oral_pratice.preferred_responses_for_next_round[2], round->valuestring);
-            }while(0);
-        }
-    }
-    else if(strcmp(socket_type->valuestring, "interface_call") == 0)
-    {
-        cJSON* interface_call_json = NULL;
-        do{
-            GET_VALUESTRING(interface_call_json, socket_data, "interface_name", clock_buf->interface_name);
-            if(strcmp(clock_buf->interface_name, "create_session") == 0)
-            {
-                do{
-                    GET_VALUESTRING(interface_call_json, socket_data, "session_token", clock_buf->session_token);
-                    ESP_LOGE(TAG, "clock_buf->session_token = %s",clock_buf->session_token);
-                           ESP_LOGE(TAG, "333333333333333333333");
-
-                }while(0);
-            }
-            else if(strcmp(clock_buf->interface_name, "session_check") == 0)
-            {
-                do{
-                    GET_VALUEINT(interface_call_json, socket_data, "check_status", clock_buf->check_status);
-                    // GET_VALUESTRING(interface_call_json, socket_data, "session_token", clock_buf->session_token_check);
-                    ESP_LOGE(TAG, "clock_buf->check_status = %d", clock_buf->check_status);
-                }while(0);
-            }
-        }while(0);
-    }
-    else if(strcmp(socket_type->valuestring, "response_event") == 0) //请求回复
-    {
-
-    }
-
-    cJSON_Delete(json);
-    return 0;  // -1:解析失败 0:解析成功
-
-}
-
-#endif
-    // if(strcmp(agent_type->valuestring, "text") == 0)
-    // {
-    //     cJSON* recover_json = NULL;
-    //     do{
-    //         GET_VALUESTRING(recover_json, agent_output, "llm_response", clock_buf->recover_data.llm_response);
-    //         GET_VALUESTRING(recover_json, agent_output, "tts_audio", clock_buf->recover_data.tts_audio);
-    //         // GET_VALUESTRING(recover_json, json, "user_input", clock_buf->recover_data.user_input);
-    //         // GET_VALUEDOUBLE(recover_json, agent_output, "audio_seconds", clock_buf->recover_data.audio_seconds);
-    //     }while(0);
-    // }
-    // else if(strcmp(agent_type->valuestring, "set_alarm") == 0)
-    // {
-    //     cJSON* clock_json = NULL;
-    //     do{
-    //         GET_VALUESTRING(clock_json, agent_output, "instruct_type", clock_buf->clock_data.instruct_type);
-    //         if(strcmp(clock_buf->clock_data.instruct_type, "create_alarm") == 0)
-    //         {
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_time", clock_buf->clock_data.alarm_time);
-    //             GET_VALUESTRING(clock_json, agent_output, "period", clock_buf->clock_data.period);
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_purpose", clock_buf->clock_data.alarm_purpose);
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_repeat", clock_buf->clock_data.alarm_repeat);
-    //         }
-    //         else if(strcmp(clock_buf->clock_data.instruct_type, "check_alarm") == 0)
-    //         {
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-    //         }
-    //         else if(strcmp(clock_buf->clock_data.instruct_type, "edit_alarm") == 0)
-    //         {
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_time", clock_buf->clock_data.alarm_time);
-    //             GET_VALUESTRING(clock_json, agent_output, "period", clock_buf->clock_data.period);
-    //             GET_VALUESTRING(clock_json, agent_output, "new_alarm_time", clock_buf->clock_data.new_alarm_time);
-    //             GET_VALUESTRING(clock_json, agent_output, "new_period", clock_buf->clock_data.new_period);
-    //         }
-    //         else if(strcmp(clock_buf->clock_data.instruct_type, "delete_alarm") == 0)
-    //         {
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_date", clock_buf->clock_data.alarm_date);
-    //             GET_VALUESTRING(clock_json, agent_output, "alarm_time", clock_buf->clock_data.alarm_time);
-    //             GET_VALUESTRING(clock_json, agent_output, "period", clock_buf->clock_data.period);
-    //         }
-    //     }while(0);
-    // }
-    // else if(strcmp(agent_type->valuestring, "check_weather") == 0)
-    // {
-    //     int days =  0, array_item = 0;
-    //     cJSON* weathers = NULL;
-    //     cJSON* weathers_json = NULL, *future_w = NULL;
-    //     cJSON* reveal_data = NULL;
-    //     do{
-    //         if(days == 0)
-    //         {
-    //             GET_VALUESTRING(weathers_json, agent_output, "address", clock_buf->weather_data[days].address);
-    //             reveal_data = cJSON_GetObjectItem(agent_output, "reveal_data");
-    //             if(reveal_data == NULL)
-    //             {break;}
-
-    //             GET_VALUESTRING(weathers_json, reveal_data, "valid", clock_buf->weather_data[days].valid)
-    //             GET_VALUESTRING(weathers_json, reveal_data, "cap", clock_buf->weather_data[days].cap);
-    //             GET_VALUESTRING(weathers_json, reveal_data, "cap_type", clock_buf->weather_data[days].cap_type);
-    //             GET_VALUEDOUBLE(weathers_json, reveal_data, "precip", clock_buf->weather_data[days].precip);
-    //             GET_VALUEDOUBLE(weathers_json, reveal_data, "windMax", clock_buf->weather_data[days].windMax);
-    //             GET_VALUEDOUBLE(weathers_json, reveal_data, "windMaxDir", clock_buf->weather_data[days].windMaxDir);
-    //             GET_VALUEDOUBLE(weathers_json, reveal_data, "rhHi", clock_buf->weather_data[days].rhHi);
-    //             GET_VALUEDOUBLE(weathers_json, reveal_data, "tempHi", clock_buf->weather_data[days].tempHi);
-    //             GET_VALUEDOUBLE(weathers_json, reveal_data, "tempLo", clock_buf->weather_data[days].tempLo);
-    //             weathers = cJSON_GetObjectItem(agent_output, "weathers");
-    //         }
-    //         else if(days > 0)
-    //         {
-    //             if(weathers != NULL)
-    //             {
-    //                 future_w = cJSON_GetArrayItem(weathers, array_item);
-    //                 if(future_w != NULL)
-    //                 {
-    //                     GET_VALUESTRING(weathers_json, future_w, "valid", clock_buf->weather_data[days].valid);
-    //                     GET_VALUESTRING(weathers_json, future_w, "cap", clock_buf->weather_data[days].cap);
-    //                     GET_VALUESTRING(weathers_json, future_w, "cap_type", clock_buf->weather_data[days].cap_type);
-    //                     GET_VALUEDOUBLE(weathers_json, future_w, "precip", clock_buf->weather_data[days].precip);
-    //                     GET_VALUEDOUBLE(weathers_json, future_w, "windMax", clock_buf->weather_data[days].windMax);
-    //                     GET_VALUEDOUBLE(weathers_json, future_w, "windMaxDir", clock_buf->weather_data[days].windMaxDir);
-    //                     GET_VALUEDOUBLE(weathers_json, future_w, "rhHi", clock_buf->weather_data[days].rhHi);
-    //                     GET_VALUEDOUBLE(weathers_json, future_w, "tempHi", clock_buf->weather_data[days].tempHi);
-    //                     GET_VALUEDOUBLE(weathers_json, future_w, "tempLo", clock_buf->weather_data[days].tempLo);
-    //                 }
-    //                 array_item++;
-    //             }
-    //         }
-    //         days++;
-    //     }while(days < WEATHER_DAYS);
-    // }
-    // else if(strcmp(agent_type->valuestring, "set_countdown") == 0)
-    // {
-    //     do{
-    //         cJSON* countdown_json = NULL;
-    //         GET_VALUESTRING(countdown_json, agent_output, "countdown", clock_buf->countdown);
-    //     }while(0);
-    // }
-
-
-
-
-
-
-
-
-// void app_main(void)
-// {
-//     ESP_LOGI(TAG, "[APP] Startup..");
-//     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
-//     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
-//     esp_log_level_set("*", ESP_LOG_INFO);
-//     esp_log_level_set("websocket_client", ESP_LOG_DEBUG);
-//     esp_log_level_set("transport_ws", ESP_LOG_DEBUG);
-//     esp_log_level_set("trans_tcp", ESP_LOG_DEBUG);
-
-//     ESP_ERROR_CHECK(nvs_flash_init());
-//     ESP_ERROR_CHECK(esp_netif_init());
-//     ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-//     /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-//      * Read "Establishing Wi-Fi or Ethernet Connection" section in
-//      * examples/protocols/README.md for more information about this function.
-//      */
-//     ESP_ERROR_CHECK(example_connect());
-
-//     websocket_app_start();
-// }
-
-
-void websocket_app_start(void)
-{
-    esp_websocket_client_config_t websocket_cfg = {};
-
-    shutdown_signal_timer = xTimerCreate("Websocket shutdown timer", NO_DATA_TIMEOUT_SEC * 1000 / portTICK_PERIOD_MS,
-                                         pdFALSE, NULL, shutdown_signaler);
-    shutdown_sema = xSemaphoreCreateBinary();
-
-// #if CONFIG_WEBSOCKET_URI_FROM_STDIN
-//     char line[128];
-
-//     ESP_LOGI(TAG, "Please enter uri of websocket endpoint");
-//     get_string(line, sizeof(line));
-
-//     websocket_cfg.uri = line;
-//     ESP_LOGI(TAG, "Endpoint uri: %s\n", line);
-
-// #else
-    websocket_cfg.uri = "ws://api.mindcraft.com.cn/socket-v1/?EIO=4&transport=websocket"; //CONFIG_WEBSOCKET_URI;
-    websocket_cfg.reconnect_timeout_ms = 10000;
-    websocket_cfg.network_timeout_ms = 6000;
-// #endif /* CONFIG_WEBSOCKET_URI_FROM_STDIN */
-
-// #if CONFIG_WS_OVER_TLS_MUTUAL_AUTH
-//     /* Configuring client certificates for mutual authentification */
-//     extern const char cacert_start[] asm("_binary_ca_cert_pem_start"); // CA certificate
-//     extern const char cert_start[] asm("_binary_client_cert_pem_start"); // Client certificate
-//     extern const char cert_end[]   asm("_binary_client_cert_pem_end");
-//     extern const char key_start[] asm("_binary_client_key_pem_start"); // Client private key
-//     extern const char key_end[]   asm("_binary_client_key_pem_end");
-
-//     websocket_cfg.cert_pem = cacert_start;
-//     websocket_cfg.client_cert = cert_start;
-//     websocket_cfg.client_cert_len = cert_end - cert_start;
-//     websocket_cfg.client_key = key_start;
-//     websocket_cfg.client_key_len = key_end - key_start;
-// #elif CONFIG_WS_OVER_TLS_SERVER_AUTH
-//     extern const char cacert_start[] asm("_binary_ca_certificate_public_domain_pem_start"); // CA cert of wss://echo.websocket.event, modify it if using another server
-//     websocket_cfg.cert_pem = cacert_start;
-// #endif
-
-// #if CONFIG_WS_OVER_TLS_SKIP_COMMON_NAME_CHECK
-//     websocket_cfg.skip_cert_common_name_check = true;
-// #endif
-
-    ESP_LOGI(TAG, "Connecting to %s...", websocket_cfg.uri);
-
-    client = esp_websocket_client_init(&websocket_cfg);
-
-    esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocket_event_handler, (void *)client);
-
-    esp_websocket_client_start(client);
-    xTimerStart(shutdown_signal_timer, portMAX_DELAY);
-
-
-#if 1
-    char data[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"auth_token\",\"event_params\":{\"token\":\"API\"}}"};
-    esp_websocket_client_send_text(client, data, strlen(data), portMAX_DELAY);
-
-    char sendData[] = {"{\"socket_type\":\"custom_event\",\"event_name\":\"action_agent\",\"event_params\":{\"agent_name\":\"llm_socket\",\"model\":\"deepseek-chat\",\"asr_text\":\"给我讲一讲小红帽和大灰狼的故事吧\"}}"};
-    esp_websocket_client_send_text(client, sendData, strlen(sendData), portMAX_DELAY);
-#else
-    char data[32];
-    int i = 0;
-    while (i < 5) {
-        if (esp_websocket_client_is_connected(client)) {
-            int len = sprintf(data, "hello %04d", i++);
-            ESP_LOGI(TAG, "Sending %s", data);
-            esp_websocket_client_send_text(client, data, len, portMAX_DELAY);
-        }
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-#endif
-    // ESP_LOGI(TAG, "Sending fragmented message");
-    // vTaskDelay(1000 / portTICK_PERIOD_MS);
-    // memset(data, 'a', sizeof(data));
-    // esp_websocket_client_send_text_partial(client, data, sizeof(data), portMAX_DELAY);
-    // memset(data, 'b', sizeof(data));
-    // esp_websocket_client_send_cont_msg(client, data, sizeof(data), portMAX_DELAY);
-    // esp_websocket_client_send_fin(client, portMAX_DELAY);
-
-    xSemaphoreTake(shutdown_sema, portMAX_DELAY);
-    ESP_LOGI(TAG, "Remaining stack for Tmr Svc: %d", uxTaskGetStackHighWaterMark(NULL));
-    esp_websocket_client_close(client, portMAX_DELAY);
-    ESP_LOGI(TAG, "Websocket Stopped");
-    esp_websocket_client_destroy(client);
 }

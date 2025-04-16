@@ -1,7 +1,10 @@
 #include "wifi_event.h"
 
+
 static const char *TAG = "WIFI_EVENT";
 QueueHandle_t wifi_task_queue = NULL;
+SemaphoreHandle_t wifi_scan_mutex;
+
 
 typedef struct{
     GT_WIFI_STATUS wifi_status;
@@ -59,34 +62,38 @@ void wifi_scan_task(void* wifi_data)
     ESP_LOGE(TAG, "wifi scan task");
     wifi_ap_record_t ap_info;
     GT_WIFI_DATA* wifi_data_ptr = (GT_WIFI_DATA*)wifi_data;
-    wifi_data_ptr->wifi_items_c->scan_count = wifi_scan(wifi_data_ptr->wifi_items_c->wifi_items);
-    esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
-    ESP_LOGE(TAG, "wifi_scan_task ret = %d", ret);
-    reset_wifi_status(wifi_data_ptr->wifi_items_c->wifi_items, wifi_data_ptr->wifi_items_c->scan_count);
-    GT_PROTOCOL* wifi_temp = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
-    wifi_temp->head_type =  SCAN_LIST;
-    wifi_temp->data = wifi_data_ptr->wifi_items_c;
-    
-    if (ret == ESP_OK) 
+    while(1)
     {
-        // primary：AP的主要信道号，1.primary=0:未连接到 AP; 2.primary!=0:已连接到 AP，信道号有效。通过检查 primary 字段判断是否已连接
-        if (ap_info.primary != 0) 
+        xSemaphoreTake(wifi_scan_mutex, portMAX_DELAY);
+        wifi_data_ptr->wifi_items_c->scan_count = wifi_scan(wifi_data_ptr->wifi_items_c->wifi_items);
+        esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
+        ESP_LOGE(TAG, "wifi_scan_task ret = %d", ret);
+        reset_wifi_status(wifi_data_ptr->wifi_items_c->wifi_items, wifi_data_ptr->wifi_items_c->scan_count);
+        GT_PROTOCOL* wifi_temp = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+        wifi_temp->head_type =  SCAN_LIST;
+        wifi_temp->data = wifi_data_ptr->wifi_items_c;
+        
+        if (ret == ESP_OK) 
         {
-            wifi_config_t last_wifi_config = get_current_wifi_config();
-            for(int i = 0; i < wifi_data_ptr->wifi_items_c->scan_count; i++)
+            // primary：AP的主要信道号，1.primary=0:未连接到 AP; 2.primary!=0:已连接到 AP，信道号有效。通过检查 primary 字段判断是否已连接
+            if (ap_info.primary != 0) 
             {
-               if(strcmp(wifi_data_ptr->wifi_items_c->wifi_items[i].name, (char *)last_wifi_config.sta.ssid) == 0)
-               {
-                    wifi_data_ptr->wifi_items_c->wifi_tip = 0x01;
-                    wifi_data_ptr->wifi_items_c->wifi_icon = WIFI_SIGNAL_4;
-                    wifi_data_ptr->wifi_items_c->wifi_items[i].isConnected = true;
-                    break;
-               }
+                wifi_config_t last_wifi_config = get_current_wifi_config();
+                for(int i = 0; i < wifi_data_ptr->wifi_items_c->scan_count; i++)
+                {
+                   if(strcmp(wifi_data_ptr->wifi_items_c->wifi_items[i].name, (char *)last_wifi_config.sta.ssid) == 0)
+                   {
+                        wifi_data_ptr->wifi_items_c->wifi_tip = 0x01;
+                        wifi_data_ptr->wifi_items_c->wifi_icon = WIFI_SIGNAL_4;
+                        wifi_data_ptr->wifi_items_c->wifi_items[i].isConnected = true;
+                        break;
+                   }
+                }
             }
-        }
-    }   
-    xQueueSend(gui_task_queue, &wifi_temp, portMAX_DELAY);
-    wifi_data_ptr->wifi_status = GT_WIFI_SCAN_FINISH; 
+        }   
+        xQueueSend(gui_task_queue, &wifi_temp, portMAX_DELAY);
+        wifi_data_ptr->wifi_status = GT_WIFI_SCAN_FINISH;
+    }
     vTaskDelete(NULL);
 }
 
@@ -96,7 +103,7 @@ void gt_wifi_task(void* wifi_param)
     GT_PROTOCOL* wifi_protocol = NULL;
     GT_WIFI_PROTOCOL* get_wifi_data = NULL;
     wifi_task_queue = xQueueCreate(4, sizeof(GT_PROTOCOL*));
-    
+    wifi_scan_mutex = xSemaphoreCreateBinary();
     // LOAD_SCREEN* load_src = (LOAD_SCREEN*)audio_malloc(sizeof(LOAD_SCREEN));
     // memset(load_src, 0, sizeof(LOAD_SCREEN));
 
@@ -109,11 +116,19 @@ void gt_wifi_task(void* wifi_param)
     wifi_data->wifi_items_c->wifi_items = (WIFI_ITEM_INFO*)audio_malloc(DEFAULT_SCAN_LIST_SIZE * sizeof(WIFI_ITEM_INFO));
     memset(wifi_data->wifi_items_c->wifi_items, 0, DEFAULT_SCAN_LIST_SIZE * sizeof(WIFI_ITEM_INFO));
     
+    xTaskCreate(wifi_scan_task, "wifi_scan_task", 5*1024, wifi_data, 6, NULL);//创建扫描wifi列表线程
+
     wifi_data->wifi_status = gt_poweron_connect_wifi(wifi_data);//连接上一次的wifi  自动连接上次wifi的功能要改，从flash拿账号和密码
     
     if(wifi_data->wifi_status == GT_WIFI_CONNECTED)
     {
         gt_websocket_client_start();
+        GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+        memset(gt_pro, 0, sizeof(GT_PROTOCOL));
+        gt_pro->head_type = LOAD_MAIN_SCR;
+        wifi_data->wifi_items_c->wifi_icon = WIFI_SIGNAL_4;
+        gt_pro->data = wifi_data->wifi_items_c;
+        xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
     }
 
     while(1)
@@ -131,6 +146,8 @@ void gt_wifi_task(void* wifi_param)
                 wifi_data->wifi_status = GT_WIFI_DISCONNECTED;
                 reset_wifi_status(wifi_data->wifi_items_c->wifi_items, wifi_data->wifi_items_c->scan_count);//重置wifi连接状态，更改wifi状态label
             }
+            audio_free(wifi_protocol);
+            wifi_protocol = NULL;
             break;
             case WIFI_CONNECT_EVENT:
             get_wifi_data = (GT_WIFI_PROTOCOL*)(wifi_protocol->data);
@@ -141,11 +158,12 @@ void gt_wifi_task(void* wifi_param)
                 {
                     wifi_data->wifi_status = GT_WIFI_RUNNING;
                     reset_wifi_status(wifi_data->wifi_items_c->wifi_items, wifi_data->wifi_items_c->scan_count);
-                    wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].password = (char*)audio_malloc(strlen(get_wifi_data->password)+1);
-                    memset(wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].password, 0, strlen(get_wifi_data->password) + 1);
-                    strcpy(wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].password, get_wifi_data->password);
+                    //wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].password = (char*)audio_malloc(strlen(get_wifi_data->password)+1);
+                    //memset(wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].password, 0, strlen(get_wifi_data->password) + 1);
+                    //strcpy(wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].password, get_wifi_data->password);
                     wifi_data->wifi_status = wifi_sta_connect(wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].name, get_wifi_data->password);
-                    
+                    audio_free(get_wifi_data->password);
+                    get_wifi_data->password = NULL;
                     ESP_LOGE(TAG, "wifi_data->connect_status = %d\r\n",wifi_data->wifi_status);
                     if( wifi_data->wifi_status == GT_WIFI_CONNECTED)
                     {
@@ -153,10 +171,14 @@ void gt_wifi_task(void* wifi_param)
                         wifi_data->wifi_items_c->wifi_items[get_wifi_data->list_item_index].isConnected = true;
                         wifi_data->wifi_items_c->wifi_tip = 0x01;
                         wifi_data->wifi_items_c->wifi_icon = WIFI_SIGNAL_4;
-                        if(gt_websocket_client_state() == false)
+                        ESP_LOGE(TAG, "gt_websocket_client_state ==== %d\r\n", gt_websocket_client_state());
+                        if(gt_websocket_client_state() == 0)
                         {
                             gt_websocket_client_start();
+                            ESP_LOGE(TAG, "gt_websocket_client_state 222 ==== %d\r\n", gt_websocket_client_state());
                         }
+                        
+
                     }
                     else
                     {
@@ -187,10 +209,12 @@ void gt_wifi_task(void* wifi_param)
             if(wifi_data->wifi_status != GT_WIFI_RUNNING)
             {
                 wifi_data->wifi_status = GT_WIFI_RUNNING;
-                audio_free(wifi_protocol);
-                wifi_protocol = NULL;
-                xTaskCreate(wifi_scan_task, "wifi_scan_task", 5*1024, wifi_data, 6, NULL); //防止从夫点击
+             
+                // xTaskCreate(wifi_scan_task, "wifi_scan_task", 5*1024, wifi_data, 6, NULL); //防止重复点击
+                xSemaphoreGive(wifi_scan_mutex);
             }
+            audio_free(wifi_protocol);
+            wifi_protocol = NULL;
             break;
             default:
             break;

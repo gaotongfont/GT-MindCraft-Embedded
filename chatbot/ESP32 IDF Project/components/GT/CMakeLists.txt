@@ -10,6 +10,7 @@ set(src_dirs
             screen
             audio_flash_tone
             CJSON
+            HAL
             GUI
             GUI/driver
             GUI/src
@@ -37,6 +38,7 @@ set(include_dirs
             screen
             audio_flash_tone
             CJSON
+            HAL
             GUI
             GUI/driver
             GUI/src

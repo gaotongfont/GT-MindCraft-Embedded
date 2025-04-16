@@ -14,16 +14,20 @@ static gt_obj_st * img2 = NULL;
 static void screen_home_0_cb(gt_event_st * e) 
 {
 	gt_disp_stack_go_back(1);
-    GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
+    xSemaphoreTake(scr_id_mutex, portMAX_DELAY);
+	GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
 	memset(gt_pro, 0, sizeof(GT_PROTOCOL));
 	gt_pro->head_type = LOAD_MAIN_SCR;
+	gt_pro->data = NULL;
 	xQueueSend(gui_task_queue, &gt_pro, portMAX_DELAY);
+	xSemaphoreGive(scr_id_mutex);
 }
 
 static void WiFiSettings_0_cb(gt_event_st * e) 
 {
     ESP_LOGI(TAG,"--------is_auto_connected_end = %d\n", is_auto_connected_end);
 	gt_disp_stack_load_scr_anim(GT_ID_WIFI_LIST, GT_SCR_ANIM_TYPE_NONE, 500, 0, true);
+	wifi_scanning_dialog();
 	GT_PROTOCOL* gt_pro = (GT_PROTOCOL*)audio_malloc(sizeof(GT_PROTOCOL));
 	gt_pro->head_type = WIFI_SCAN_EVENT;
 	xQueueSend(wifi_task_queue, &gt_pro, portMAX_DELAY);

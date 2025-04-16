@@ -50,10 +50,11 @@ void change_wifi_connect_tip(uint8_t flag)
 
 
 static void screen_home_0_cb(gt_event_st * e) {
-    xSemaphoreGive(scr_id_sem);
+    xSemaphoreTake(scr_id_mutex, portMAX_DELAY);
 	gt_disp_stack_go_back(1);
     selected_idx = 0;
-    xSemaphoreTake(scr_id_sem, portMAX_DELAY);
+    xSemaphoreGive(scr_id_mutex);
+   
 }
 
 static void listv1_0_cb(gt_event_st * e) {

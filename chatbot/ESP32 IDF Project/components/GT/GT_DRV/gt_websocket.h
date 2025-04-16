@@ -12,10 +12,11 @@ extern "C" {
 
 #include "gt_ui.h"
 #include "gt_task_protocol.h"
+#include "gt_pipeline_play.h"
 #include "http_send.h"
 
-#define API_KEY   "USER API_KEY"
-#define WEB_LINK "ws://api.mindcraft.com.cn/socket-v1/?type=mcu&response_detail=1"
+#define API_KEY   ""
+#define WEB_LINK "ws://api.mindcraft.com.cn/socket-v1/?type=mcu&response_detail=1&not_stream_asr=1"
 
 /* typedef --------------------------------------------------------------*/
 #define WEATHER_DAYS 8   //查看的日期和一共七天的天数
@@ -40,7 +41,18 @@ extern "C" {
 extern QueueHandle_t web_room_id_queue;
 
 typedef enum{
-    WEBSOCKET_DISCONNECTED,
+    WEB_OTHER,
+    WEB_PARSE_FAIL,
+    WEB_PARSE_SUCCESSED,
+    WEB_AGENT_STOP,
+    WEB_AGENT_STOP_FORCE,
+    WEB_DATA_ERROR
+    
+}WEB_PARSE_STATUS;
+
+
+typedef enum{
+    WEBSOCKET_DISCONNECTED = 0,
     WEBSOCKET_CONNECTED,
     WEBSOCKET_RUNNING
 }WEBSOCKET_STATUS;
@@ -116,7 +128,7 @@ typedef struct{
 }WEBSOCKET_RECEIVED_DATA;
 
 typedef struct{
-    int count;
+    int result_size;
     char* message_category;
     char* message_content;
 }WEB_HISTORY_DATA;
@@ -146,7 +158,7 @@ void gt_websocket_client_init(); //websocket 初始化
  * @param data  audio data
  */
 void gt_websocket_send_data(char* data); //websocket 发送数据
-void gt_esp_websocket_client_send_fin();
+int gt_websocket_send_data_partial_fin();
 /**
  * @brief every time it is create task
  *
@@ -192,15 +204,6 @@ void gt_websocket_client_stop_send_audio_data();//停止发送音频
 void gt_websocket_client_stop_receive_data();
 
 /**
- * @brief parse json data
- *
- * @param jbuf json data
- * @param clock_buf storage data after parse json
- * @return int
- */
-int websocket_json_parse(char *jbuf, WEBSOCKET_RECEIVED_DATA* clock_buf);
-
-/**
  * @brief
  *
  * @param jbuf
@@ -217,11 +220,13 @@ int websocket_chatbot_json_parse(char *jbuf, ReceivedAnswerData* receive_buf);
 void set_isFirstAudiouri(bool value);
 
 /**
- * @brief Set the chatbot audio uri object
- *
- * @param audio_uri
+ * @brief Get the isFirstAudiouri object
+ * 
+ * @return true 
+ * @return false 
  */
-void set_chatbot_audio_uri(char* audio_uri);
+bool get_isFirstAudiouri();
+
 
 /**
  * @brief Get the chatbot audio uri object
@@ -261,12 +266,15 @@ void set_web_session_token(char* web_room_id, int len);
  */
 WEB_HISTORY_DATA** get_web_history_array();
 
+void web_receive_data_free();
 
 int gt_web_status();
 
 void free_chatbot_audio_uri();
 
 void gt_websocket_client_clear_history_message();
+
+void set_key_is_press(bool value);
 
 #ifdef __cplusplus
 }

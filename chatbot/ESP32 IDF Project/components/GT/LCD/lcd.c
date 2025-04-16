@@ -826,3 +826,13 @@ void xl955_config(esp_xl9555_config_t *pca_cfg)
     // pca_cfg->i2c_sda = GPIO_NUM_17;
     // pca_cfg->interrupt_output = -1;
 }
+
+void close_screen_show()
+{
+    lcd_write_cmd(0x28);
+}
+
+void start_screen_show()
+{
+    lcd_write_cmd(0x29);
+}

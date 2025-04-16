@@ -62,6 +62,7 @@
 // #include "gt_i2s.h"
 #include "gt_audio_storage.h"
 #include "gt_pipeline_play.h"
+#include "cmd_wifi.h"
 /* ------------------------------------------------------------------------ */
 #if USE_FUNC_LOCATE_DATA
 #include "zk_app.h"
@@ -79,7 +80,9 @@ static portMUX_TYPE my_spinlock = portMUX_INITIALIZER_UNLOCKED;
 
 ChatbotData cb_data;
 bool is_auto_connected_end = true;
-
+SemaphoreHandle_t key_mutex = NULL;
+SemaphoreHandle_t audio_event_mutex = NULL;
+QueueHandle_t audio_event_queue;
 QueueHandle_t web_audio_queue = NULL;
 QueueHandle_t mYxQueue;
 QueueHandle_t mYxQueue2;
@@ -89,6 +92,7 @@ QueueHandle_t audio_uri_queue = NULL;
 #endif //!USE_HTTP_STREAM
 SemaphoreHandle_t tts_audio_sem = NULL;
 QueueHandle_t web_room_id_queue = NULL;
+
 
 void print_memory_info(void) {
     // 获取总的空闲堆内存
@@ -458,54 +462,50 @@ void gt_streamAudio_task()
 
 void gt_streamAudio_task_v()
 {
-    int audio_status = -1;
+    int audio_status = -1, status = 0;
     bool isFinishing = false, startListen = false;
     ReceivedAnswerData* receive_evt = NULL;
     char* audio_uri = NULL;
     
-    // msg = get_iface_msg(gt_pipeline_single());
     gt_pipeline_st* gt_pipeline_obj = gt_pipeline_single();
+    set_startListen(gt_pipeline_obj, false);
     while(1)
     {
         xQueueReceive(web_audio_queue, &audio_uri, portMAX_DELAY);
-        ESP_LOGE(TAG, "gt_streamAudio_task_v receive audio uri");
         int res = gt_audio_pipeline_run(gt_pipeline_obj, audio_uri);
+        // free_chatbot_audio_uri();
         while(1)
         {
             ESP_LOGI(TAG, "audio_event_iface_listen");
             audio_event_iface_msg_t msg;
-            esp_err_t ret = audio_event_iface_listen(get_evt(gt_pipeline_obj), &msg, portMAX_DELAY);
+            esp_err_t ret = audio_event_iface_listen(get_evt(gt_pipeline_obj), &msg, pdMS_TO_TICKS(300)/*portMAX_DELAY*/);
             if (ret != ESP_OK)  
             {
                 ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
                 continue;
             }
 
-            if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
-                && msg.source == (void *) get_mp3_decoder(gt_pipeline_obj)
-                && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
-                audio_element_info_t music_info = {0};
-                audio_element_getinfo(get_mp3_decoder(gt_pipeline_obj), &music_info);
-    
-                ESP_LOGI(TAG, "[ * ] Receive music info from mp3 decoder, sample_rates=%d, bits=%d, ch=%d",
-                         music_info.sample_rates, music_info.bits, music_info.channels);
-    
-                i2s_stream_set_clk(get_i2s_stream_writer(gt_pipeline_single()), music_info.sample_rates, music_info.bits, music_info.channels);
-                continue;
-            }
-    
             /* Stop when the last pipeline element (i2s_stream_writer in this case) receives stop event */
             if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT && msg.source == (void *)get_i2s_stream_writer(gt_pipeline_single())
                 && msg.cmd == AEL_MSG_CMD_REPORT_STATUS
-                && (((int)msg.data == AEL_STATUS_STATE_STOPPED) || ((int)msg.data == AEL_STATUS_STATE_FINISHED))) {
-                ESP_LOGW(TAG, "[ * ] Stop event received");
-                // gt_audio_pipeline_stop(gt_pipeline_single());
+                && ((int)msg.data == AEL_STATUS_STATE_FINISHED)) {
+                ESP_LOGW(TAG, "[ * ] Finish event received");
+                
+                xSemaphoreTake(audio_event_mutex, portMAX_DELAY);
+                xQueueSend(audio_event_queue, &status, portMAX_DELAY);
+                xSemaphoreGive(audio_event_mutex);
                 break;
             }
-
-        }
-        gt_audio_pipeline_stop(gt_pipeline_obj);
-
+            else if(msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT && msg.source == (void *)get_i2s_stream_writer(gt_pipeline_single())
+            && msg.cmd == AEL_MSG_CMD_REPORT_STATUS
+            && ((int)msg.data == AEL_STATUS_STATE_STOPPED))
+            {
+                ESP_LOGW(TAG, "[ * ] Stop event received");
+                break;
+            }
+        }        
+        ESP_LOGW(TAG, "gt_streamAudio_task_v audio stop or finish");
+        free_chatbot_audio_uri();
         vTaskDelay(500);  // 延迟100ms，避免过度占用CPU
     }
 }
@@ -538,46 +538,15 @@ void get_wifi_signal_anytime()
     }
 }
 #endif
-
+void cb_data_init();
 void app_main(void)
 {
     esp_xl9555_config_t pca_cfg = {0};
-
-    web_audio_queue = xQueueCreate(3, sizeof(char*));
+    key_mutex = xSemaphoreCreateMutex();
+    audio_event_mutex = xSemaphoreCreateMutex();
+    audio_event_queue = xQueueCreate(6, sizeof(int));
+    web_audio_queue = xQueueCreate(6, sizeof(char*));
     web_room_id_queue = xQueueCreate(3, sizeof(char*));
-
-    tts_audio_sem = xSemaphoreCreateBinary();
-    if(tts_audio_sem == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create tts_audio_sem");
-        return;
-    }
-
-    mYxQueue = xQueueCreate(3, sizeof(int));
-    if (mYxQueue == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create queue");
-    }
-    mYxQueue2 = xQueueCreate(3, sizeof(int));
-    if (mYxQueue2 == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create queue");
-    }
-
-#if USE_HTTP_STREAM
-    mYxQueue3 = xQueueCreate(16, sizeof(ReceivedAnswerData *));
-    if (mYxQueue3 == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create queue");
-        return;
-    }
-
-    audio_uri_queue = xQueueCreate(16, sizeof(char *));
-    if (audio_uri_queue == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create audio_uri_queue");
-    }
-#endif //!USE_HTTP_STREAM
 
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
@@ -621,6 +590,7 @@ void app_main(void)
 
     spi2_init();
     lcd_init();                         /* 初始化LCD */
+    close_screen_show();
 
     esptim_int_init(1000);              /* 定时器初始化，定时1ms */
 
@@ -645,6 +615,7 @@ void app_main(void)
 
     wifi_init();
     wifi_event_init();
+    // cmd_iperf_init();
 
     gt_role_emote_init();           /* 初始化角色表情 */
 
@@ -653,6 +624,40 @@ void app_main(void)
     gt_audio_storage_start(GT_RECORDING_STATE_WAKEUP);   //GT_RECORDING_STATE_WAKEUP
 #endif
     /* 设置界面参数 */
+    cb_data_init();
+
+    char * mem_pool = (char *)audio_malloc(GT_MEM_SIZE);
+    gt_mem_set_pool_pointer(mem_pool);
+
+    gt_websocket_client_init(); //websocket client 初始化
+    gt_init();                             /* gui初始化 */
+    gt_ui_init();                          /* 界面初始化 */
+    
+    start_screen_show();
+    
+    // unsigned char buf[30] = {0};
+    // int res = r_dat_bat(0, 20, buf);
+    // printf("buf ========== %s   res = %d\r\n", buf, res);
+
+    taskENTER_CRITICAL(&my_spinlock);
+
+    xTaskCreate(audio_event_task, "audio_event_task", 5*1024, NULL, 6, NULL);
+    xTaskCreate(gt_gui_task, "gt_gui_task", 8*1024, NULL, 3, NULL);
+    xTaskCreate(gt_wifi_task, "gt_wifi_task", 5*1024, NULL, 5, NULL);
+
+    taskEXIT_CRITICAL(&my_spinlock);
+    print_memory_info();
+
+#if (WEBSOCKET_HTTP_SWITCH == 2)
+    // serve_dialog_init();
+    // gt_websocket_client_init();
+#endif
+
+
+}
+
+void cb_data_init()
+{
     cb_data.settings = (SendSettingsData*)audio_malloc(sizeof(SendSettingsData));
     memset(cb_data.settings, 0, sizeof(SendSettingsData));
 
@@ -684,88 +689,4 @@ void app_main(void)
     cb_data.answer = (ReceivedAnswerData*)audio_malloc(sizeof(ReceivedAnswerData));
     memset(cb_data.answer, 0, sizeof(ReceivedAnswerData));
 
-
-    char * mem_pool = (char *)audio_malloc(GT_MEM_SIZE);
-    gt_mem_set_pool_pointer(mem_pool);
-
-    
-    gt_websocket_client_init(); //websocket client 初始化
-    gt_init();                             /* gui初始化 */
-    gt_ui_init();                          /* 界面初始化 */
-    
- 
-    
-    taskENTER_CRITICAL(&my_spinlock);
-
-#if WEBSOCKET_HTTP_SWITCH == HTTP_STREAM
-    xTaskCreate(&http_test_task, "http_test_task", 8*1024, &cb_data, 3, NULL);
-    xTaskCreate(gt_streamAudio_task, "gt_streamAudio_task", 3*1024, NULL, 2, NULL);
-#elif WEBSOCKET_HTTP_SWITCH == HTTP_NO_STREAM
-    xTaskCreate(&http_test_task, "http_test_task", 8*1024, &cb_data, 3, NULL);
-#elif WEBSOCKET_HTTP_SWITCH == WEBSOCKET
-    xTaskCreate(gt_streamAudio_task, "gt_streamAudio_task", 3*1024, NULL, 5, NULL);
-
-#endif //!USE_HTTP_STREAM
-
-#if MONITOR_WIFI_SIGNAL
-    // xTaskCreate(&get_wifi_signal_anytime, "get_wifi_signal_anytime", 3*1024, NULL, 2, NULL);  
-#endif
-
-    xTaskCreate(gt_gui_task, "gt_gui_task", 8*1024, NULL, 3, NULL);
-    xTaskCreate(gt_wifi_task, "gt_wifi_task", 5*1024, NULL, 5, NULL);
-
-    taskEXIT_CRITICAL(&my_spinlock);
-    print_memory_info();
-
-#if (WEBSOCKET_HTTP_SWITCH == 2)
-    // serve_dialog_init();
-    // gt_websocket_client_init();
-#endif
-
-
-}
-
-void gt_create_room_task()
-{
-    while(1)
-    {
-
-    }
-}
-
-
-void gt_handel_init()
-{
-    tts_audio_sem = xSemaphoreCreateBinary();
-    if(tts_audio_sem == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create tts_audio_sem");
-        return;
-    }
-
-    mYxQueue = xQueueCreate(3, sizeof(int));
-    if (mYxQueue == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create queue");
-    }
-    mYxQueue2 = xQueueCreate(3, sizeof(int));
-    if (mYxQueue2 == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create queue");
-    }
-
-#if USE_HTTP_STREAM
-    mYxQueue3 = xQueueCreate(16, sizeof(ReceivedAnswerData *));
-    if (mYxQueue3 == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create queue");
-        return;
-    }
-
-    audio_uri_queue = xQueueCreate(16, sizeof(char *));
-    if (audio_uri_queue == NULL) {
-        // 队列创建失败处理
-        ESP_LOGE(TAG, "Failed to create audio_uri_queue");
-    }
-#endif //!USE_HTTP_STREAM
 }

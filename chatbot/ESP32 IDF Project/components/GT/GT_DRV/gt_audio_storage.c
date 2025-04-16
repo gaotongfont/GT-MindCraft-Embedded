@@ -29,7 +29,7 @@
 #endif
 
 /* private define -------------------------------------------------------*/
-#define GT_RING_BUFFER_SIZE         (4 * 1024)
+#define GT_RING_BUFFER_SIZE         (2 * 1024)
 
 #define GT_AUDIO_MEMORY_I2C_RATE    (16000)
 
@@ -146,14 +146,14 @@ void gt_audio_storage_init(void)
     i2s_cfg.uninstall_drv = false;
     gt_i2s_stream_reader = i2s_stream_init(&i2s_cfg);
     ESP_LOGI(TAG, "[1.1] Create a ring buffer and insert it between i2s_stream_reader and the PCM buffer");
-    gt_ringbuf01 = rb_create(GT_RING_BUFFER_SIZE, 14);
+    gt_ringbuf01 = rb_create(GT_RING_BUFFER_SIZE, 32);
     if (!gt_ringbuf01) {
         ESP_LOGE(TAG, "Failed to create ring buffer");
         return;
     }
     _set_recording_state(_get_default_recording_state());
     audio_element_set_output_ringbuf(gt_i2s_stream_reader, gt_ringbuf01);
-    xTaskCreate(get_pcm_data, "get_pcm_data", 3 * 1024, NULL, 2, NULL);
+    xTaskCreate(get_pcm_data, "get_pcm_data", 3 * 1024, NULL, 5, NULL);
 
     audio_storage.lock_recording = true;
 }
